@@ -1,7 +1,7 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, globalShortcut } = require('electron');
 const path = require('path');
 
-// Inicializar base SQLite al levantar la aplicación
+// Inicializar base de datos local
 require('./data/base.js');
 
 function createWindow() {
@@ -21,68 +21,33 @@ function createWindow() {
 
   win.loadFile('loguer.html');
 
- // 🔒 Remover completamente el menú superior de la ventana
-  win.removeMenu();
-
-  // 🔒 Bloquear el menú contextual (clic derecho -> Inspeccionar)
-  win.webContents.on('context-menu', (e) => {
-    e.preventDefault();
-  });
-
-  // 🔒 Deshabilitar atajos de teclado específicos en la ventana activa (F12, DevTools, Recargar)
+  // Bloquear atajos directos dentro de la ventana de Electron
   win.webContents.on('before-input-event', (event, input) => {
-    const isControlOrCmd = input.control || input.meta;
-    const key = input.key.toLowerCase();
+    const isCtrlOrCmd = input.control || input.meta;
+    const key = (input.key || '').toUpperCase();
 
-    // Bloquear F12
-    if (input.key === 'F12') {
-      event.preventDefault();
-    }
-    // Bloquear Ctrl+Shift+I / Cmd+Option+I (Abrir DevTools)
-    if (isControlOrCmd && input.shift && key === 'i') {
-      event.preventDefault();
-    }
-    // Bloquear Ctrl+Shift+J / Cmd+Option+J (Abrir Consola)
-    if (isControlOrCmd && input.shift && key === 'j') {
-      event.preventDefault();
-    }
-    // Bloquear Ctrl+Shift+C (Inspeccionar elemento)
-    if (isControlOrCmd && input.shift && key === 'c') {
-      event.preventDefault();
-    }
-    // Bloquear Ctrl+U (Ver código fuente HTML)
-    if (isControlOrCmd && key === 'u') {
-      event.preventDefault();
-    }
-    // Bloquear F5 o Ctrl+R (Refrescar la app)
-    if (input.key === 'F5' || (isControlOrCmd && key === 'r')) {
+    // Bloquear F12, Ctrl+Shift+I/J/C, Ctrl+U, Ctrl+R, F5
+    if (
+      input.key === 'F12' ||
+      input.key === 'F5' ||
+      (isCtrlOrCmd && input.shift && ['I', 'J', 'C'].includes(key)) ||
+      (isCtrlOrCmd && ['U', 'R', 'S'].includes(key))
+    ) {
       event.preventDefault();
     }
   });
-
-  // 5. Bloquear navegación inesperada fuera de la app
-  win.webContents.on('will-navigate', (event, navigationUrl) => {
-    const parsedUrl = new URL(navigationUrl);
-    if (parsedUrl.protocol !== 'file:') {
-      event.preventDefault();
-    }
-  });
-
-  // 6. Abrir enlaces externos siempre en el navegador del sistema
-  win.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('https:') || url.startsWith('http:')) {
-      shell.openExternal(url);
-    }
-    return { action: 'deny' };
-  });
-
-  win.loadFile('loguer.html');
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  createWindow();
 
-// 🔒 Desregistrar atajos globales al cerrar la aplicación
+  // Registrar bloqueo de atajos globales si se requiere a nivel aplicación
+  globalShortcut.register('CommandOrControl+Shift+I', () => false);
+  globalShortcut.register('F12', () => false);
+});
+
 app.on('will-quit', () => {
+  // Limpiar atajos globales al cerrar
   globalShortcut.unregisterAll();
 });
 
