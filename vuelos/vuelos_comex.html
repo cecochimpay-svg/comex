@@ -366,13 +366,16 @@
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.4);
+      background: rgba(0, 0, 0, 0.5);
       backdrop-filter: blur(4px);
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 1800;
+      z-index: 9999;
       padding: 12px;
+    }
+    .modal-overlay.show {
+      display: flex !important;
     }
     .modal-overlay.show { display: flex; }
     .modal-box {
@@ -963,19 +966,60 @@
 
     // Modal Alta / Edición
     function abrirModalNuevoVuelo() {
-      document.getElementById('lblModalTitulo').innerText = "Registrar Despacho Aéreo";
-      document.getElementById('formVuelo').reset();
+      try {
+        const modal = document.getElementById('modalVuelo');
+        if (!modal) return alert("No se encontró el elemento modalVuelo en el HTML.");
 
-      const nuevoReg = generarSiguienteRegistro();
-      document.getElementById('txtRegistroId').value = '';
-      document.getElementById('lblRegistroIdBadge').innerText = `Nuevo: ${nuevoReg}`;
-      document.getElementById('txtDestino').value = '';
-      const hoyStr = new Date().toISOString().split('T')[0];
-      document.getElementById('txtFecha').value = hoyStr;
-      actualizarSemanaSegunFecha(hoyStr);
+        document.getElementById('lblModalTitulo').innerText = "Registrar Despacho Aéreo";
+        
+        const form = document.getElementById('formVuelo');
+        if (form) form.reset();
 
-      cambiarTabModal(0, document.querySelectorAll('.form-tab-btn')[0]);
-      document.getElementById('modalVuelo').classList.add('show');
+        const nuevoReg = generarSiguienteRegistro();
+        const inputReg = document.getElementById('txtRegistroId');
+        if (inputReg) inputReg.value = '';
+
+        const badgeReg = document.getElementById('lblRegistroIdBadge');
+        if (badgeReg) badgeReg.innerText = `Nuevo: ${nuevoReg}`;
+
+        const hoyStr = new Date().toISOString().split('T')[0];
+        const inputFecha = document.getElementById('txtFecha');
+        if (inputFecha) {
+          inputFecha.value = hoyStr;
+          actualizarSemanaSegunFecha(hoyStr);
+        }
+
+        // Activar la primera pestaña
+        const primerTabBtn = document.querySelector('.form-tab-btn');
+        if (primerTabBtn) {
+          cambiarTabModal(0, primerTabBtn);
+        }
+
+        // Mostrar el modal tanto por clase como por estilo directo
+        modal.classList.add('show');
+        modal.style.display = 'flex';
+
+      } catch (err) {
+        console.error("Error abriendo modal:", err);
+        alert("Ocurrió un error al abrir el formulario: " + err.message);
+      }
+    }
+
+    function cerrarModalVuelo() {
+      const modal = document.getElementById('modalVuelo');
+      if (modal) {
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+      }
+    }
+
+    function cambiarTabModal(idx, btn) {
+      document.querySelectorAll('.form-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.form-tab-pane').forEach(p => p.classList.remove('active'));
+
+      if (btn) btn.classList.add('active');
+      const pane = document.getElementById(`modalTab${idx}`);
+      if (pane) pane.classList.add('active');
     }
 
     function abrirModalEditarVuelo(v) {
@@ -1016,9 +1060,7 @@
       document.getElementById('modalVuelo').classList.add('show');
     }
 
-    function cerrarModalVuelo() {
-      document.getElementById('modalVuelo').classList.remove('show');
-    }
+
 
     async function guardarFormularioVuelo(e) {
   e.preventDefault();
@@ -1068,10 +1110,10 @@
     vuelo_cnx: getValOrNull('txtVueloCnx'),
     fecha_etd2: getValOrNull('txtFechaEtd2'),
     hora_etd2: getValOrNull('txtHoraEtd2'),
-    "fecha_eta 2": getValOrNull('txtFechaEta2'), // Clave original de la tabla
+    fecha_eta_2: getValOrNull('txtFechaEta2'), // Clave original de la tabla
     hora_eta2: getValOrNull('txtHoraEta2'),
-    tarifa_kg: getValOrNull('txtTarifa'),
-    fijos: getValOrNull('txtFijos'),
+    tarifa_kg: `USD ${getValOrNull('txtTarifa')}`,
+    fijos: `USD ${getValOrNull('txtFijos')}`,
     usuario: sesionUsuario.usuario
   };
 
