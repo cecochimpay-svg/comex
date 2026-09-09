@@ -965,8 +965,15 @@
       // Formato: USUARIO&XXXXXXXX (Ej: JUAN&A8B2C3D4)
       return randomCode;
     }
+   //generarSiguienteRegistro
 
-
+    function generarSiguienteRegistro() {
+      const uNombre = (sesionUsuario && sesionUsuario.usuario) ? sesionUsuario.usuario.toUpperCase().trim() : 'USUARIO';
+      const randomCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+      // Formato: USUARIO&XXXXXXXX (Ej: JUAN&A8B2C3D4)
+      return randomCode;
+    }
+    
     // Modal Alta / Edición
     function abrirModalNuevoVuelo() {
       try {
