@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Despacho y Vuelos COMEX · CECO S.A.</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --color-bg: #F4F6F4;
+      --color-surface: #FFFFFF;
+      --color-text: #1A211C;
+      --color-text-secondary: #556358;
+      --color-border: #D2D7D3;
+      --color-adm: #1E6B4C;
+      --color-adm-dark: #104630;
+      --color-adm-soft: rgba(30, 107, 76, 0.08);
+      --color-ok: #2E7D32;
+      --color-ok-soft: #E8F5E9;
+      --color-warn: #C62828;
+      --color-warn-soft: #FFEBEE;
+      --color-blue: #0071E3;
+      --color-blue-soft: #EBF3FA;
+      --color-amber: #B45309;
+      --color-amber-soft: #FFFBEB;
+      --color-amber-border: #FCD34D;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: var(--font-family);
+      background: var(--color-bg);
+      color: var(--color-text);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #C4CCC6; border-radius: 20px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--color-adm); }
+
+    /* Barra Superior */
+    .top-system-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #FFFFFF;
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--color-border);
+      height: 58px;
+      flex-shrink: 0;
+      gap: 12px;
+      z-index: 10;
+    }
+
+    .user-access-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-access-info span.highlight {
+      color: var(--color-adm);
+      font-weight: 800;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    .top-right-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .system-datetime {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-sync-top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--color-adm-soft);
+      border: 1px solid rgba(30, 107, 76, 0.25);
+      color: var(--color-adm-dark);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-sync-top:hover { background: var(--color-adm); color: #FFFFFF; }
+    .btn-sync-top.rotating svg { animation: girar 1s linear infinite; }
+    @keyframes girar { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    .btn-logout {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFFDE7;
+      border: 1px solid #FBC02D;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #F57F17;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    .btn-logout:hover { background: #FFF9C4; color: #E65100; }
+
+    /* Layout Completo */
+    .main-content {
+      flex: 1;
+      padding: 14px 20px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      max-width: 1600px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .header-area {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .seccion-titulo-wrap {
+      position: relative;
+      padding-left: 12px;
+    }
+    .seccion-titulo-wrap::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 2px; bottom: 2px;
+      width: 4px;
+      border-radius: 4px;
+      background: linear-gradient(180deg, var(--color-adm), var(--color-adm-dark));
+    }
+    .seccion-titulo {
+      font-size: 18px;
+      font-weight: 800;
+      margin: 0;
+      color: var(--color-adm-dark);
+      line-height: 1.2;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .seccion-subtitulo {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    .btn-action {
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      padding: 8px 14px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-nuevo {
+      background: var(--color-adm);
+      color: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(30, 107, 76, 0.15);
+    }
+    .btn-nuevo:hover { background: var(--color-adm-dark); transform: translateY(-1px); }
+
+    /* Barra de Totales y Filtros */
+    .filtro-fechas-card {
+      background: #FFFFFF;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 8px 14px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .filtro-fechas-chips { display: flex; gap: 6px; align-items: center; }
+    .chip-preset {
+      background: var(--color-adm-soft);
+      color: var(--color-adm-dark);
+      border: 1px solid transparent;
+      border-radius: 16px;
+      padding: 4px 10px;
+      font-size: 10.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .chip-preset:hover, .chip-preset.active { background: var(--color-adm); color: #fff; }
+
+    /* Layout Master - Detail */
+    .master-detail-grid {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 12px;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .panel-master {
+      background: #FFFFFF;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: hidden;
+    }
+    .lista-semanas-scroll {
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .fila-card-master {
+      background: #F8FAFC;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 9px 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .fila-card-master:hover { border-color: var(--color-adm); background: #FFFFFF; }
+    .fila-card-master.active {
+      border-color: var(--color-adm);
+      background: var(--color-adm-soft);
+      box-shadow: 0 2px 6px rgba(30, 107, 76, 0.10);
+    }
+    .f-title { font-size: 12px; font-weight: 800; color: var(--color-adm-dark); font-family: 'Montserrat', sans-serif; }
+    .f-sub { font-size: 10px; font-weight: 600; color: var(--color-text-secondary); margin-top: 1px; }
+
+    .panel-detail {
+      background: #FFFFFF;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .tabla-wrap {
+      flex: 1;
+      overflow: auto;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+    }
+
+    .tabla-custom {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px;
+    }
+    .tabla-custom th {
+      position: sticky;
+      top: 0;
+      background: #FAFAF8;
+      padding: 8px 10px;
+      font-size: 9.5px;
+      font-weight: 800;
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--color-border);
+      text-align: left;
+      z-index: 1;
+      white-space: nowrap;
+    }
+    .tabla-custom td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--color-border);
+      color: var(--color-text);
+      vertical-align: middle;
+    }
+    .tabla-custom tr:hover td { background: rgba(30, 107, 76, 0.03); }
+
+    .badge-tag { padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 800; text-transform: uppercase; display: inline-block; }
+    .tag-verde { background: var(--color-ok-soft); color: var(--color-ok); }
+    .tag-azul { background: var(--color-blue-soft); color: var(--color-blue); }
+    .tag-amarillo { background: var(--color-amber-soft); color: #92400E; border: 1px solid var(--color-amber-border); }
+
+    .btn-accion {
+      border: 1px solid var(--color-border);
+      background: #FFFFFF;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+    .btn-accion.edit:hover { background: #FFFDE7; border-color: #FFF176; color: #F57F17; }
+    .btn-accion.delete:hover { background: #FFEBEE; border-color: #FFCDD2; color: #C62828; }
+
+    /* Modales */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1800;
+      padding: 12px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      background: #FFFFFF;
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      width: 100%;
+      max-width: 780px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14);
+      border: 1px solid var(--color-border);
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-header { margin-bottom: 10px; flex-shrink: 0; }
+    .modal-title { font-size: 15px; font-weight: 800; color: var(--color-adm-dark); margin: 0; font-family: 'Montserrat', sans-serif; }
+    .modal-body { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 4px; flex: 1; }
+    .modal-group { display: flex; flex-direction: column; gap: 3px; }
+    .modal-group label { font-size: 9.5px; font-weight: 700; color: var(--color-text-secondary); text-transform: uppercase; }
+    .modal-input { width: 100%; padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--color-border); font-size: 12px; background: #FAFAFA; outline: none; font-family: inherit; }
+    .modal-input:focus { border-color: var(--color-adm); background: #FFFFFF; }
+    .modal-row-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; flex-shrink: 0; }
+    .modal-btn { border-radius: var(--radius-sm); padding: 7px 14px; font-size: 11.5px; font-weight: 700; cursor: pointer; border: 1px solid transparent; }
+    .modal-btn.cancel { background: transparent; border-color: var(--color-border); color: var(--color-text-secondary); }
+    .modal-btn.save { background: var(--color-adm); color: #FFFFFF; }
+
+    /* Indicador visual de Semana Calculada */
+    .badge-semana-calculada {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--color-adm-soft);
+      border: 1px solid rgba(30, 107, 76, 0.25);
+      color: var(--color-adm-dark);
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 800;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    /* Adaptación Móvil / Celular */
+    @media (max-width: 860px) {
+      body { overflow-y: auto; }
+      .system-datetime { display: none; }
+      .main-content { padding: 10px; }
+      .master-detail-grid {
+        grid-template-columns: 1fr;
+        display: flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+      .panel-master { max-height: 160px; }
+      .lista-semanas-scroll {
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+      }
+      .fila-card-master {
+        min-width: 140px;
+        flex-shrink: 0;
+      }
+      .panel-detail {
+        min-height: 400px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra Superior -->
+  <header class="top-system-bar">
+    <div class="user-access-info">
+      👤 <span class="highlight" id="lblUsuarioTopbar">—</span> &nbsp;·&nbsp;
+      TEMPORADA <span class="highlight" id="lblTemporadaTopbar">2026</span>
+    </div>
+
+    <div class="top-right-bar">
+      <div class="system-datetime" id="lblFechaHora">MIERCOLES 09 DE SEPTIEMBRE DE 2026</div>
+      <button class="btn-sync-top" id="btnSync" onclick="sincronizar()" title="Sincronizar con Supabase">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+        Sincronizar
+      </button>
+      <a href="../loguer.html" class="btn-logout" onclick="cerrarSesion()">
+        ✕ Salir
+      </a>
+    </div>
+  </header>
+
+  <!-- Contenido Principal -->
+  <main class="main-content">
+    <div class="header-area">
+      <div class="seccion-titulo-wrap">
+        <h1 class="seccion-titulo">Despacho de Vuelos de Cosecha</h1>
+        <div class="seccion-subtitulo">Registros operativos y logística aérea de la temporada activa.</div>
+      </div>
+
+      <div>
+        <button class="btn-action btn-nuevo" onclick="abrirModalNuevoVuelo()">
+          ➕ Registrar Despacho
+        </button>
+      </div>
+    </div>
+
+    <!-- Barra de Filtros y Totales -->
+    <div class="filtro-fechas-card">
+      <div class="filtro-fechas-chips">
+        <span style="font-size: 11px; font-weight: 700; color: var(--color-text-secondary);">Semanas:</span>
+        <button class="chip-preset active" onclick="filtrarSemanasPreset('TODAS', this)">Todas</button>
+        <button class="chip-preset" onclick="filtrarSemanasPreset('RECIENTES', this)">Últimas 4 Semanas</button>
+      </div>
+      <div style="font-size: 11.5px; font-weight: 700; color: var(--color-adm-dark);" id="lblResumenTotales">
+        0 Cajas · 0 Kilos netos
+      </div>
+    </div>
+
+    <!-- Master - Detail -->
+    <div class="master-detail-grid">
+      <!-- Selector de Semanas (Izquierda / Superior en móvil) -->
+      <div class="panel-master">
+        <div style="font-size: 11px; font-weight: 800; color: var(--color-text-secondary); text-transform: uppercase; padding-bottom: 4px; border-bottom: 1px solid var(--color-border);">
+          Semanas Operativas
+        </div>
+        <div class="lista-semanas-scroll" id="contenedorSemanas">
+          <div style="font-size: 11.5px; color: var(--color-text-secondary); padding: 8px;">Cargando...</div>
+        </div>
+      </div>
+
+      <!-- Detalle de Vuelos de la Semana -->
+      <div class="panel-detail">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <div style="font-size: 12px; font-weight: 800; color: var(--color-adm-dark); font-family: 'Montserrat';" id="lblTituloDetalleSemana">
+            Seleccioná una semana
+          </div>
+          <input type="text" class="modal-input" style="width: 200px; padding: 5px 8px; font-size: 11px;" placeholder="🔍 Buscar cliente, AWB o vuelo..." oninput="filtrarVuelosEnTabla(this.value)">
+        </div>
+
+        <div class="tabla-wrap">
+          <table class="tabla-custom">
+            <thead>
+              <tr>
+                <th>Registro</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Destino</th>
+                <th>Línea Aérea</th>
+                <th>AWB / Vuelo</th>
+                <th>Cajas / Kilos</th>
+                <th>Tarifa</th>
+                <th style="text-align: right;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyDetalleVuelos">
+              <tr><td colspan="9" style="text-align: center; padding: 24px; color: var(--color-text-secondary);">Seleccioná una semana a la izquierda.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal Nuevo / Editar Vuelo (Sin campo Semana manual) -->
+  <div class="modal-overlay" id="modalVuelo">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="lblModalTitulo">Registrar Despacho Aéreo</h3>
+      </div>
+
+      <form id="formVuelo" onsubmit="guardarFormularioVuelo(event)">
+        <div class="modal-body">
+          <input type="hidden" id="txtRegistroId" />
+
+          <!-- Fecha y Semana Autocalculada -->
+          <div class="modal-row-grid">
+            <div class="modal-group">
+              <label>Fecha de Despacho *</label>
+              <input type="date" id="txtFecha" class="modal-input" required onchange="actualizarSemanaSegunFecha(this.value)" />
+            </div>
+
+            <div class="modal-group">
+              <label>Semana Operativa (Calculada)</label>
+              <div class="badge-semana-calculada">
+                📅 Semana: <span id="lblSemanaCalculada">—</span>
+              </div>
+              <input type="hidden" id="valSemanaCalculada" />
+            </div>
+
+            <div class="modal-group">
+              <label>Ingreso / Hora</label>
+              <input type="text" id="txtIngreso" class="modal-input" placeholder="Ej: 14:30 hs" />
+            </div>
+          </div>
+
+          <div class="modal-row-grid">
+            <div class="modal-group">
+              <label>Cliente / Exportador *</label>
+              <input type="text" id="txtCliente" class="modal-input" required placeholder="Nombre del cliente" />
+            </div>
+            <div class="modal-group">
+              <label>Destino (Aeropuerto / Ciudad) *</label>
+              <input type="text" id="txtDestino" class="modal-input" required placeholder="Ej: MIA / MIA-USA" />
+            </div>
+          </div>
+
+          <div class="modal-row-grid">
+            <div class="modal-group">
+              <label>Línea Aérea</label>
+              <input type="text" id="txtLineaAerea" class="modal-input" placeholder="Ej: LATAM Cargo / Atlas" />
+            </div>
+            <div class="modal-group">
+              <label>AWB (Guía Aérea)</label>
+              <input type="text" id="txtAwb" class="modal-input" placeholder="045-12345678" />
+            </div>
+            <div class="modal-group">
+              <label>Nº de Vuelo</label>
+              <input type="text" id="txtVuelo" class="modal-input" placeholder="Ej: UC1502" />
+            </div>
+          </div>
+
+          <div class="modal-row-grid">
+            <div class="modal-group">
+              <label>Cantidad Cajas (PCS) *</label>
+              <input type="number" id="txtPcs" class="modal-input" required min="0" />
+            </div>
+            <div class="modal-group">
+              <label>Kilos Totales *</label>
+              <input type="number" id="txtKilos" class="modal-input" required min="0" />
+            </div>
+            <div class="modal-group">
+              <label>Kilos Netos</label>
+              <input type="number" id="txtNeta" class="modal-input" min="0" />
+            </div>
+            <div class="modal-group">
+              <label>Tarifa / KG</label>
+              <input type="text" id="txtTarifa" class="modal-input" placeholder="USD 2.85" />
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="modal-btn cancel" onclick="cerrarModalVuelo()">Cancelar</button>
+          <button type="submit" class="modal-btn save" id="btnGuardarModal">Guardar Despacho</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const AÑO_ACTUAL = new Date().getFullYear();
+    const SUPABASE_URL = 'https://veqpyhifwubcdxocckmf.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlcXB5aGlmd3ViY2R4b2Nja21mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NzI5NzAsImV4cCI6MjA5MTQ0ODk3MH0.mIRsPLLoHn9jQtvCCwxG3aNFWtXIdcV12kLTC_MqybY';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let sesionUsuario = null;
+    let vuelosUsuario = [];
+    let semanaSeleccionada = null;
+
+    let servSinc = null;
+    if (typeof require === 'function') {
+      try { servSinc = require('../servicios/sincronizacion.js'); } catch (e) {}
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const sesionRaw = localStorage.getItem('comex_sesion');
+      if (!sesionRaw) {
+        window.location.href = '../loguer.html';
+        return;
+      }
+
+      sesionUsuario = JSON.parse(sesionRaw);
+      document.getElementById('lblUsuarioTopbar').innerText = sesionUsuario.usuario;
+      document.getElementById('lblTemporadaTopbar').innerText = AÑO_ACTUAL;
+
+      cargarDatosVuelos();
+    });
+
+    // Función que calcula la semana operativa ISO-8601 a partir de la fecha
+    function calcularNumeroSemana(fechaStr) {
+      if (!fechaStr) return null;
+      const [year, month, day] = fechaStr.split('-').map(Number);
+      const d = new Date(Date.UTC(year, month - 1, day));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    }
+
+    function actualizarSemanaSegunFecha(fechaStr) {
+      const numSem = calcularNumeroSemana(fechaStr);
+      if (numSem) {
+        document.getElementById('lblSemanaCalculada').innerText = numSem;
+        document.getElementById('valSemanaCalculada').value = numSem;
+      } else {
+        document.getElementById('lblSemanaCalculada').innerText = '—';
+        document.getElementById('valSemanaCalculada').value = '';
+      }
+    }
+
+    async function cargarDatosVuelos() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('logistitcas_temporada')
+          .select('*')
+          .eq('temporada', AÑO_ACTUAL)
+          .eq('usuario', sesionUsuario.usuario)
+          .order('semana', { ascending: false });
+
+        if (error) throw error;
+        vuelosUsuario = data || [];
+
+      } catch (err) {
+        console.warn("Fallback offline local:", err.message);
+        if (servSinc) {
+          const { db } = require('../data/base.js');
+          vuelosUsuario = db.prepare(`SELECT * FROM local_logistitcas_temporada`).all()
+            .filter(x => x.temporada === AÑO_ACTUAL && x.usuario === sesionUsuario.usuario);
+        }
+      }
+
+      actualizarMetricasYRenders();
+    }
+
+    function actualizarMetricasYRenders() {
+      const totalPcs = vuelosUsuario.reduce((acc, v) => acc + Number(v.pcs || 0), 0);
+      const totalKilos = vuelosUsuario.reduce((acc, v) => acc + Number(v.kilos || 0), 0);
+      document.getElementById('lblResumenTotales').innerText = `${totalPcs.toLocaleString()} Cajas · ${totalKilos.toLocaleString()} Kilos`;
+
+      renderListaSemanas();
+    }
+
+    function renderListaSemanas() {
+      const cont = document.getElementById('contenedorSemanas');
+      const semanasSet = new Set(vuelosUsuario.map(v => Number(v.semana || 0)).filter(Boolean));
+      const semanasArr = Array.from(semanasSet).sort((a, b) => b - a);
+
+      if (semanasArr.length === 0) {
+        cont.innerHTML = '<div style="font-size:11.5px; color:var(--color-text-secondary); padding:8px;">Sin despachos aún.</div>';
+        document.getElementById('tbodyDetalleVuelos').innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px;">Sin registros.</td></tr>';
+        return;
+      }
+
+      if (!semanaSeleccionada || !semanasSet.has(semanaSeleccionada)) {
+        semanaSeleccionada = semanasArr[0];
+      }
+
+      cont.innerHTML = semanasArr.map(sem => {
+        const cant = vuelosUsuario.filter(v => Number(v.semana) === sem).length;
+        const activeClass = (sem === semanaSeleccionada) ? 'active' : '';
+
+        return `
+          <div class="fila-card-master ${activeClass}" onclick="seleccionarSemana(${sem}, this)">
+            <div>
+              <div class="f-title">Semana ${sem}</div>
+              <div class="f-sub">${cant} despachos</div>
+            </div>
+            <span class="badge-tag tag-verde">Sem ${sem}</span>
+          </div>
+        `;
+      }).join('');
+
+      renderTablaVuelosSemana();
+    }
+
+    function seleccionarSemana(sem, elem) {
+      semanaSeleccionada = sem;
+      document.querySelectorAll('.fila-card-master').forEach(e => e.classList.remove('active'));
+      if (elem) elem.classList.add('active');
+      renderTablaVuelosSemana();
+    }
+
+    function renderTablaVuelosSemana(filtroTexto = '') {
+      const tbody = document.getElementById('tbodyDetalleVuelos');
+      document.getElementById('lblTituloDetalleSemana').innerText = `Despachos registrados en Semana ${semanaSeleccionada}`;
+
+      let vuelosSem = vuelosUsuario.filter(v => Number(v.semana) === semanaSeleccionada);
+
+      if (filtroTexto) {
+        const t = filtroTexto.toLowerCase();
+        vuelosSem = vuelosSem.filter(v => 
+          (v.cliente || '').toLowerCase().includes(t) ||
+          (v.awb || '').toLowerCase().includes(t) ||
+          (v.vuelo || '').toLowerCase().includes(t) ||
+          (v.destino || '').toLowerCase().includes(t)
+        );
+      }
+
+      if (vuelosSem.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:var(--color-text-secondary);">No hay despachos en esta semana.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = vuelosSem.map(v => `
+        <tr>
+          <td><b>${v.registro}</b></td>
+          <td>${v.fecha || '-'}<br><small style="color:var(--color-text-secondary);">${v.ingreso || ''}</small></td>
+          <td><b>${v.cliente || '-'}</b></td>
+          <td><span class="badge-tag tag-azul">${v.destino || '-'}</span></td>
+          <td>${v.linea_aerea || '-'}</td>
+          <td><b>${v.awb || '-'}</b><br><small style="color:var(--color-text-secondary);">${v.vuelo || '-'}</small></td>
+          <td><b>${Number(v.pcs || 0).toLocaleString()} pcs</b><br>${Number(v.kilos || 0).toLocaleString()} kg</td>
+          <td><span class="badge-tag tag-amarillo">${v.tarifa_kg || '-'}</span></td>
+          <td style="text-align: right; white-space: nowrap;">
+            <button class="btn-accion edit" title="Editar" onclick='abrirModalEditarVuelo(${JSON.stringify(v)})'>✏️</button>
+            <button class="btn-accion delete" title="Eliminar" onclick="confirmarEliminarVuelo('${v.registro}')">🗑️</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function filtrarVuelosEnTabla(term) {
+      renderTablaVuelosSemana(term);
+    }
+
+    function abrirModalNuevoVuelo() {
+      document.getElementById('lblModalTitulo').innerText = "Registrar Despacho Aéreo";
+      document.getElementById('txtRegistroId').value = '';
+      document.getElementById('formVuelo').reset();
+      
+      const hoyStr = new Date().toISOString().split('T')[0];
+      document.getElementById('txtFecha').value = hoyStr;
+      actualizarSemanaSegunFecha(hoyStr);
+
+      document.getElementById('modalVuelo').classList.add('show');
+    }
+
+    function abrirModalEditarVuelo(v) {
+      document.getElementById('lblModalTitulo').innerText = `Editar Despacho: ${v.registro}`;
+      document.getElementById('txtRegistroId').value = v.registro;
+      document.getElementById('txtFecha').value = v.fecha || '';
+      actualizarSemanaSegunFecha(v.fecha || '');
+
+      document.getElementById('txtIngreso').value = v.ingreso || '';
+      document.getElementById('txtCliente').value = v.cliente || '';
+      document.getElementById('txtDestino').value = v.destino || '';
+      document.getElementById('txtLineaAerea').value = v.linea_aerea || '';
+      document.getElementById('txtAwb').value = v.awb || '';
+      document.getElementById('txtVuelo').value = v.vuelo || '';
+      document.getElementById('txtPcs').value = v.pcs || '';
+      document.getElementById('txtKilos').value = v.kilos || '';
+      document.getElementById('txtNeta').value = v.neta || '';
+      document.getElementById('txtTarifa').value = v.tarifa_kg || '';
+      document.getElementById('modalVuelo').classList.add('show');
+    }
+
+    function cerrarModalVuelo() {
+      document.getElementById('modalVuelo').classList.remove('show');
+    }
+
+    async function guardarFormularioVuelo(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnGuardarModal');
+      btn.disabled = true;
+      btn.innerText = "Guardando...";
+
+      const idExistente = document.getElementById('txtRegistroId').value.trim();
+      const registroId = idExistente || `VUE-${AÑO_ACTUAL}-${Date.now().toString().slice(-6)}`;
+      const semanaCalculada = parseInt(document.getElementById('valSemanaCalculada').value, 10);
+
+      const vueloData = {
+        registro: registroId,
+        temporada: AÑO_ACTUAL,
+        semana: semanaCalculada || 1,
+        fecha: document.getElementById('txtFecha').value,
+        ingreso: document.getElementById('txtIngreso').value.trim(),
+        cliente: document.getElementById('txtCliente').value.trim(),
+        destino: document.getElementById('txtDestino').value.trim().toUpperCase(),
+        linea_aerea: document.getElementById('txtLineaAerea').value.trim(),
+        awb: document.getElementById('txtAwb').value.trim(),
+        vuelo: document.getElementById('txtVuelo').value.trim(),
+        pcs: parseInt(document.getElementById('txtPcs').value, 10) || 0,
+        kilos: parseInt(document.getElementById('txtKilos').value, 10) || 0,
+        neta: parseInt(document.getElementById('txtNeta').value, 10) || 0,
+        tarifa_kg: document.getElementById('txtTarifa').value.trim(),
+        usuario: sesionUsuario.usuario
+      };
+
+      try {
+        const { error } = await supabaseClient
+          .from('logistitcas_temporada')
+          .upsert([vueloData], { onConflict: 'registro' });
+
+        if (error) throw error;
+
+        if (servSinc) {
+          servSinc.guardarVueloLocal(vueloData, sesionUsuario.usuario);
+        }
+
+        cerrarModalVuelo();
+        await cargarDatosVuelos();
+
+      } catch (err) {
+        alert("Error al guardar: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Guardar Despacho";
+      }
+    }
+
+    async function confirmarEliminarVuelo(regId) {
+      if (!confirm(`¿Eliminar el despacho ${regId}?`)) return;
+
+      try {
+        const { error } = await supabaseClient
+          .from('logistitcas_temporada')
+          .delete()
+          .eq('registro', regId)
+          .eq('usuario', sesionUsuario.usuario);
+
+        if (error) throw error;
+
+        if (servSinc) {
+          servSinc.eliminarVueloLocal(regId);
+        }
+
+        await cargarDatosVuelos();
+
+      } catch (err) {
+        alert("Error al eliminar: " + err.message);
+      }
+    }
+
+    async function sincronizar() {
+      const btn = document.getElementById('btnSync');
+      btn.classList.add('rotating');
+      btn.disabled = true;
+
+      try {
+        if (servSinc) {
+          const res = await servSinc.sincronizarVuelosCompleto(AÑO_ACTUAL, sesionUsuario.usuario);
+          alert(`Sincronización finalizada: ${res.subidos} subidos, ${res.eliminados} eliminados, ${res.descargados} actualizados.`);
+        }
+        await cargarDatosVuelos();
+      } catch (e) {
+        alert("Error de sincronización: " + e.message);
+      } finally {
+        btn.classList.remove('rotating');
+        btn.disabled = false;
+      }
+    }
+
+    function filtrarSemanasPreset(tipo, elem) {
+      document.querySelectorAll('.chip-preset').forEach(c => c.classList.remove('active'));
+      elem.classList.add('active');
+
+      if (tipo === 'RECIENTES') {
+        const semanasSet = Array.from(new Set(vuelosUsuario.map(v => Number(v.semana)))).sort((a, b) => b - a).slice(0, 4);
+        const filtrados = vuelosUsuario.filter(v => semanasSet.includes(Number(v.semana)));
+        document.getElementById('contenedorSemanas').innerHTML = semanasSet.map(sem => `
+          <div class="fila-card-master ${sem === semanaSeleccionada ? 'active' : ''}" onclick="seleccionarSemana(${sem}, this)">
+            <div>
+              <div class="f-title">Semana ${sem}</div>
+              <div class="f-sub">${filtrados.filter(v => Number(v.semana) === sem).length} despachos</div>
+            </div>
+            <span class="badge-tag tag-verde">Sem ${sem}</span>
+          </div>
+        `).join('');
+      } else {
+        renderListaSemanas();
+      }
+    }
+
+    function cerrarSesion() {
+      localStorage.removeItem('comex_sesion');
+      window.location.href = '../loguer.html';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co;" />
+  <title>Acceso COMEX · CECO S.A.</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --color-bg: #F3F5F1;
+      --color-surface: #FFFFFF;
+      --color-plant: #1E6B4C;
+      --color-plant-dark: #123F2C;
+      --color-plant-soft: rgba(30, 107, 76, 0.08);
+      --color-text: #1B231D;
+      --color-text-secondary: #6B7280;
+      --color-border: #E5E7EB;
+      --radius-card: 22px;
+      --radius-input: 12px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: 'Roboto', sans-serif;
+      background: var(--color-bg);
+      color: var(--color-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-image: repeating-linear-gradient(100deg, rgba(30, 107, 76, 0.035) 0px, rgba(30, 107, 76, 0.035) 1.5px, transparent 1.5px, transparent 38px);
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: var(--color-surface);
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-card);
+      padding: 36px 30px;
+      box-shadow: 0 16px 38px rgba(0, 0, 0, 0.06);
+      text-align: center;
+    }
+
+    .marca-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: var(--color-plant-soft);
+      color: var(--color-plant-dark);
+      font-family: 'Montserrat', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+
+    .login-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--color-plant-dark);
+      margin: 0 0 6px;
+    }
+
+    .login-subtitle {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      margin: 0 0 24px;
+    }
+
+    .form-group {
+      text-align: left;
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin-bottom: 6px;
+      letter-spacing: 0.4px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 14.5px;
+      font-weight: 600;
+      border-radius: var(--radius-input);
+      border: 1.5px solid var(--color-border);
+      background: #FAFAF9;
+      color: var(--color-text);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .form-input:focus {
+      border-color: var(--color-plant);
+      background: #FFFFFF;
+      box-shadow: 0 0 0 4px var(--color-plant-soft);
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 13px;
+      background: var(--color-plant);
+      color: #FFFFFF;
+      border: none;
+      border-radius: var(--radius-input);
+      font-size: 13.5px;
+      font-weight: 800;
+      font-family: 'Montserrat', sans-serif;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(30, 107, 76, 0.25);
+      transition: all 0.2s ease;
+      margin-top: 6px;
+    }
+
+    .btn-login:hover {
+      background: var(--color-plant-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-login:active {
+      background-color: #FFFDE7 !important;
+      border: 1px solid #FBC02D !important;
+      color: #D97706 !important;
+      transform: scale(0.98);
+    }
+
+    .btn-login:disabled { opacity: 0.6; cursor: wait; }
+
+    .alert-box {
+      margin-top: 16px;
+      padding: 10px 14px;
+      border-radius: var(--radius-input);
+      font-size: 12px;
+      font-weight: 600;
+      display: none;
+      text-align: center;
+      background: #FEF2F2;
+      border: 1px solid #FCA5A5;
+      color: #991B1B;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="login-card">
+      <div class="marca-badge">CECO S.A. · COMERCIO EXTERIOR</div>
+      <h2 class="login-title">Sistema de Gestión COMEX</h2>
+      <p class="login-subtitle">Ingresá tu usuario y contraseña asignada.</p>
+
+      <form id="formLogin" onsubmit="iniciarSesion(event)">
+        <div class="form-group">
+          <label for="inputUsuario">Usuario</label>
+          <input type="text" id="inputUsuario" class="form-input" placeholder="Ej: jlopez" required autofocus autocomplete="username" />
+        </div>
+
+        <div class="form-group">
+          <label for="inputClave">Contraseña</label>
+          <input type="password" id="inputClave" class="form-input" placeholder="••••••••" required autocomplete="current-password" />
+        </div>
+
+        <button type="submit" class="btn-login" id="btnLogin">INGRESAR AL SISTEMA</button>
+      </form>
+
+      <div id="alertaMsg" class="alert-box"></div>
+    </div>
+  </div>
+
+  <script>
+    // Protecciones de Seguridad
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+      const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+      const key = (e.key || '').toLowerCase();
+      if (e.key === 'F12' || (isCtrlOrCmd && e.shiftKey && ['i', 'j', 'c'].includes(key)) || (isCtrlOrCmd && ['u', 's'].includes(key))) {
+        e.preventDefault();
+      }
+    });
+
+    setInterval(() => {
+      const t0 = performance.now();
+      debugger;
+      if (performance.now() - t0 > 100) {
+        document.body.innerHTML = '<div style="text-align:center; padding:50px; font-family:sans-serif; color:#991B1B;"><h2>Acceso restringido</h2></div>';
+      }
+    }, 1000);
+
+    const SUPABASE_URL = 'https://veqpyhifwubcdxocckmf.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlcXB5aGlmd3ViY2R4b2Nja21mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NzI5NzAsImV4cCI6MjA5MTQ0ODk3MH0.mIRsPLLoHn9jQtvCCwxG3aNFWtXIdcV12kLTC_MqybY';
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Integración opcional con Electron
+    let dbLocal = null;
+    if (typeof require === 'function') {
+      try {
+        dbLocal = require('./data/base.js').db;
+      } catch (e) {
+        console.warn('Ejecutando en entorno Web navegador.');
+      }
+    }
+
+    async function iniciarSesion(e) {
+      e.preventDefault();
+      const userVal = document.getElementById('inputUsuario').value.trim();
+      const passVal = document.getElementById('inputClave').value.trim();
+      const btn = document.getElementById('btnLogin');
+      const alerta = document.getElementById('alertaMsg');
+
+      alerta.style.display = 'none';
+      btn.disabled = true;
+      btn.innerText = 'VALIDANDO...';
+
+      let usuarioEncontrado = null;
+
+      try {
+        // 1. Intentar validar online contra Supabase
+        if (navigator.onLine) {
+          const { data, error } = await supabaseClient
+            .from('comex_usuarios')
+            .select('*')
+            .ilike('usuario', userVal)
+            .eq('clave', passVal)
+            .eq('estado', 'ACTI')
+            .maybeSingle();
+
+          if (!error && data) usuarioEncontrado = data;
+        }
+
+        // 2. Fallback offline SQLite en Electron
+        if (!usuarioEncontrado && dbLocal) {
+          const row = dbLocal.prepare(`
+            SELECT * FROM local_comex_usuarios
+            WHERE LOWER(usuario) = LOWER(?) AND clave = ? AND estado = 'ACTI'
+          `).get(userVal, passVal);
+
+          if (row) usuarioEncontrado = row;
+        }
+
+        if (!usuarioEncontrado) {
+          alerta.innerText = 'Credenciales incorrectas o usuario inactivo.';
+          alerta.style.display = 'block';
+          btn.disabled = false;
+          btn.innerText = 'INGRESAR AL SISTEMA';
+          return;
+        }
+
+        const sesion = {
+          id: usuarioEncontrado.id,
+          usuario: usuarioEncontrado.usuario,
+          rol: (usuarioEncontrado.rol || 'COMEX').toUpperCase()
+        };
+
+        localStorage.setItem('comex_sesion', JSON.stringify(sesion));
+
+        // 3. Redirección por rol
+        if (sesion.rol === 'COMEX') {
+          window.location.href = 'vuelos/vuelos_comex.html';
+        } else {
+          window.location.href = 'programa/programa_trab.html';
+        }
+
+      } catch (err) {
+        alerta.innerText = 'Error al verificar credenciales: ' + err.message;
+        alerta.style.display = 'block';
+        btn.disabled = false;
+        btn.innerText = 'INGRESAR AL SISTEMA';
+      }
+    }
+  </script>
+</body>
+</html>

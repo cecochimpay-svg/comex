@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Programa de Trabajo · COMEX CECO</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --color-bg: #F4F6F3;
+      --color-surface: #FFFFFF;
+      --color-plant: #1E6B4C;
+      --color-plant-dark: #123F2C;
+      --color-border: #E2E8F0;
+      --radius-md: 12px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background: var(--color-bg);
+      color: #1B231D;
+    }
+    .navbar {
+      background: #FFFFFF;
+      border-bottom: 1.5px solid var(--color-border);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .marca { font-family: 'Montserrat'; font-weight: 800; color: var(--color-plant-dark); }
+    .btn-action {
+      background: #FFFFFF;
+      border: 1.2px solid var(--color-border);
+      padding: 8px 14px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-action:hover { background: #F1F5F9; }
+    .contenido { padding: 24px; max-width: 1400px; margin: 0 auto; }
+    .tabla-box {
+      background: #FFFFFF;
+      border: 1.2px solid var(--color-border);
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      margin-top: 16px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
+    th {
+      background: #334155;
+      color: #FFFFFF;
+      padding: 11px 14px;
+      font-family: 'Montserrat';
+      font-size: 11px;
+    }
+    td { padding: 10px 14px; border-bottom: 1px solid var(--color-border); }
+    tr:hover td { background: rgba(30, 107, 76, 0.04); }
+  </style>
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="marca">📦 COMEX · Programa de Trabajo (Pallets y Stock)</div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <span id="lblUser" style="font-size:12px; font-weight:700;">Usuario: —</span>
+      <button class="btn-action" onclick="cerrarSesion()">Salir</button>
+    </div>
+  </header>
+
+  <main class="contenido">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <input type="text" id="filtroPallet" class="btn-action" style="width:280px;" placeholder="🔍 Buscar por pallet, lote o especie..." oninput="filtrarPallets(this.value)">
+      <button class="btn-action" style="background:var(--color-plant); color:#fff;" onclick="cargarStock()">🔄 Actualizar Stock</button>
+    </div>
+
+    <div class="tabla-box">
+      <table>
+        <thead>
+          <tr>
+            <th>Pallet Integrado</th>
+            <th>Romaneo</th>
+            <th>Variedad / Especie</th>
+            <th>Calibre</th>
+            <th>Categoría</th>
+            <th>Cajas</th>
+            <th>Productor / Marca</th>
+            <th>Cámara</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyStock">
+          <tr><td colspan="8" style="text-align:center; padding:24px;">Cargando inventario de pallets...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    const SUPABASE_URL = 'https://veqpyhifwubcdxocckmf.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlcXB5aGlmd3ViY2R4b2Nja21mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NzI5NzAsImV4cCI6MjA5MTQ0ODk3MH0.mIRsPLLoHn9jQtvCCwxG3aNFWtXIdcV12kLTC_MqybY';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let rawStock = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const sesion = JSON.parse(localStorage.getItem('comex_sesion') || '{}');
+      if (!sesion.usuario) {
+        window.location.href = '../loguer.html';
+        return;
+      }
+      document.getElementById('lblUser').innerText = `${sesion.usuario} (${sesion.rol})`;
+      cargarStock();
+    });
+
+    async function cargarStock() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('vista_pallet_stock_general')
+          .select('*')
+          .order('id', { ascending: false })
+          .limit(100);
+
+        if (error) throw error;
+        rawStock = data || [];
+        renderTabla(rawStock);
+      } catch (err) {
+        document.getElementById('tbodyStock').innerHTML = `<tr><td colspan="8" style="text-align:center; color:#DC2626; padding:20px;">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    function renderTabla(lista) {
+      const tbody = document.getElementById('tbodyStock');
+      if (!lista || lista.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px;">Sin pallets registrados.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = lista.map(p => `
+        <tr>
+          <td><b>${p.pallet_integrado || '-'}</b></td>
+          <td>#${p.numero_romaneo_interno || '-'}</td>
+          <td>${p.variedad || '-'} (${p.especie || 'Cereza'})</td>
+          <td>${p.calibre || '-'}</td>
+          <td>${p.categoria || '-'}</td>
+          <td><b>${p.cantidad || 0}</b></td>
+          <td>${p.productor || '-'} / ${p.marca || '-'}</td>
+          <td>${p.codigo_camara || '-'}</td>
+        </tr>
+      `).join('');
+    }
+
+    function filtrarPallets(term) {
+      const t = term.toLowerCase().trim();
+      const f = rawStock.filter(p =>
+        (p.pallet_integrado || '').toLowerCase().includes(t) ||
+        (p.variedad || '').toLowerCase().includes(t) ||
+        (p.numero_lote || '').toLowerCase().includes(t)
+      );
+      renderTabla(f);
+    }
+
+    function cerrarSesion() {
+      localStorage.removeItem('comex_sesion');
+      window.location.href = '../loguer.html';
+    }
+  </script>
+</body>
+</html>

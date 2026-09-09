@@ -1,0 +1,52 @@
+{
+  "name": "comex",
+  "version": "1.0.0",
+  "description": "Sistema de gestión integral para Comercio Exterior - COMEX",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win",
+    "dist": "electron-builder --win",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.48.0",
+    "better-sqlite3": "^11.8.0",
+    "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
+    "googleapis": "^144.0.0",
+    "mssql": "^12.7.0",
+    "mysql2": "^3.12.0",
+    "node-machine-id": "^1.1.12",
+    "pdfkit": "^0.16.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "electron": "^34.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.comex.app",
+    "productName": "COMEX",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "icono.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "COMEX"
+    },
+    "files": [
+      "**/*"
+    ],
+    "asarUnpack": [
+      "**/node_modules/better-sqlite3/**/*"
+    ]
+  }
+}
