@@ -139,6 +139,38 @@ async function pullVuelos(temporada, usuarioActivo) {
   return data.length;
 }
 
+// Sincronizar Proyecciones de 11 días
+async function sincronizarProyecciones(usuarioActivo) {
+  const { data, error } = await supabaseCampo
+    .from('comex_proyeccion_dias')
+    .select('*')
+    .eq('usuario', usuarioActivo);
+
+  if (error) throw error;
+  return data || [];
+}
+
+// Guardar o actualizar celda de proyección (Cosecha, Inspección, Carga, Ezeiza)
+async function guardarProyeccionDia(payload) {
+  const { error } = await supabaseCampo
+    .from('comex_proyeccion_dias')
+    .upsert([payload], { onConflict: 'fecha,usuario' });
+
+  if (error) throw error;
+  return true;
+}
+
+// Guardar renglones de programa de empaque
+async function guardarProgramaTrabajo(renglones) {
+  const { data, error } = await supabaseCampo
+    .from('comex_programa_trabajo')
+    .insert(renglones)
+    .select();
+
+  if (error) throw error;
+  return data;
+}
+
 async function sincronizarVuelosCompleto(temporada, usuarioActivo) {
   const pushRes = await pushVuelos(usuarioActivo);
   const pullCount = await pullVuelos(temporada, usuarioActivo);
@@ -150,5 +182,8 @@ module.exports = {
   eliminarVueloLocal,
   pushVuelos,
   pullVuelos,
-  sincronizarVuelosCompleto
+  sincronizarVuelosCompleto,
+    sincronizarProyecciones,
+  guardarProyeccionDia,
+  guardarProgramaTrabajo
 };

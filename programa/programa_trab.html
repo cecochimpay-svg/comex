@@ -2,170 +2,783 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Programa de Trabajo · COMEX CECO</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Programa de Trabajo & Proyección · COMEX CECO S.A.</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root {
-      --color-bg: #F4F6F3;
+      --color-bg: #F4F6F4;
       --color-surface: #FFFFFF;
-      --color-plant: #1E6B4C;
-      --color-plant-dark: #123F2C;
-      --color-border: #E2E8F0;
-      --radius-md: 12px;
+      --color-text: #1A211C;
+      --color-text-secondary: #556358;
+      --color-border: #D2D7D3;
+      --color-adm: #1E6B4C;
+      --color-adm-dark: #104630;
+      --color-adm-soft: rgba(30, 107, 76, 0.08);
+      --color-ok: #2E7D32;
+      --color-ok-soft: #E8F5E9;
+      --color-blue: #0071E3;
+      --color-blue-soft: #EBF3FA;
+      --color-amber: #B45309;
+      --color-amber-soft: #FFFBEB;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
     }
+
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: 'Roboto', sans-serif;
+    html, body {
+      margin: 0; height: 100%;
+      font-family: var(--font-family);
       background: var(--color-bg);
-      color: #1B231D;
+      color: var(--color-text);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
     }
-    .navbar {
-      background: #FFFFFF;
-      border-bottom: 1.5px solid var(--color-border);
-      padding: 12px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: #C4CCC6; border-radius: 20px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--color-adm); }
+
+    .topbar {
+      height: 56px; background: #FFFFFF;
+      border-bottom: 1px solid var(--color-border);
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 20px; flex-shrink: 0; z-index: 20;
     }
-    .marca { font-family: 'Montserrat'; font-weight: 800; color: var(--color-plant-dark); }
-    .btn-action {
-      background: #FFFFFF;
-      border: 1.2px solid var(--color-border);
-      padding: 8px 14px;
-      border-radius: var(--radius-md);
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
+    .topbar-info { font-size: 12px; font-weight: 700; color: var(--color-text-secondary); }
+    .topbar-info span { color: var(--color-adm); font-family: 'Montserrat'; font-weight: 800; }
+    .btn-topbar {
+      border: 1px solid var(--color-border); background: #FFFDE7;
+      color: #F57F17; border-radius: 20px; padding: 6px 14px;
+      font-size: 11.5px; font-weight: 700; cursor: pointer; text-decoration: none;
     }
-    .btn-action:hover { background: #F1F5F9; }
-    .contenido { padding: 24px; max-width: 1400px; margin: 0 auto; }
-    .tabla-box {
-      background: #FFFFFF;
-      border: 1.2px solid var(--color-border);
-      border-radius: var(--radius-md);
-      overflow-x: auto;
-      margin-top: 16px;
+
+    .tabs-view-header {
+      background: #FFFFFF; border-bottom: 1.5px solid var(--color-border);
+      display: flex; gap: 8px; padding: 6px 20px 0; flex-shrink: 0;
     }
-    table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
-    th {
-      background: #334155;
-      color: #FFFFFF;
-      padding: 11px 14px;
-      font-family: 'Montserrat';
+    .tab-nav-btn {
+      padding: 9px 18px; font-size: 12px; font-weight: 800;
+      color: var(--color-text-secondary); border: 1px solid transparent;
+      border-bottom: none; border-radius: 10px 10px 0 0; background: transparent; cursor: pointer;
+    }
+    .tab-nav-btn.active {
+      background: var(--color-bg); color: var(--color-adm-dark);
+      border-color: var(--color-border); border-bottom: 3px solid var(--color-adm);
+    }
+
+    .main-wrapper { flex: 1; display: flex; overflow: hidden; }
+
+    /* VISTA 1: PROYECCIÓN */
+    .proyeccion-container {
+      flex: 1; padding: 16px 20px; display: flex; flex-direction: column;
+      overflow: hidden; gap: 12px;
+    }
+    .fechas-barra-control {
+      background: #FFFFFF; border: 1px solid var(--color-border);
+      border-radius: var(--radius-md); padding: 10px 16px; display: flex;
+      justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+    }
+    .tabla-proyeccion-wrap {
+      flex: 1; background: #FFFFFF; border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-lg); overflow: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+    .tabla-proyeccion { width: 100%; border-collapse: collapse; text-align: center; font-size: 12px; }
+    .tabla-proyeccion th {
+      background: #FAFAF8; color: var(--color-text-secondary);
+      padding: 10px 6px; font-size: 11px; font-weight: 800;
+      border: 1px solid var(--color-border); white-space: nowrap;
+    }
+    .tabla-proyeccion th.col-concepto {
+      text-align: left; padding-left: 14px; width: 150px;
+      background: #ECEFF1; color: var(--color-adm-dark);
+    }
+    .tabla-proyeccion td { border: 1px solid var(--color-border); padding: 4px; vertical-align: middle; }
+    .input-proy-cell {
+      width: 100%; min-width: 85px; text-align: center;
+      border: 1.2px solid transparent; border-radius: 6px;
+      padding: 8px 4px; font-weight: 700; font-size: 12.5px; background: transparent;
+      outline: none; font-family: inherit;
+    }
+    .input-proy-cell:focus {
+      background: #FFFFFF; border-color: var(--color-adm);
+      box-shadow: 0 0 0 2px var(--color-adm-soft);
+    }
+    .vuelo-badge-item {
+      font-size: 10px; text-align: left; background: #F8FAFC;
+      border-radius: 6px; padding: 4px 6px; border-left: 3px solid var(--color-blue);
+      margin-bottom: 4px; line-height: 1.35;
+    }
+
+    /* VISTA 2: PROGRAMA DE TRABAJO */
+    .programa-container {
+      flex: 1; padding: 16px 20px; display: flex; flex-direction: column;
+      overflow: hidden; gap: 12px;
+    }
+    .resumen-proyeccion-banner {
+      background: #FFFFFF; border: 1.5px solid var(--color-adm);
+      border-radius: var(--radius-md); padding: 10px 14px;
+      display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;
+    }
+    .resumen-scroll-fechas {
+      display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px;
+    }
+    .card-dia-resumen {
+      background: #F8FAFC; border: 1px solid var(--color-border);
+      border-radius: 8px; padding: 6px 12px; min-width: 140px; flex-shrink: 0;
       font-size: 11px;
     }
-    td { padding: 10px 14px; border-bottom: 1px solid var(--color-border); }
-    tr:hover td { background: rgba(30, 107, 76, 0.04); }
+    .card-dia-resumen b { color: var(--color-adm-dark); }
+    
+    .panel-grilla-programa {
+      flex: 1; background: #FFFFFF; border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-lg); display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .tabla-programa-wrap { flex: 1; overflow: auto; }
+    .tabla-programa { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+    .tabla-programa th {
+      position: sticky; top: 0; background: #ECEFF1;
+      border: 1px solid var(--color-border); padding: 8px 6px;
+      font-size: 10px; font-weight: 800; text-transform: uppercase; z-index: 2;
+    }
+    .tabla-programa td { border: 1px solid var(--color-border); padding: 6px 8px; vertical-align: middle; }
+
+    .btn-action-main {
+      background: var(--color-adm); color: #FFFFFF; border: none;
+      border-radius: var(--radius-md); padding: 8px 16px; font-size: 12px;
+      font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-action-main:hover { background: var(--color-adm-dark); }
+
+    /* Modal Formulario */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(4px);
+      display: none; align-items: center; justify-content: center; z-index: 3000; padding: 14px;
+    }
+    .modal-overlay.show { display: flex !important; }
+    .modal-box {
+      background: #FFFFFF; border-radius: var(--radius-lg);
+      padding: 22px; width: 100%; max-width: 760px; max-height: 94vh;
+      display: flex; flex-direction: column; gap: 14px; border: 1px solid var(--color-border);
+    }
+    .modal-body-scroll { overflow-y: auto; flex: 1; padding-right: 4px; display: flex; flex-direction: column; gap: 12px; }
+    .modal-grid-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+    .modal-group { display: flex; flex-direction: column; gap: 3px; }
+    .modal-group label { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--color-text-secondary); }
+    .modal-control {
+      padding: 8px 10px; border-radius: var(--radius-sm); border: 1.2px solid var(--color-border);
+      font-size: 12px; font-weight: 600; outline: none; background: #FAFAFA; font-family: inherit;
+    }
+    .modal-control:focus { border-color: var(--color-adm); background: #FFFFFF; }
+    
+    .calibres-table-box {
+      border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden;
+    }
+    .tabla-calibres-input { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+    .tabla-calibres-input th { background: #F1F5F9; padding: 6px; font-size: 10px; text-transform: uppercase; }
+    .tabla-calibres-input td { border-top: 1px solid var(--color-border); padding: 4px 8px; }
+    .input-cant-calibre {
+      width: 100%; border: 1px solid var(--color-border); border-radius: 4px;
+      padding: 6px; font-weight: 700; text-align: center;
+    }
   </style>
 </head>
 <body>
 
-  <header class="navbar">
-    <div class="marca">📦 COMEX · Programa de Trabajo (Pallets y Stock)</div>
-    <div style="display:flex; gap:10px; align-items:center;">
-      <span id="lblUser" style="font-size:12px; font-weight:700;">Usuario: —</span>
-      <button class="btn-action" onclick="cerrarSesion()">Salir</button>
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-info">
+      👤 Operador: <span id="lblUser">ADMIN</span> &nbsp;·&nbsp;
+      TEMPORADA <span>2026</span>
     </div>
+    <a href="../loguer.html" class="btn-topbar">✕ Cerrar Sesión</a>
   </header>
 
-  <main class="contenido">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <input type="text" id="filtroPallet" class="btn-action" style="width:280px;" placeholder="🔍 Buscar por pallet, lote o especie..." oninput="filtrarPallets(this.value)">
-      <button class="btn-action" style="background:var(--color-plant); color:#fff;" onclick="cargarStock()">🔄 Actualizar Stock</button>
-    </div>
+  <!-- Pestañas -->
+  <nav class="tabs-view-header">
+    <button class="tab-nav-btn active" id="btnTab1" onclick="cambiarVistaPrincipal('proyeccion', this)">
+      1. Proyección Operativa (11 Días)
+    </button>
+    <button class="tab-nav-btn" id="btnTab2" onclick="cambiarVistaPrincipal('programa', this)">
+      2. Programa de Trabajo y Empaque
+    </button>
+  </nav>
 
-    <div class="tabla-box">
-      <table>
-        <thead>
-          <tr>
-            <th>Pallet Integrado</th>
-            <th>Romaneo</th>
-            <th>Variedad / Especie</th>
-            <th>Calibre</th>
-            <th>Categoría</th>
-            <th>Cajas</th>
-            <th>Productor / Marca</th>
-            <th>Cámara</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyStock">
-          <tr><td colspan="8" style="text-align:center; padding:24px;">Cargando inventario de pallets...</td></tr>
-        </tbody>
-      </table>
+  <div class="main-wrapper">
+
+    <!-- SOLAPA 1: PROYECCIÓN A 11 DÍAS -->
+    <section class="proyeccion-container" id="vistaProyeccion">
+      <div class="fechas-barra-control">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <label style="font-size:11.5px; font-weight:800; color:var(--color-adm-dark);">📅 FECHA DE INICIO:</label>
+          <input type="date" id="txtFechaInicioProyeccion" class="modal-control" onchange="regenerarFechasProyeccion(this.value)">
+          <span style="font-size:11px; color:var(--color-text-secondary);">(Esquema automático de 11 días continuos)</span>
+        </div>
+        <button class="btn-action-main" onclick="guardarYContinuarAPrograma()">
+          💾 Guardar y Pasar al Programa ➔
+        </button>
+      </div>
+
+      <div class="tabla-proyeccion-wrap">
+        <table class="tabla-proyeccion" id="tablaProyeccion11Dias">
+          <thead>
+            <tr id="theadDias11">
+              <th class="col-concepto">CONCEPTO / DÍA</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th class="col-concepto">🍒 Cosecha (Kg)</th>
+              <td colspan="11" id="filaCosechaInputs">Cargando...</td>
+            </tr>
+            <tr>
+              <th class="col-concepto">🔍 Inspección (Kg)</th>
+              <td colspan="11" id="filaInspeccionInputs">Cargando...</td>
+            </tr>
+            <tr>
+              <th class="col-concepto">📦 Carga (Kg)</th>
+              <td colspan="11" id="filaCargaInputs">Cargando...</td>
+            </tr>
+            <tr>
+              <th class="col-concepto">🏢 Ezeiza (Kg)</th>
+              <td colspan="11" id="filaEzeizaInputs">Cargando...</td>
+            </tr>
+            <tr style="background:#F1F5F9;">
+              <th class="col-concepto" style="background:#CFD8DC;">✈️ Vuelos del Día</th>
+              <td colspan="11" id="filaVuelosDia">Cargando cruce de vuelos...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SOLAPA 2: PROGRAMA DE TRABAJO -->
+    <section class="programa-container" id="vistaPrograma" style="display:none;">
+      
+      <!-- Resumen de Proyección Activa -->
+      <div class="resumen-proyeccion-banner">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <b style="font-size:12px; font-family:'Montserrat'; color:var(--color-adm-dark);">
+            📊 Proyección Operativa en Curso (Desde <span id="lblFechaDesdeBanner">—</span>):
+          </b>
+          <span style="font-size:11px; font-weight:700; color:var(--color-text-secondary);" id="lblTotalesProyBanner">0 Kg Totales</span>
+        </div>
+        <div class="resumen-scroll-fechas" id="contCardsResumenProy"></div>
+      </div>
+
+      <!-- Grilla del Programa de Trabajo -->
+      <div class="panel-grilla-programa">
+        <div style="padding:10px 14px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border); background:#FAFAF8;">
+          <b style="font-family:'Montserrat'; color:var(--color-adm-dark); font-size:13px;">
+            PROGRAMA DE TRABAJO (CONFECCIÓN POR CLIENTE, MARCA Y CALIBRES)
+          </b>
+          <button class="btn-action-main" onclick="abrirModalNuevoPrograma()">
+            ➕ Confeccionar Programa
+          </button>
+        </div>
+
+        <div class="tabla-programa-wrap">
+          <table class="tabla-programa">
+            <thead>
+              <tr>
+                <th>FECHA</th>
+                <th>CLIENTE</th>
+                <th>MARCA</th>
+                <th>CALIBRE</th>
+                <th>CANT. CAJAS</th>
+                <th>TAMAÑO</th>
+                <th>N° PALLET</th>
+                <th>DESTINO</th>
+                <th>VUELO ASIGNADO</th>
+                <th>HORA SALIDA VUELO</th>
+                <th>SALIDA EMPAQUE</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyProgramaTrabajo">
+              <tr><td colspan="11" style="text-align:center; padding:30px; color:var(--color-text-secondary);">No hay renglones confeccionados.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Modal Confeccionar Programa (Captura 2) -->
+  <div class="modal-overlay" id="modalPrograma">
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border); padding-bottom:8px;">
+        <h3 style="margin:0; font-family:'Montserrat'; font-size:15px; color:var(--color-adm-dark);">
+          Confección de Programa de Empaque
+        </h3>
+        <button onclick="cerrarModalPrograma()" style="background:#F1F5F9; border:none; border-radius:50%; width:26px; height:26px; cursor:pointer; font-weight:800;">✕</button>
+      </div>
+
+      <form id="formPrograma" onsubmit="guardarRenglonesPrograma(event)">
+        <div class="modal-body-scroll">
+          <div class="modal-grid-row">
+            <div class="modal-group">
+              <label>Fecha de Empaque *</label>
+              <input type="date" id="progFecha" class="modal-control" required />
+            </div>
+            <div class="modal-group">
+              <label>Cliente / Exportador *</label>
+              <select id="progCliente" class="modal-control" required>
+                <option value="CECO">CECO S.A.</option>
+                <option value="SALVUCCI">SALVUCCI</option>
+                <option value="PATAGONIAN">PATAGONIAN FRUITS</option>
+              </select>
+            </div>
+            <div class="modal-group">
+              <label>Marca *</label>
+              <select id="progMarca" class="modal-control" required>
+                <option value="CECO">CECO</option>
+                <option value="TRES ASES">TRES ASES</option>
+                <option value="DON LUIS">DON LUIS</option>
+                <option value="SAN CAYETANO">SAN CAYETANO</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Matriz de Calibres Estándar -->
+          <div class="modal-group">
+            <label>Distribución por Calibres (Cantidad Manual de Cajas) *</label>
+            <div class="calibres-table-box">
+              <table class="tabla-calibres-input">
+                <thead>
+                  <tr>
+                    <th>Calibre</th>
+                    <th>Cajas (Cant)</th>
+                    <th>Tamaño (Dejar así)</th>
+                    <th>N° Pallet (Opcional)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><b>24-26</b></td>
+                    <td><input type="number" class="input-cant-calibre" data-calibre="24-26" min="0" placeholder="0"></td>
+                    <td><input type="text" class="modal-control" data-tamano="24-26" value="STD" style="padding:4px; text-align:center;"></td>
+                    <td><input type="text" class="modal-control" data-pallet="24-26" placeholder="PL-01" style="padding:4px; text-align:center;"></td>
+                  </tr>
+                  <tr>
+                    <td><b>26-28</b></td>
+                    <td><input type="number" class="input-cant-calibre" data-calibre="26-28" min="0" placeholder="0"></td>
+                    <td><input type="text" class="modal-control" data-tamano="26-28" value="STD" style="padding:4px; text-align:center;"></td>
+                    <td><input type="text" class="modal-control" data-pallet="26-28" placeholder="PL-02" style="padding:4px; text-align:center;"></td>
+                  </tr>
+                  <tr>
+                    <td><b>28-30</b></td>
+                    <td><input type="number" class="input-cant-calibre" data-calibre="28-30" min="0" placeholder="0"></td>
+                    <td><input type="text" class="modal-control" data-tamano="28-30" value="STD" style="padding:4px; text-align:center;"></td>
+                    <td><input type="text" class="modal-control" data-pallet="28-30" placeholder="PL-03" style="padding:4px; text-align:center;"></td>
+                  </tr>
+                  <tr>
+                    <td><b>30-32</b></td>
+                    <td><input type="number" class="input-cant-calibre" data-calibre="30-32" min="0" placeholder="0"></td>
+                    <td><input type="text" class="modal-control" data-tamano="30-32" value="STD" style="padding:4px; text-align:center;"></td>
+                    <td><input type="text" class="modal-control" data-pallet="30-32" placeholder="PL-04" style="padding:4px; text-align:center;"></td>
+                  </tr>
+                  <tr>
+                    <td><b>32+</b></td>
+                    <td><input type="number" class="input-cant-calibre" data-calibre="32+" min="0" placeholder="0"></td>
+                    <td><input type="text" class="modal-control" data-tamano="32+" value="STD" style="padding:4px; text-align:center;"></td>
+                    <td><input type="text" class="modal-control" data-pallet="32+" placeholder="PL-05" style="padding:4px; text-align:center;"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Asignación de Vuelo Disponible y Salidas -->
+          <div class="modal-grid-row">
+            <div class="modal-group">
+              <label>Vuelos Disponibles en Sistema *</label>
+              <select id="progVueloSel" class="modal-control" required onchange="vueloSeleccionadoCambio(this.value)">
+                <option value="">Seleccionar vuelo cargado...</option>
+              </select>
+            </div>
+            <div class="modal-group">
+              <label>Destino</label>
+              <input type="text" id="progDestino" class="modal-control" readonly style="background:#F1F5F9;">
+            </div>
+          </div>
+
+          <div class="modal-grid-row">
+            <div class="modal-group">
+              <label>Hora de Salida del Vuelo (ETD 1)</label>
+              <input type="text" id="progHoraVuelo" class="modal-control" readonly style="background:#F1F5F9;">
+            </div>
+            <div class="modal-group">
+              <label>Cuándo saldrá de Empaque (Fecha / Hora) *</label>
+              <input type="datetime-local" id="progSalidaEmpaque" class="modal-control" required>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px; border-top:1px solid var(--color-border); padding-top:10px;">
+          <button type="button" class="btn-topbar" onclick="cerrarModalPrograma()">Cancelar</button>
+          <button type="submit" class="btn-action-main" id="btnGuardarProgModal">Guardar en Programa</button>
+        </div>
+      </form>
     </div>
-  </main>
+  </div>
 
   <script>
+    const AÑO_ACTUAL = 2026;
     const SUPABASE_URL = 'https://veqpyhifwubcdxocckmf.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlcXB5aGlmd3ViY2R4b2Nja21mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NzI5NzAsImV4cCI6MjA5MTQ0ODk3MH0.mIRsPLLoHn9jQtvCCwxG3aNFWtXIdcV12kLTC_MqybY';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let rawStock = [];
+    let sesionUsuario = null;
+    let fechas11Dias = [];
+    let proyeccionesGuardadas = new Map();
+    let listaVuelos = [];
+    let listaPrograma = [];
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const sesion = JSON.parse(localStorage.getItem('comex_sesion') || '{}');
-      if (!sesion.usuario) {
+    document.addEventListener('DOMContentLoaded', async () => {
+      const sesionRaw = localStorage.getItem('comex_sesion');
+      if (!sesionRaw) {
         window.location.href = '../loguer.html';
         return;
       }
-      document.getElementById('lblUser').innerText = `${sesion.usuario} (${sesion.rol})`;
-      cargarStock();
+      sesionUsuario = JSON.parse(sesionRaw);
+      document.getElementById('lblUser').innerText = sesionUsuario.usuario;
+
+      const hoyStr = new Date().toISOString().split('T')[0];
+      document.getElementById('txtFechaInicioProyeccion').value = hoyStr;
+
+      regenerarFechasProyeccion(hoyStr);
+      await Promise.all([cargarVuelos(), cargarProyecciones(), cargarProgramas()]);
+      renderizarTabla11Dias();
     });
 
-    async function cargarStock() {
-      try {
-        const { data, error } = await supabaseClient
-          .from('vista_pallet_stock_general')
-          .select('*')
-          .order('id', { ascending: false })
-          .limit(100);
+    function cambiarVistaPrincipal(vista, btn) {
+      document.querySelectorAll('.tab-nav-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
 
-        if (error) throw error;
-        rawStock = data || [];
-        renderTabla(rawStock);
-      } catch (err) {
-        document.getElementById('tbodyStock').innerHTML = `<tr><td colspan="8" style="text-align:center; color:#DC2626; padding:20px;">Error: ${err.message}</td></tr>`;
+      if (vista === 'proyeccion') {
+        document.getElementById('vistaProyeccion').style.display = 'flex';
+        document.getElementById('vistaPrograma').style.display = 'none';
+      } else {
+        document.getElementById('vistaProyeccion').style.display = 'none';
+        document.getElementById('vistaPrograma').style.display = 'flex';
+        actualizarBannerProyeccionEnPrograma();
+        renderizarTablaPrograma();
       }
     }
 
-    function renderTabla(lista) {
-      const tbody = document.getElementById('tbodyStock');
-      if (!lista || lista.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px;">Sin pallets registrados.</td></tr>';
+    function regenerarFechasProyeccion(fechaBaseStr) {
+      fechas11Dias = [];
+      const [y, m, d] = fechaBaseStr.split('-').map(Number);
+      const base = new Date(Date.UTC(y, m - 1, d));
+
+      for (let i = 0; i < 11; i++) {
+        const cur = new Date(base);
+        cur.setUTCDate(base.getUTCDate() + i);
+        fechas11Dias.push(cur.toISOString().split('T')[0]);
+      }
+      renderizarTabla11Dias();
+    }
+
+    async function cargarVuelos() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('logistitcas_temporada')
+          .select('*')
+          .eq('temporada', AÑO_ACTUAL);
+
+        if (!error && data) listaVuelos = data;
+      } catch (e) {
+        console.warn("Fallo al leer vuelos:", e);
+      }
+    }
+
+    async function cargarProyecciones() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('comex_proyeccion_dias')
+          .select('*')
+          .eq('usuario', sesionUsuario.usuario);
+
+        if (!error && data) {
+          proyeccionesGuardadas.clear();
+          data.forEach(p => proyeccionesGuardadas.set(p.fecha, p));
+        }
+      } catch (e) {
+        console.warn("Fallo proyecciones:", e);
+      }
+    }
+
+    async function cargarProgramas() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('comex_programa_trabajo')
+          .select('*')
+          .eq('temporada', AÑO_ACTUAL)
+          .order('fecha', { ascending: false });
+
+        if (!error && data) listaPrograma = data;
+      } catch (e) {
+        console.warn("Fallo programa:", e);
+      }
+    }
+
+    function renderizarTabla11Dias() {
+      const trHeader = document.getElementById('theadDias11');
+      trHeader.innerHTML = '<th class="col-concepto">CONCEPTO / DÍA</th>';
+
+      fechas11Dias.forEach((f, idx) => {
+        const [y, m, d] = f.split('-');
+        trHeader.innerHTML += `
+          <th>
+            <div>FECHA ${idx + 1}</div>
+            <span style="font-size:10.5px; color:#1E6B4C; font-weight:800;">${d}/${m}</span>
+          </th>
+        `;
+      });
+
+      const conceptos = ['cosecha', 'inspeccion', 'carga', 'ezeiza'];
+      conceptos.forEach(c => {
+        let celdas = '';
+        fechas11Dias.forEach(f => {
+          const item = proyeccionesGuardadas.get(f) || {};
+          const valor = item[`${c}_kg`] !== undefined && item[`${c}_kg`] !== null ? item[`${c}_kg`] : '';
+          celdas += `
+            <td>
+              <input type="number" class="input-proy-cell" data-fecha="${f}" data-campo="${c}" value="${valor}" placeholder="0" min="0">
+            </td>
+          `;
+        });
+        const filaTarget = document.getElementById(`fila${c.charAt(0).toUpperCase() + c.slice(1)}Inputs`);
+        if (filaTarget) filaTarget.outerHTML = celdas;
+      });
+
+      let celdasVuelos = '';
+      fechas11Dias.forEach(f => {
+        const vuelosDia = listaVuelos.filter(v => v.fecha === f || v.fecha_etd1 === f);
+        if (vuelosDia.length === 0) {
+          celdasVuelos += `<td><span style="color:#94A3B8; font-size:10px;">—</span></td>`;
+        } else {
+          let htmlV = '';
+          vuelosDia.forEach(v => {
+            htmlV += `
+              <div class="vuelo-badge-item">
+                <b>${v.destino || '-'}</b> · ${v.vuelo || '-'}<br>
+                <span>${v.linea_aerea || ''} (${Number(v.kilos || 0).toLocaleString()} kg)</span>
+              </div>
+            `;
+          });
+          celdasVuelos += `<td style="vertical-align:top;">${htmlV}</td>`;
+        }
+      });
+      const filaVuelos = document.getElementById('filaVuelosDia');
+      if (filaVuelos) filaVuelos.outerHTML = celdasVuelos;
+    }
+
+    async function guardarTodaLaProyeccionSilenciosa() {
+      const inputs = document.querySelectorAll('.input-proy-cell');
+      const mapa = {};
+
+      inputs.forEach(inp => {
+        const f = inp.dataset.fecha;
+        const campo = inp.dataset.campo;
+        const val = parseFloat(inp.value) || 0;
+
+        if (!mapa[f]) {
+          mapa[f] = {
+            temporada: AÑO_ACTUAL,
+            fecha: f,
+            usuario: sesionUsuario.usuario,
+            cosecha_kg: 0,
+            inspeccion_kg: 0,
+            carga_kg: 0,
+            ezeiza_kg: 0
+          };
+        }
+        mapa[f][`${campo}_kg`] = val;
+      });
+
+      const payloads = Object.values(mapa);
+      const { error } = await supabaseClient
+        .from('comex_proyeccion_dias')
+        .upsert(payloads, { onConflict: 'fecha,usuario' });
+
+      if (error) throw error;
+      await cargarProyecciones();
+    }
+
+    async function guardarYContinuarAPrograma() {
+      try {
+        await guardarTodaLaProyeccionSilenciosa();
+        cambiarVistaPrincipal('programa', document.getElementById('btnTab2'));
+      } catch (err) {
+        alert("Error al guardar proyección: " + err.message);
+      }
+    }
+
+    function actualizarBannerProyeccionEnPrograma() {
+      const bannerCont = document.getElementById('contCardsResumenProy');
+      document.getElementById('lblFechaDesdeBanner').innerText = fechas11Dias[0] || '—';
+
+      let totalKg = 0;
+      bannerCont.innerHTML = fechas11Dias.map((f, i) => {
+        const p = proyeccionesGuardadas.get(f) || {};
+        const cos = Number(p.cosecha_kg || 0);
+        const ins = Number(p.inspeccion_kg || 0);
+        const car = Number(p.carga_kg || 0);
+        const eze = Number(p.ezeiza_kg || 0);
+        totalKg += (cos + ins + car + eze);
+
+        const [y, m, d] = f.split('-');
+        return `
+          <div class="card-dia-resumen">
+            <div style="font-weight:800; border-bottom:1px solid #E2E8F0; padding-bottom:2px; margin-bottom:4px;">
+              Día ${i + 1} (${d}/${m})
+            </div>
+            <div>Cosecha: <b>${cos.toLocaleString()} kg</b></div>
+            <div>Inspecc: <b>${ins.toLocaleString()} kg</b></div>
+            <div>Carga: <b>${car.toLocaleString()} kg</b></div>
+            <div>Ezeiza: <b>${eze.toLocaleString()} kg</b></div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('lblTotalesProyBanner').innerText = `${totalKg.toLocaleString()} Kg Proyectados`;
+    }
+
+    function renderizarTablaPrograma() {
+      const tbody = document.getElementById('tbodyProgramaTrabajo');
+      if (listaPrograma.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:30px; color:var(--color-text-secondary);">No hay renglones confeccionados en el programa aún.</td></tr>';
         return;
       }
 
-      tbody.innerHTML = lista.map(p => `
+      tbody.innerHTML = listaPrograma.map(r => `
         <tr>
-          <td><b>${p.pallet_integrado || '-'}</b></td>
-          <td>#${p.numero_romaneo_interno || '-'}</td>
-          <td>${p.variedad || '-'} (${p.especie || 'Cereza'})</td>
-          <td>${p.calibre || '-'}</td>
-          <td>${p.categoria || '-'}</td>
-          <td><b>${p.cantidad || 0}</b></td>
-          <td>${p.productor || '-'} / ${p.marca || '-'}</td>
-          <td>${p.codigo_camara || '-'}</td>
+          <td><b>${r.fecha}</b></td>
+          <td><b>${r.cliente}</b></td>
+          <td>${r.marca}</td>
+          <td style="font-weight:900; color:var(--color-adm); font-size:12px;">${r.calibre}</td>
+          <td><b>${Number(r.cantidad || 0).toLocaleString()}</b></td>
+          <td>${r.tamano || 'STD'}</td>
+          <td>${r.nro_pallet || '-'}</td>
+          <td><span style="background:var(--color-blue-soft); color:var(--color-blue); padding:2px 6px; border-radius:4px; font-weight:800;">${r.destino || '-'}</span></td>
+          <td><b>${r.vuelo || '-'}</b></td>
+          <td>${r.hora_salida_vuelo || '-'}</td>
+          <td><b>${r.salida_empaque ? r.salida_empaque.replace('T', ' ') : '-'}</b></td>
         </tr>
       `).join('');
     }
 
-    function filtrarPallets(term) {
-      const t = term.toLowerCase().trim();
-      const f = rawStock.filter(p =>
-        (p.pallet_integrado || '').toLowerCase().includes(t) ||
-        (p.variedad || '').toLowerCase().includes(t) ||
-        (p.numero_lote || '').toLowerCase().includes(t)
-      );
-      renderTabla(f);
+    function abrirModalNuevoPrograma() {
+      document.getElementById('formPrograma').reset();
+      document.getElementById('progFecha').value = fechas11Dias[0] || new Date().toISOString().split('T')[0];
+
+      const selVuelo = document.getElementById('progVueloSel');
+      selVuelo.innerHTML = '<option value="">Seleccionar vuelo cargado...</option>';
+      listaVuelos.forEach((v, i) => {
+        selVuelo.innerHTML += `
+          <option value="${i}">
+            ${v.vuelo || 'S/V'} | Destino: ${v.destino || '-'} | ETD: ${v.fecha_etd1 || ''} ${v.hora_etd1 || ''} (${v.linea_aerea || ''})
+          </option>
+        `;
+      });
+
+      document.getElementById('modalPrograma').classList.add('show');
     }
 
-    function cerrarSesion() {
-      localStorage.removeItem('comex_sesion');
-      window.location.href = '../loguer.html';
+    function cerrarModalPrograma() {
+      document.getElementById('modalPrograma').classList.remove('show');
+    }
+
+    function vueloSeleccionadoCambio(valIndex) {
+      if (valIndex === "") {
+        document.getElementById('progDestino').value = '';
+        document.getElementById('progHoraVuelo').value = '';
+        return;
+      }
+      const v = listaVuelos[parseInt(valIndex, 10)];
+      if (v) {
+        document.getElementById('progDestino').value = v.destino || '';
+        document.getElementById('progHoraVuelo').value = `${v.fecha_etd1 || ''} ${v.hora_etd1 || ''}`.trim() || 'No especificada';
+      }
+    }
+
+    async function guardarRenglonesPrograma(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnGuardarProgModal');
+      btn.disabled = true;
+      btn.innerText = "Guardando...";
+
+      const fecha = document.getElementById('progFecha').value;
+      const cliente = document.getElementById('progCliente').value;
+      const marca = document.getElementById('progMarca').value;
+      const destino = document.getElementById('progDestino').value;
+      const vIdx = document.getElementById('progVueloSel').value;
+      const vueloObj = vIdx !== "" ? listaVuelos[parseInt(vIdx, 10)] : {};
+      const horaSalidaVuelo = document.getElementById('progHoraVuelo').value;
+      const salidaEmpaque = document.getElementById('progSalidaEmpaque').value;
+
+      const calibres = ['24-26', '26-28', '28-30', '30-32', '32+'];
+      const renglonesNuevos = [];
+
+      calibres.forEach(c => {
+        const inCant = document.querySelector(`.input-cant-calibre[data-calibre="${c}"]`);
+        const inTam = document.querySelector(`input[data-tamano="${c}"]`);
+        const inPal = document.querySelector(`input[data-pallet="${c}"]`);
+
+        const cantidad = parseInt(inCant.value, 10) || 0;
+        if (cantidad > 0) {
+          renglonesNuevos.push({
+            temporada: AÑO_ACTUAL,
+            semana: 1,
+            fecha: fecha,
+            cliente: cliente,
+            marca: marca,
+            calibre: c,
+            cantidad: cantidad,
+            tamano: (inTam ? inTam.value : 'STD') || 'STD',
+            nro_pallet: inPal ? inPal.value : null,
+            destino: destino,
+            vuelo: vueloObj.vuelo || null,
+            hora_salida_vuelo: horaSalidaVuelo,
+            salida_empaque: salidaEmpaque,
+            usuario: sesionUsuario.usuario
+          });
+        }
+      });
+
+      if (renglonesNuevos.length === 0) {
+        alert("Ingresá la cantidad de cajas al menos para un calibre.");
+        btn.disabled = false;
+        btn.innerText = "Guardar en Programa";
+        return;
+      }
+
+      try {
+        const { error } = await supabaseClient
+          .from('comex_programa_trabajo')
+          .insert(renglonesNuevos);
+
+        if (error) throw error;
+
+        cerrarModalPrograma();
+        await cargarProgramas();
+        renderizarTablaPrograma();
+        alert(`✅ Se agregaron ${renglonesNuevos.length} registros al Programa de Trabajo.`);
+      } catch (err) {
+        alert("Error al guardar: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Guardar en Programa";
+      }
     }
   </script>
 </body>

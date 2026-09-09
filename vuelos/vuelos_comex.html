@@ -960,9 +960,12 @@
 
     // Generador Max(registro) + 1 con formato USUARIO&0001
     function generarUniqueId() {
-  // Genera una cadena aleatoria alfanumérica de 8 caracteres en mayúsculas
-     return Math.random().toString(36).substring(2, 10).toUpperCase();
+      const uNombre = (sesionUsuario && sesionUsuario.usuario) ? sesionUsuario.usuario.toUpperCase().trim() : 'USUARIO';
+      const randomCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+      // Formato: USUARIO&XXXXXXXX (Ej: JUAN&A8B2C3D4)
+      return randomCode;
     }
+
 
     // Modal Alta / Edición
     function abrirModalNuevoVuelo() {
@@ -1022,6 +1025,7 @@
       if (pane) pane.classList.add('active');
     }
 
+    // 3. Abrir Modal Editar Vuelo
     function abrirModalEditarVuelo(v) {
       document.getElementById('lblModalTitulo').innerText = `Editar Despacho`;
       document.getElementById('txtRegistroId').value = v.registro;
@@ -1031,12 +1035,11 @@
       actualizarSemanaSegunFecha(formatearFechaCorta(v.fecha));
       document.getElementById('txtIngresoFecha').value = formatearFechaCorta(v.ingreso);
 
-
       document.getElementById('txtDestino').value = v.destino || '';
-      document.getElementById('txtPcs').value = v.pcs || '';
-      document.getElementById('txtKilos').value = v.kilos || '';
-      document.getElementById('txtNeta').value = v.neta || '';
-      document.getElementById('txtUld').value = v.uld || '';
+      document.getElementById('txtPcs').value = v.pcs !== null && v.pcs !== undefined ? v.pcs : '';
+      document.getElementById('txtKilos').value = v.kilos !== null && v.kilos !== undefined ? v.kilos : '';
+      document.getElementById('txtNeta').value = v.neta !== null && v.neta !== undefined ? v.neta : '';
+      document.getElementById('txtUld').value = v.uld !== null && v.uld !== undefined ? v.uld : '';
 
       document.getElementById('txtLineaAerea').value = v.linea_aerea || '';
       document.getElementById('txtAwb').value = v.awb || '';
@@ -1049,101 +1052,114 @@
       document.getElementById('txtVueloCnx').value = v.vuelo_cnx || '';
       document.getElementById('txtFechaEtd2').value = formatearFechaCorta(v.fecha_etd2);
       document.getElementById('txtHoraEtd2').value = v.hora_etd2 || '';
-      document.getElementById('txtFechaEta2').value = formatearFechaCorta(v['fecha_eta 2'] || v.fecha_eta_2);
+      
+      const eta2Val = v['fecha_eta 2'] || v.fecha_eta_2;
+      document.getElementById('txtFechaEta2').value = formatearFechaCorta(eta2Val);
       document.getElementById('txtHoraEta2').value = v.hora_eta2 || '';
 
-      document.getElementById('txtTarifa').value = v.tarifa_kg || '';
-      document.getElementById('txtFijos').value = v.fijos || '';
+      // Limpiar prefijo USD al cargar para que sea fácil editar
+      document.getElementById('txtTarifa').value = (v.tarifa_kg || '').replace(/^USD\s*/i, '').trim();
+      document.getElementById('txtFijos').value = (v.fijos || '').replace(/^USD\s*/i, '').trim();
       document.getElementById('txtInfo').value = v.info || '';
 
       cambiarTabModal(0, document.querySelectorAll('.form-tab-btn')[0]);
-      document.getElementById('modalVuelo').classList.add('show');
+      
+      const modal = document.getElementById('modalVuelo');
+      modal.classList.add('show');
+      modal.style.display = 'flex';
     }
 
-
-
+// 4. Guardar Formulario Vuelo
     async function guardarFormularioVuelo(e) {
-  e.preventDefault();
-  const btn = document.getElementById('btnGuardarModal');
-  btn.disabled = true;
-  btn.innerText = "Guardando...";
+      e.preventDefault();
+      const btn = document.getElementById('btnGuardarModal');
+      btn.disabled = true;
+      btn.innerText = "Guardando...";
 
-  const idExistente = document.getElementById('txtRegistroId').value.trim();
-  const registroId = idExistente || generarSiguienteRegistro();
-  const semanaCalculada = parseInt(document.getElementById('valSemanaCalculada').value, 10);
+      // Si existe toma el ID anterior, si es nuevo genera el ID único alfanumérico
+      const idExistente = document.getElementById('txtRegistroId').value.trim();
+      const registroId = idExistente || generarUniqueId();
+      const semanaCalculada = parseInt(document.getElementById('valSemanaCalculada').value, 10);
 
-  // Parseo seguro de números (si está vacío va null, no NaN)
-  const parseNumOrNull = (id) => {
-    const el = document.getElementById(id);
-    if (!el || el.value.trim() === '') return null;
-    const n = parseInt(el.value, 10);
-    return isNaN(n) ? null : n;
-  };
+      const parseNumOrNull = (id) => {
+        const el = document.getElementById(id);
+        if (!el || el.value.trim() === '') return null;
+        const n = parseInt(el.value, 10);
+        return isNaN(n) ? null : n;
+      };
 
-  const getValOrNull = (id) => {
-    const el = document.getElementById(id);
-    if (!el || el.value.trim() === '') return null;
-    return el.value.trim();
-  };
+      const getValOrNull = (id) => {
+        const el = document.getElementById(id);
+        if (!el || el.value.trim() === '') return null;
+        return el.value.trim();
+      };
 
-  // Construcción del payload
-  const vueloData = {
-    registro: registroId,
-    temporada: AÑO_ACTUAL,
-    semana: semanaCalculada || 1,
-    fecha: document.getElementById('txtFecha').value || new Date().toISOString().split('T')[0],
-    ingreso: getValOrNull('txtIngresoFecha'),
-    cliente: 'CECO', // Fijo como CECO
-    destino: (getValOrNull('txtDestino') || '').toUpperCase(),
-    pcs: parseNumOrNull('txtPcs') || 0,
-    kilos: parseNumOrNull('txtKilos') || 0,
-    neta: parseNumOrNull('txtNeta'),
-    uld: parseNumOrNull('txtUld'),
-    info: parseNumOrNull('txtInfo'),
-    linea_aerea: (getValOrNull('txtLineaAerea') || '').toUpperCase(),
-    awb: getValOrNull('txtAwb'),
-    vuelo: getValOrNull('txtVuelo'),
-    fecha_etd1: getValOrNull('txtFechaEtd1'),
-    hora_etd1: getValOrNull('txtHoraEtd1'),
-    fecha_eta_1: getValOrNull('txtFechaEta1'),
-    hora_eta1: getValOrNull('txtHoraEta1'),
-    vuelo_cnx: getValOrNull('txtVueloCnx'),
-    fecha_etd2: getValOrNull('txtFechaEtd2'),
-    hora_etd2: getValOrNull('txtHoraEtd2'),
-    fecha_eta_2: getValOrNull('txtFechaEta2'), // Clave original de la tabla
-    hora_eta2: getValOrNull('txtHoraEta2'),
-    tarifa_kg: `USD ${getValOrNull('txtTarifa')}`,
-    fijos: `USD ${getValOrNull('txtFijos')}`,
-    usuario: sesionUsuario.usuario
-  };
+      // Formateo seguro para no duplicar USD
+      const formatearMonedaUSD = (val) => {
+        if (!val) return null;
+        const limpio = val.replace(/^USD\s*/i, '').trim();
+        return limpio ? `USD ${limpio}` : null;
+      };
 
-  try {
-    // 1. Guardar en Supabase
-    const { error } = await supabaseClient
-      .from('logistitcas_temporada')
-      .upsert([vueloData], { onConflict: 'registro' });
+      const fechaEta2 = getValOrNull('txtFechaEta2');
 
-    if (error) {
-      console.error("Detalle error Supabase:", error);
-      throw error;
+      const vueloData = {
+        registro: registroId,
+        temporada: AÑO_ACTUAL,
+        semana: semanaCalculada || 1,
+        fecha: document.getElementById('txtFecha').value || new Date().toISOString().split('T')[0],
+        ingreso: getValOrNull('txtIngresoFecha'),
+        cliente: 'CECO',
+        destino: (getValOrNull('txtDestino') || '').toUpperCase(),
+        pcs: parseNumOrNull('txtPcs') || 0,
+        kilos: parseNumOrNull('txtKilos') || 0,
+        neta: parseNumOrNull('txtNeta'),
+        uld: parseNumOrNull('txtUld'),
+        info: parseNumOrNull('txtInfo'),
+        linea_aerea: (getValOrNull('txtLineaAerea') || '').toUpperCase(),
+        awb: getValOrNull('txtAwb'),
+        vuelo: getValOrNull('txtVuelo'),
+        fecha_etd1: getValOrNull('txtFechaEtd1'),
+        hora_etd1: getValOrNull('txtHoraEtd1'),
+        fecha_eta_1: getValOrNull('txtFechaEta1'),
+        hora_eta1: getValOrNull('txtHoraEta1'),
+        vuelo_cnx: getValOrNull('txtVueloCnx'),
+        fecha_etd2: getValOrNull('txtFechaEtd2'),
+        hora_etd2: getValOrNull('txtHoraEtd2'),
+        "fecha_eta 2": fechaEta2, // Nombre de columna exacto en Supabase
+        hora_eta2: getValOrNull('txtHoraEta2'),
+        tarifa_kg: formatearMonedaUSD(getValOrNull('txtTarifa')),
+        fijos: formatearMonedaUSD(getValOrNull('txtFijos')),
+        usuario: sesionUsuario.usuario
+      };
+
+      try {
+        // 1. Guardar en Supabase
+        const { error } = await supabaseClient
+          .from('logistitcas_temporada')
+          .upsert([vueloData], { onConflict: 'registro' });
+
+        if (error) {
+          console.error("Detalle error Supabase:", error);
+          throw error;
+        }
+
+        // 2. Guardar réplica local
+        if (servSinc && typeof servSinc.guardarVueloLocal === 'function') {
+          servSinc.guardarVueloLocal(vueloData, sesionUsuario.usuario);
+        }
+
+        cerrarModalVuelo();
+        await cargarDatosVuelos();
+
+      } catch (err) {
+        console.error("Error completo al guardar:", err);
+        alert("Error al guardar el vuelo: " + (err.message || JSON.stringify(err)));
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Guardar Despacho";
+      }
     }
-
-    // 2. Guardar réplica local si estamos en Electron
-    if (servSinc && typeof servSinc.guardarVueloLocal === 'function') {
-      servSinc.guardarVueloLocal(vueloData, sesionUsuario.usuario);
-    }
-
-    cerrarModalVuelo();
-    await cargarDatosVuelos();
-
-  } catch (err) {
-    console.error("Error completo al guardar:", err);
-    alert("Error al guardar el vuelo: " + (err.message || JSON.stringify(err)));
-  } finally {
-    btn.disabled = false;
-    btn.innerText = "Guardar Despacho";
-  }
-}
 
     async function sincronizar() {
       const btn = document.getElementById('btnSync');
