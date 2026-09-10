@@ -64,7 +64,7 @@ async function pushVuelos(usuarioActivo) {
       vuelo_cnx: row.vuelo_cnx,
       fecha_etd2: row.fecha_etd2,
       hora_etd2: row.hora_etd2,
-      "fecha_eta 2": row.fecha_eta_2,
+      fecha_eta_2: row.fecha_eta_2,
       hora_eta2: row.hora_eta2,
       tarifa_kg: row.tarifa_kg,
       fijos: row.fijos,
@@ -125,7 +125,7 @@ async function pullVuelos(temporada, usuarioActivo) {
       vuelo_cnx: row.vuelo_cnx,
       fecha_etd2: row.fecha_etd2,
       hora_etd2: row.hora_etd2,
-      fecha_eta_2: row['fecha_eta 2'] || row.fecha_eta_2 || null,
+      fecha_eta_2: row.fecha_eta_2,
       hora_eta2: row.hora_eta2,
       tarifa_kg: row.tarifa_kg,
       fijos: row.fijos,
@@ -171,6 +171,63 @@ async function guardarProgramaTrabajo(renglones) {
   return data;
 }
 
+
+// Descargar proyecciones de 11 días desde Supabase y guardarlas en el JSON local
+async function pullProyecciones(usuarioActivo) {
+  let query = supabaseCampo.from('comex_proyeccion_dias').select('*');
+  if (usuarioActivo) {
+    query = query.eq('usuario', usuarioActivo);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  if (!data || data.length === 0) return 0;
+
+  data.forEach(row => {
+    db.prepare(`INSERT INTO local_comex_proyeccion_dias`).run(row);
+  });
+
+  return data.length;
+}
+
+// Descargar programa de empaque desde Supabase al storage local
+async function pullProgramaTrabajo(usuarioActivo) {
+  let query = supabaseCampo.from('comex_programa_trabajo').select('*');
+  if (usuarioActivo) {
+    query = query.eq('usuario', usuarioActivo);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  if (!data || data.length === 0) return 0;
+
+  data.forEach(row => {
+    db.prepare(`INSERT INTO local_comex_programa_trabajo`).run(row);
+  });
+
+  return data.length;
+}
+
+// Sincronizar Proyecciones (Sube o lee según flujo)
+async function sincronizarProyecciones(usuarioActivo) {
+  // 1. Descargamos de la nube
+  await pullProyecciones(usuarioActivo);
+  // 2. Retornamos la lista consolidada desde la base local
+  return db.prepare(`SELECT * FROM local_comex_proyeccion_dias`).all();
+}
+
+// Función maestra para descargar TODO el estado desde Supabase
+async function descargarTodoElEstado(temporada, usuarioActivo) {
+  const vuelos = await pullVuelos(temporada, usuarioActivo);
+  const proyecciones = await pullProyecciones(usuarioActivo);
+  const programa = await pullProgramaTrabajo(usuarioActivo);
+
+  return {
+    vuelosDescargados: vuelos,
+    proyeccionesDescargadas: proyecciones,
+    programaDescargado: programa
+  };
+}
 async function sincronizarVuelosCompleto(temporada, usuarioActivo) {
   const pushRes = await pushVuelos(usuarioActivo);
   const pullCount = await pullVuelos(temporada, usuarioActivo);
@@ -183,7 +240,10 @@ module.exports = {
   pushVuelos,
   pullVuelos,
   sincronizarVuelosCompleto,
-    sincronizarProyecciones,
+  sincronizarProyecciones,
+  pullProyecciones,
+  pullProgramaTrabajo,
   guardarProyeccionDia,
-  guardarProgramaTrabajo
+  guardarProgramaTrabajo,
+  descargarTodoElEstado
 };

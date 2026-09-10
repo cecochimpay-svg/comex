@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Programa de Trabajo & Proyección · COMEX CECO S.A.</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+  
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
   <style>
     :root {
@@ -21,8 +24,15 @@
       --color-ok-soft: #E8F5E9;
       --color-blue: #0071E3;
       --color-blue-soft: #EBF3FA;
-      --color-amber: #B45309;
-      --color-amber-soft: #FFFBEB;
+      
+      /* Colores Pastel para Solapas */
+      --tab1-pastel-bg: #E8F5E9;
+      --tab1-pastel-border: #A5D6A7;
+      --tab1-pastel-text: #1B5E20;
+      --tab2-pastel-bg: #E3F2FD;
+      --tab2-pastel-border: #90CAF9;
+      --tab2-pastel-text: #0D47A1;
+
       --radius-lg: 16px;
       --radius-md: 10px;
       --radius-sm: 8px;
@@ -48,40 +58,76 @@
       height: 56px; background: #FFFFFF;
       border-bottom: 1px solid var(--color-border);
       display: flex; justify-content: space-between; align-items: center;
-      padding: 0 20px; flex-shrink: 0; z-index: 20;
+      padding: 0 16px; flex-shrink: 0; z-index: 20; gap: 10px;
     }
-    .topbar-info { font-size: 12px; font-weight: 700; color: var(--color-text-secondary); }
+    .topbar-izq { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .topbar-logo { height: 34px; max-width: 110px; object-fit: contain; flex-shrink: 0; }
+    .topbar-info { font-size: 12px; font-weight: 700; color: var(--color-text-secondary); white-space: nowrap; }
     .topbar-info span { color: var(--color-adm); font-family: 'Montserrat'; font-weight: 800; }
-    .btn-topbar {
-      border: 1px solid var(--color-border); background: #FFFDE7;
-      color: #F57F17; border-radius: 20px; padding: 6px 14px;
-      font-size: 11.5px; font-weight: 700; cursor: pointer; text-decoration: none;
-    }
+    
+    .top-right-bar { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .system-datetime { font-size: 11px; font-weight: 700; color: var(--color-text-secondary); }
 
+    .btn-sync-top {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--color-adm-soft); border: 1px solid rgba(30, 107, 76, 0.25);
+      color: var(--color-adm-dark); padding: 6px 12px; border-radius: 20px;
+      font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s ease;
+    }
+    .btn-sync-top:hover { background: var(--color-adm); color: #FFFFFF; }
+    .btn-sync-top.rotating svg { animation: girar 1s linear infinite; }
+    @keyframes girar { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    .btn-logout {
+      display: flex; align-items: center; gap: 4px;
+      background: #FFFDE7; border: 1px solid #FBC02D;
+      padding: 6px 12px; border-radius: 20px; font-size: 11px;
+      font-weight: 700; color: #F57F17; cursor: pointer; text-decoration: none;
+    }
+    .btn-logout:hover { background: #FFF9C4; color: #E65100; }
+
+    /* Solapas con Colores Pastel Diferenciados */
     .tabs-view-header {
       background: #FFFFFF; border-bottom: 1.5px solid var(--color-border);
-      display: flex; gap: 8px; padding: 6px 20px 0; flex-shrink: 0;
+      display: flex; gap: 10px; padding: 8px 16px 0; flex-shrink: 0; overflow-x: auto;
     }
     .tab-nav-btn {
       padding: 9px 18px; font-size: 12px; font-weight: 800;
-      color: var(--color-text-secondary); border: 1px solid transparent;
-      border-bottom: none; border-radius: 10px 10px 0 0; background: transparent; cursor: pointer;
+      border: 1.5px solid transparent; border-bottom: none;
+      border-radius: 12px 12px 0 0; cursor: pointer; white-space: nowrap;
+      transition: all 0.2s ease;
     }
-    .tab-nav-btn.active {
-      background: var(--color-bg); color: var(--color-adm-dark);
-      border-color: var(--color-border); border-bottom: 3px solid var(--color-adm);
+    
+    /* Pestaña 1: Verde Menta Pastel */
+    .tab-nav-btn.tab-proyeccion {
+      background: #F1F8F3; color: #4A6B53; border-color: #D3E6D7;
+    }
+    .tab-nav-btn.tab-proyeccion.active {
+      background: var(--tab1-pastel-bg); color: var(--tab1-pastel-text);
+      border-color: var(--tab1-pastel-border); border-bottom: 3.5px solid var(--color-adm);
+      box-shadow: 0 -2px 6px rgba(46, 125, 50, 0.08);
+    }
+
+    /* Pestaña 2: Azul Cielo Pastel */
+    .tab-nav-btn.tab-programa {
+      background: #F0F7FD; color: #4D6E8E; border-color: #CFE3F5;
+    }
+    .tab-nav-btn.tab-programa.active {
+      background: var(--tab2-pastel-bg); color: var(--tab2-pastel-text);
+      border-color: var(--tab2-pastel-border); border-bottom: 3.5px solid var(--color-blue);
+      box-shadow: 0 -2px 6px rgba(13, 71, 161, 0.08);
     }
 
     .main-wrapper { flex: 1; display: flex; overflow: hidden; }
 
-    /* VISTA 1: PROYECCIÓN */
+    /* VISTA 1 */
     .proyeccion-container {
-      flex: 1; padding: 16px 20px; display: flex; flex-direction: column;
+      flex: 1; padding: 12px 16px; display: flex; flex-direction: column;
       overflow: hidden; gap: 12px;
     }
     .fechas-barra-control {
       background: #FFFFFF; border: 1px solid var(--color-border);
-      border-radius: var(--radius-md); padding: 10px 16px; display: flex;
+      border-radius: var(--radius-md); padding: 10px 14px; display: flex;
       justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
     }
     .tabla-proyeccion-wrap {
@@ -96,11 +142,11 @@
     }
     .tabla-proyeccion th.col-concepto {
       text-align: left; padding-left: 14px; width: 150px;
-      background: #ECEFF1; color: var(--color-adm-dark);
+      background: #ECEFF1; color: var(--color-adm-dark); position: sticky; left: 0; z-index: 3;
     }
     .tabla-proyeccion td { border: 1px solid var(--color-border); padding: 4px; vertical-align: middle; }
     .input-proy-cell {
-      width: 100%; min-width: 85px; text-align: center;
+      width: 100%; min-width: 80px; text-align: center;
       border: 1.2px solid transparent; border-radius: 6px;
       padding: 8px 4px; font-weight: 700; font-size: 12.5px; background: transparent;
       outline: none; font-family: inherit;
@@ -112,117 +158,164 @@
     .vuelo-badge-item {
       font-size: 10px; text-align: left; background: #F8FAFC;
       border-radius: 6px; padding: 4px 6px; border-left: 3px solid var(--color-blue);
-      margin-bottom: 4px; line-height: 1.35;
+      margin-bottom: 4px; line-height: 1.35; min-width: 120px;
     }
 
-    /* VISTA 2: PROGRAMA DE TRABAJO */
+    /* VISTA 2 */
     .programa-container {
-      flex: 1; padding: 16px 20px; display: flex; flex-direction: column;
+      flex: 1; padding: 12px 16px; display: flex; flex-direction: column;
       overflow: hidden; gap: 12px;
     }
     .resumen-proyeccion-banner {
-      background: #FFFFFF; border: 1.5px solid var(--color-adm);
+      background: #FFFFFF; border: 1.5px solid var(--color-blue-soft);
+      border-left: 4px solid var(--color-blue);
       border-radius: var(--radius-md); padding: 10px 14px;
       display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;
     }
-    .resumen-scroll-fechas {
-      display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px;
-    }
+    .resumen-scroll-fechas { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
     .card-dia-resumen {
       background: #F8FAFC; border: 1px solid var(--color-border);
-      border-radius: 8px; padding: 6px 12px; min-width: 140px; flex-shrink: 0;
-      font-size: 11px;
+      border-radius: 8px; padding: 6px 12px; min-width: 130px; flex-shrink: 0; font-size: 11px;
     }
     .card-dia-resumen b { color: var(--color-adm-dark); }
-    
+
     .panel-grilla-programa {
       flex: 1; background: #FFFFFF; border: 1.5px solid var(--color-border);
-      border-radius: var(--radius-lg); display: flex; flex-direction: column;
-      overflow: hidden;
+      border-radius: var(--radius-lg); display: flex; flex-direction: column; overflow: hidden;
     }
     .tabla-programa-wrap { flex: 1; overflow: auto; }
-    .tabla-programa { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+    .tabla-programa { width: 100%; border-collapse: collapse; font-size: 11.5px; white-space: nowrap; }
     .tabla-programa th {
       position: sticky; top: 0; background: #ECEFF1;
-      border: 1px solid var(--color-border); padding: 8px 6px;
+      border: 1px solid var(--color-border); padding: 9px 8px;
       font-size: 10px; font-weight: 800; text-transform: uppercase; z-index: 2;
     }
-    .tabla-programa td { border: 1px solid var(--color-border); padding: 6px 8px; vertical-align: middle; }
+    .tabla-programa td { border: 1px solid var(--color-border); padding: 8px 10px; vertical-align: middle; }
+    .tr-programa-row { cursor: pointer; transition: background 0.15s ease; }
+    .tr-programa-row:hover td { background: var(--color-blue-soft); }
 
     .btn-action-main {
       background: var(--color-adm); color: #FFFFFF; border: none;
       border-radius: var(--radius-md); padding: 8px 16px; font-size: 12px;
       font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+      transition: all 0.2s ease;
     }
     .btn-action-main:hover { background: var(--color-adm-dark); }
 
-    /* Modal Formulario */
+    /* Modales Estilo Apple Soft */
     .modal-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(4px);
-      display: none; align-items: center; justify-content: center; z-index: 3000; padding: 14px;
+      background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(5px);
+      display: none; align-items: center; justify-content: center; z-index: 3000; padding: 12px;
     }
     .modal-overlay.show { display: flex !important; }
     .modal-box {
       background: #FFFFFF; border-radius: var(--radius-lg);
-      padding: 22px; width: 100%; max-width: 760px; max-height: 94vh;
+      padding: 22px; width: 100%; max-width: 900px; max-height: 94vh;
       display: flex; flex-direction: column; gap: 14px; border: 1px solid var(--color-border);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.18);
     }
     .modal-body-scroll { overflow-y: auto; flex: 1; padding-right: 4px; display: flex; flex-direction: column; gap: 12px; }
     .modal-grid-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
-    .modal-group { display: flex; flex-direction: column; gap: 3px; }
-    .modal-group label { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--color-text-secondary); }
+    .modal-group { display: flex; flex-direction: column; gap: 4px; }
+    .modal-group label { font-size: 10.5px; font-weight: 800; text-transform: uppercase; color: var(--color-text-secondary); }
     .modal-control {
-      padding: 8px 10px; border-radius: var(--radius-sm); border: 1.2px solid var(--color-border);
-      font-size: 12px; font-weight: 600; outline: none; background: #FAFAFA; font-family: inherit;
+      padding: 9px 10px; border-radius: var(--radius-sm); border: 1.2px solid var(--color-border);
+      font-size: 12.5px; font-weight: 600; outline: none; background: #FAFAFA; font-family: inherit; width: 100%;
     }
     .modal-control:focus { border-color: var(--color-adm); background: #FFFFFF; }
-    
-    .calibres-table-box {
-      border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden;
-    }
-    .tabla-calibres-input { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+
+    .calibres-table-box { border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow-x: auto; }
+    .tabla-calibres-input { width: 100%; border-collapse: collapse; font-size: 11.5px; min-width: 320px; }
     .tabla-calibres-input th { background: #F1F5F9; padding: 6px; font-size: 10px; text-transform: uppercase; }
-    .tabla-calibres-input td { border-top: 1px solid var(--color-border); padding: 4px 8px; }
+    .tabla-calibres-input td { border-top: 1px solid var(--color-border); padding: 4px 6px; }
     .input-cant-calibre {
       width: 100%; border: 1px solid var(--color-border); border-radius: 4px;
-      padding: 6px; font-weight: 700; text-align: center;
+      padding: 6px; font-weight: 700; text-align: center; font-size: 13px;
+    }
+
+    .tabla-buffer { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 4px; }
+    .tabla-buffer th { background: #E2E8F0; padding: 6px; font-weight: 800; text-align: left; }
+    .tabla-buffer td { border-bottom: 1px solid var(--color-border); padding: 6px; }
+
+    .badge-pill { display: inline-block; padding: 2px 7px; border-radius: 12px; font-size: 10px; font-weight: 800; }
+    .badge-blue { background: var(--color-blue-soft); color: var(--color-blue); }
+
+    /* TOAST DE NOTIFICACIONES PROFESIONAL */
+    .toast-container {
+      position: fixed; bottom: 20px; right: 20px; z-index: 5000;
+      display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+    }
+    .toast-msg {
+      pointer-events: auto; background: #FFFFFF; border-radius: 12px;
+      padding: 12px 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      border: 1px solid var(--color-border); display: flex; align-items: center;
+      gap: 10px; font-size: 12.5px; font-weight: 700; animation: entraToast 0.25s ease forwards;
+      min-width: 280px;
+    }
+    .toast-msg.success { border-left: 4px solid var(--color-ok); color: var(--color-ok); }
+    .toast-msg.error { border-left: 4px solid #DC2626; color: #DC2626; }
+    .toast-msg.info { border-left: 4px solid var(--color-blue); color: var(--color-blue); }
+
+    @keyframes entraToast {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 0 10px; }
+      .system-datetime { display: none; }
+      .proyeccion-container, .programa-container { padding: 8px; gap: 8px; }
+      .fechas-barra-control { flex-direction: column; align-items: stretch; }
+      .btn-action-main { width: 100%; justify-content: center; }
+      .modal-box { padding: 14px; }
+      .modal-grid-row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Topbar -->
+  <!-- Topbar con Logo -->
   <header class="topbar">
-    <div class="topbar-info">
-      👤 Operador: <span id="lblUser">ADMIN</span> &nbsp;·&nbsp;
-      TEMPORADA <span>2026</span>
+    <div class="topbar-izq">
+      <img src="../logo.png" alt="Logo" class="topbar-logo" onerror="this.style.display='none'">
+      <div class="topbar-info">
+        👤 <span id="lblUser">ADMIN</span> &nbsp;·&nbsp; TEMP <span>2026</span>
+      </div>
     </div>
-    <a href="../loguer.html" class="btn-topbar">✕ Cerrar Sesión</a>
+
+    <div class="top-right-bar">
+      <div class="system-datetime" id="lblFechaHora">09/09/2026</div>
+      <button class="btn-sync-top" id="btnSync" onclick="sincronizar()" title="Sincronizar con Supabase">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+        Sincronizar
+      </button>
+      <a href="../loguer.html" class="btn-logout" onclick="cerrarSesion()">✕ Salir</a>
+    </div>
   </header>
 
-  <!-- Pestañas -->
+  <!-- Pestañas Diferenciadas con Tonos Pastel -->
   <nav class="tabs-view-header">
-    <button class="tab-nav-btn active" id="btnTab1" onclick="cambiarVistaPrincipal('proyeccion', this)">
-      1. Proyección Operativa (11 Días)
+    <button class="tab-nav-btn tab-proyeccion active" id="btnTab1" onclick="cambiarVistaPrincipal('proyeccion', this)">
+      🌱 1. Proyección Operativa (11 Días)
     </button>
-    <button class="tab-nav-btn" id="btnTab2" onclick="cambiarVistaPrincipal('programa', this)">
-      2. Programa de Trabajo y Empaque
+    <button class="tab-nav-btn tab-programa" id="btnTab2" onclick="cambiarVistaPrincipal('programa', this)">
+      📦 2. Programa de Trabajo y Empaque
     </button>
   </nav>
 
   <div class="main-wrapper">
 
-    <!-- SOLAPA 1: PROYECCIÓN A 11 DÍAS -->
+    <!-- SOLAPA 1: PROYECCIÓN -->
     <section class="proyeccion-container" id="vistaProyeccion">
       <div class="fechas-barra-control">
-        <div style="display:flex; align-items:center; gap:10px;">
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <label style="font-size:11.5px; font-weight:800; color:var(--color-adm-dark);">📅 FECHA DE INICIO:</label>
-          <input type="date" id="txtFechaInicioProyeccion" class="modal-control" onchange="regenerarFechasProyeccion(this.value)">
-          <span style="font-size:11px; color:var(--color-text-secondary);">(Esquema automático de 11 días continuos)</span>
+          <input type="date" id="txtFechaInicioProyeccion" class="modal-control" style="width:auto;" onchange="regenerarFechasProyeccion(this.value)">
+          <span style="font-size:10.5px; color:var(--color-text-secondary);">(Esquema automático 11 días)</span>
         </div>
         <button class="btn-action-main" onclick="guardarYContinuarAPrograma()">
-          💾 Guardar y Pasar al Programa ➔
+          💾 Guardar y Continuar al Programa ➔
         </button>
       </div>
 
@@ -234,25 +327,25 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
+            <tr id="filaCosechaInputs">
               <th class="col-concepto">🍒 Cosecha (Kg)</th>
-              <td colspan="11" id="filaCosechaInputs">Cargando...</td>
+              <td colspan="11">Cargando...</td>
             </tr>
-            <tr>
+            <tr id="filaInspeccionInputs">
               <th class="col-concepto">🔍 Inspección (Kg)</th>
-              <td colspan="11" id="filaInspeccionInputs">Cargando...</td>
+              <td colspan="11">Cargando...</td>
             </tr>
-            <tr>
+            <tr id="filaCargaInputs">
               <th class="col-concepto">📦 Carga (Kg)</th>
-              <td colspan="11" id="filaCargaInputs">Cargando...</td>
+              <td colspan="11">Cargando...</td>
             </tr>
-            <tr>
+            <tr id="filaEzeizaInputs">
               <th class="col-concepto">🏢 Ezeiza (Kg)</th>
-              <td colspan="11" id="filaEzeizaInputs">Cargando...</td>
+              <td colspan="11">Cargando...</td>
             </tr>
-            <tr style="background:#F1F5F9;">
+            <tr id="filaVuelosDia" style="background:#F1F5F9;">
               <th class="col-concepto" style="background:#CFD8DC;">✈️ Vuelos del Día</th>
-              <td colspan="11" id="filaVuelosDia">Cargando cruce de vuelos...</td>
+              <td colspan="11">Cargando cruce de vuelos...</td>
             </tr>
           </tbody>
         </table>
@@ -262,10 +355,9 @@
     <!-- SOLAPA 2: PROGRAMA DE TRABAJO -->
     <section class="programa-container" id="vistaPrograma" style="display:none;">
       
-      <!-- Resumen de Proyección Activa -->
       <div class="resumen-proyeccion-banner">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <b style="font-size:12px; font-family:'Montserrat'; color:var(--color-adm-dark);">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+          <b style="font-size:12px; font-family:'Montserrat'; color:var(--tab2-pastel-text);">
             📊 Proyección Operativa en Curso (Desde <span id="lblFechaDesdeBanner">—</span>):
           </b>
           <span style="font-size:11px; font-weight:700; color:var(--color-text-secondary);" id="lblTotalesProyBanner">0 Kg Totales</span>
@@ -273,14 +365,18 @@
         <div class="resumen-scroll-fechas" id="contCardsResumenProy"></div>
       </div>
 
-      <!-- Grilla del Programa de Trabajo -->
       <div class="panel-grilla-programa">
-        <div style="padding:10px 14px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border); background:#FAFAF8;">
-          <b style="font-family:'Montserrat'; color:var(--color-adm-dark); font-size:13px;">
-            PROGRAMA DE TRABAJO (CONFECCIÓN POR CLIENTE, MARCA Y CALIBRES)
-          </b>
+        <div style="padding:10px 14px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border); background:#FAFAF8; flex-wrap:wrap; gap:8px;">
+          <div>
+            <b style="font-family:'Montserrat'; color:var(--color-adm-dark); font-size:13px;">
+              PROGRAMAS DE TRABAJO CONSOLIDADOS
+            </b>
+            <div style="font-size:11px; color:var(--color-text-secondary); margin-top:2px;">
+              Hacé clic en cualquier programa para ver el desglose por calibres o imprimir en PDF.
+            </div>
+          </div>
           <button class="btn-action-main" onclick="abrirModalNuevoPrograma()">
-            ➕ Confeccionar Programa
+            ➕ Nuevo Programa (Hasta 8 Bloques)
           </button>
         </div>
 
@@ -289,20 +385,19 @@
             <thead>
               <tr>
                 <th>FECHA</th>
+                <th>PROGRAMA N°</th>
                 <th>CLIENTE</th>
                 <th>MARCA</th>
-                <th>CALIBRE</th>
-                <th>CANT. CAJAS</th>
-                <th>TAMAÑO</th>
-                <th>N° PALLET</th>
+                <th>TOTAL PALLETS</th>
                 <th>DESTINO</th>
                 <th>VUELO ASIGNADO</th>
-                <th>HORA SALIDA VUELO</th>
+                <th>SALIDA VUELO</th>
                 <th>SALIDA EMPAQUE</th>
+                <th style="text-align:center;">ACCIONES</th>
               </tr>
             </thead>
-            <tbody id="tbodyProgramaTrabajo">
-              <tr><td colspan="11" style="text-align:center; padding:30px; color:var(--color-text-secondary);">No hay renglones confeccionados.</td></tr>
+            <tbody id="tbodyProgramasConsolidados">
+              <tr><td colspan="10" style="text-align:center; padding:30px; color:var(--color-text-secondary);">No hay programas confeccionados.</td></tr>
             </tbody>
           </table>
         </div>
@@ -311,124 +406,212 @@
 
   </div>
 
-  <!-- Modal Confeccionar Programa (Captura 2) -->
+  <!-- MODAL 1: FORMULARIO CORREGIDO -->
   <div class="modal-overlay" id="modalPrograma">
     <div class="modal-box">
       <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border); padding-bottom:8px;">
-        <h3 style="margin:0; font-family:'Montserrat'; font-size:15px; color:var(--color-adm-dark);">
-          Confección de Programa de Empaque
-        </h3>
-        <button onclick="cerrarModalPrograma()" style="background:#F1F5F9; border:none; border-radius:50%; width:26px; height:26px; cursor:pointer; font-weight:800;">✕</button>
+        <div>
+          <h3 style="margin:0; font-family:'Montserrat'; font-size:15px; color:var(--color-adm-dark);">
+            Confección de Programa de Empaque
+          </h3>
+          <!-- Elemento restaurado para evitar excepciones en JS -->
+          <span style="font-size:11px; font-weight:700; color:var(--color-blue);" id="lblContadorBloques">
+            Bloque temporal 1 de 8
+          </span>
+        </div>
+        <button type="button" onclick="cerrarModalPrograma()" style="background:#F1F5F9; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; font-weight:800;">✕</button>
       </div>
 
-      <form id="formPrograma" onsubmit="guardarRenglonesPrograma(event)">
+      <form id="formPrograma" onsubmit="event.preventDefault();" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
         <div class="modal-body-scroll">
+          
           <div class="modal-grid-row">
+            <div class="modal-group">
+              <label>Programa N° *</label>
+              <input type="text" id="progNro" class="modal-control" placeholder="Ej: PRG-2026-001" required />
+            </div>
             <div class="modal-group">
               <label>Fecha de Empaque *</label>
               <input type="date" id="progFecha" class="modal-control" required />
             </div>
             <div class="modal-group">
-              <label>Cliente / Exportador *</label>
-              <select id="progCliente" class="modal-control" required>
-                <option value="CECO">CECO S.A.</option>
-                <option value="SALVUCCI">SALVUCCI</option>
-                <option value="PATAGONIAN">PATAGONIAN FRUITS</option>
-              </select>
-            </div>
-            <div class="modal-group">
-              <label>Marca *</label>
-              <select id="progMarca" class="modal-control" required>
-                <option value="CECO">CECO</option>
-                <option value="TRES ASES">TRES ASES</option>
-                <option value="DON LUIS">DON LUIS</option>
-                <option value="SAN CAYETANO">SAN CAYETANO</option>
-              </select>
+              <label>Cuándo saldrá de Empaque *</label>
+              <input type="datetime-local" id="progSalidaEmpaque" class="modal-control" required />
             </div>
           </div>
 
-          <!-- Matriz de Calibres Estándar -->
+          <!-- Configuración del Bloque Actual -->
+          <div style="background:#F8FAFC; border:1px solid var(--color-border); border-radius:var(--radius-md); padding:12px;">
+            <div style="font-size:11px; font-weight:800; color:var(--color-adm-dark); margin-bottom:8px; text-transform:uppercase;">
+              Configuración del Bloque Actual
+            </div>
+            <div class="modal-grid-row">
+              <div class="modal-group">
+                <label>Cliente *</label>
+                <select id="progCliente" class="modal-control" required></select>
+              </div>
+              <div class="modal-group">
+                <label>Marca *</label>
+                <select id="progMarca" class="modal-control" required></select>
+              </div>
+              <div class="modal-group">
+                <label>Vuelo Disponible *</label>
+                <select id="progVueloSel" class="modal-control" required onchange="vueloSeleccionadoCambio(this.value)"></select>
+              </div>
+            </div>
+
+            <div class="modal-grid-row" style="margin-top:8px;">
+              <div class="modal-group">
+                <label>Destino</label>
+                <input type="text" id="progDestino" class="modal-control" readonly style="background:#ECEFF1;">
+              </div>
+              <div class="modal-group">
+                <label>Hora Salida Vuelo (ETD 1)</label>
+                <input type="text" id="progHoraVuelo" class="modal-control" readonly style="background:#ECEFF1;">
+              </div>
+            </div>
+
+            <!-- Matriz de Calibres -->
+            <div class="modal-group" style="margin-top:10px;">
+              <label>Pallets por Calibre para este Cliente/Marca *</label>
+              <div class="calibres-table-box">
+                <table class="tabla-calibres-input">
+                  <thead>
+                    <tr>
+                      <th>Calibre</th>
+                      <th>Pallets</th>
+                      <th>Tamaño</th>
+                      <th>N° Pallet (Opcional)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><b>24-26</b></td>
+                      <td><input type="number" class="input-cant-calibre" data-calibre="24-26" min="0" placeholder="0"></td>
+                      <td><input type="text" class="modal-control" data-tamano="24-26" value="STD" style="padding:4px; text-align:center;"></td>
+                      <td><input type="text" class="modal-control" data-pallet="24-26" placeholder="PL-01" style="padding:4px; text-align:center;"></td>
+                    </tr>
+                    <tr>
+                      <td><b>26-28</b></td>
+                      <td><input type="number" class="input-cant-calibre" data-calibre="26-28" min="0" placeholder="0"></td>
+                      <td><input type="text" class="modal-control" data-tamano="26-28" value="STD" style="padding:4px; text-align:center;"></td>
+                      <td><input type="text" class="modal-control" data-pallet="26-28" placeholder="PL-02" style="padding:4px; text-align:center;"></td>
+                    </tr>
+                    <tr>
+                      <td><b>28-30</b></td>
+                      <td><input type="number" class="input-cant-calibre" data-calibre="28-30" min="0" placeholder="0"></td>
+                      <td><input type="text" class="modal-control" data-tamano="28-30" value="STD" style="padding:4px; text-align:center;"></td>
+                      <td><input type="text" class="modal-control" data-pallet="28-30" placeholder="PL-03" style="padding:4px; text-align:center;"></td>
+                    </tr>
+                    <tr>
+                      <td><b>30-32</b></td>
+                      <td><input type="number" class="input-cant-calibre" data-calibre="30-32" min="0" placeholder="0"></td>
+                      <td><input type="text" class="modal-control" data-tamano="30-32" value="STD" style="padding:4px; text-align:center;"></td>
+                      <td><input type="text" class="modal-control" data-pallet="30-32" placeholder="PL-04" style="padding:4px; text-align:center;"></td>
+                    </tr>
+                    <tr>
+                      <td><b>32+</b></td>
+                      <td><input type="number" class="input-cant-calibre" data-calibre="32+" min="0" placeholder="0"></td>
+                      <td><input type="text" class="modal-control" data-tamano="32+" value="STD" style="padding:4px; text-align:center;"></td>
+                      <td><input type="text" class="modal-control" data-pallet="32+" placeholder="PL-05" style="padding:4px; text-align:center;"></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+              <button type="button" class="btn-action-main" style="background:#334155;" onclick="agregarBloqueAlBufferTemporal()">
+                ➕ Añadir este Bloque (<span id="lblCantBuffer">0</span>/8)
+              </button>
+            </div>
+          </div>
+
+          <!-- Buffer de Bloques -->
           <div class="modal-group">
-            <label>Distribución por Calibres (Cantidad Manual de Cajas) *</label>
-            <div class="calibres-table-box">
-              <table class="tabla-calibres-input">
+            <label>Bloques Confeccionados en este Programa:</label>
+            <div style="border:1px solid var(--color-border); border-radius:var(--radius-md); max-height:160px; overflow-y:auto; background:#FFFFFF;">
+              <table class="tabla-buffer" id="tablaBufferPreview">
                 <thead>
                   <tr>
-                    <th>Calibre</th>
-                    <th>Cajas (Cant)</th>
-                    <th>Tamaño (Dejar así)</th>
-                    <th>N° Pallet (Opcional)</th>
+                    <th>#</th>
+                    <th>Cliente</th>
+                    <th>Marca</th>
+                    <th>Destino / Vuelo</th>
+                    <th>Desglose Calibres</th>
+                    <th>Pallets</th>
+                    <th>Quitar</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td><b>24-26</b></td>
-                    <td><input type="number" class="input-cant-calibre" data-calibre="24-26" min="0" placeholder="0"></td>
-                    <td><input type="text" class="modal-control" data-tamano="24-26" value="STD" style="padding:4px; text-align:center;"></td>
-                    <td><input type="text" class="modal-control" data-pallet="24-26" placeholder="PL-01" style="padding:4px; text-align:center;"></td>
-                  </tr>
-                  <tr>
-                    <td><b>26-28</b></td>
-                    <td><input type="number" class="input-cant-calibre" data-calibre="26-28" min="0" placeholder="0"></td>
-                    <td><input type="text" class="modal-control" data-tamano="26-28" value="STD" style="padding:4px; text-align:center;"></td>
-                    <td><input type="text" class="modal-control" data-pallet="26-28" placeholder="PL-02" style="padding:4px; text-align:center;"></td>
-                  </tr>
-                  <tr>
-                    <td><b>28-30</b></td>
-                    <td><input type="number" class="input-cant-calibre" data-calibre="28-30" min="0" placeholder="0"></td>
-                    <td><input type="text" class="modal-control" data-tamano="28-30" value="STD" style="padding:4px; text-align:center;"></td>
-                    <td><input type="text" class="modal-control" data-pallet="28-30" placeholder="PL-03" style="padding:4px; text-align:center;"></td>
-                  </tr>
-                  <tr>
-                    <td><b>30-32</b></td>
-                    <td><input type="number" class="input-cant-calibre" data-calibre="30-32" min="0" placeholder="0"></td>
-                    <td><input type="text" class="modal-control" data-tamano="30-32" value="STD" style="padding:4px; text-align:center;"></td>
-                    <td><input type="text" class="modal-control" data-pallet="30-32" placeholder="PL-04" style="padding:4px; text-align:center;"></td>
-                  </tr>
-                  <tr>
-                    <td><b>32+</b></td>
-                    <td><input type="number" class="input-cant-calibre" data-calibre="32+" min="0" placeholder="0"></td>
-                    <td><input type="text" class="modal-control" data-tamano="32+" value="STD" style="padding:4px; text-align:center;"></td>
-                    <td><input type="text" class="modal-control" data-pallet="32+" placeholder="PL-05" style="padding:4px; text-align:center;"></td>
-                  </tr>
+                  <tr><td colspan="7" style="text-align:center; padding:12px; color:var(--color-text-secondary);">No agregaste bloques aún.</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
-
-          <!-- Asignación de Vuelo Disponible y Salidas -->
-          <div class="modal-grid-row">
-            <div class="modal-group">
-              <label>Vuelos Disponibles en Sistema *</label>
-              <select id="progVueloSel" class="modal-control" required onchange="vueloSeleccionadoCambio(this.value)">
-                <option value="">Seleccionar vuelo cargado...</option>
-              </select>
-            </div>
-            <div class="modal-group">
-              <label>Destino</label>
-              <input type="text" id="progDestino" class="modal-control" readonly style="background:#F1F5F9;">
-            </div>
-          </div>
-
-          <div class="modal-grid-row">
-            <div class="modal-group">
-              <label>Hora de Salida del Vuelo (ETD 1)</label>
-              <input type="text" id="progHoraVuelo" class="modal-control" readonly style="background:#F1F5F9;">
-            </div>
-            <div class="modal-group">
-              <label>Cuándo saldrá de Empaque (Fecha / Hora) *</label>
-              <input type="datetime-local" id="progSalidaEmpaque" class="modal-control" required>
-            </div>
-          </div>
         </div>
 
-        <div style="display:flex; justify-content:flex-end; gap:8px; border-top:1px solid var(--color-border); padding-top:10px;">
-          <button type="button" class="btn-topbar" onclick="cerrarModalPrograma()">Cancelar</button>
-          <button type="submit" class="btn-action-main" id="btnGuardarProgModal">Guardar en Programa</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--color-border); padding-top:10px; margin-top:8px;">
+          <button type="button" class="btn-topbar" onclick="cerrarModalPrograma()" style="background:#E2E8F0; color:#334155;">Cancelar</button>
+          <button type="button" class="btn-action-main" id="btnGuardarProgramaCompleto" onclick="confirmarYGuardarProgramaCompleto()">
+            💾 Guardar Programa (<span id="lblTotalCajasBuffer">0</span> Pallets)
+          </button>
         </div>
       </form>
     </div>
   </div>
+
+  <!-- MODAL 2: DETALLE FLOTANTE -->
+  <div class="modal-overlay" id="modalDetallePrograma">
+    <div class="modal-box" style="max-width: 980px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border); padding-bottom:8px;">
+        <div>
+          <h3 style="margin:0; font-family:'Montserrat'; font-size:16px; color:var(--color-adm-dark);" id="lblDetalleProgTitulo">
+            Programa N° —
+          </h3>
+          <span style="font-size:11px; color:var(--color-text-secondary);" id="lblDetalleProgSub">
+            Fecha: —
+          </span>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-action-main" style="background:#B91C1C;" onclick="exportarProgramaAPDF()">
+            📄 Exportar en PDF
+          </button>
+          <button type="button" onclick="cerrarModalDetalle()" style="background:#F1F5F9; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; font-weight:800;">✕</button>
+        </div>
+      </div>
+
+      <div class="modal-body-scroll">
+        <div style="border:1px solid var(--color-border); border-radius:var(--radius-md); overflow:auto;">
+          <table class="tabla-programa" id="tablaDetalleRenglones">
+            <thead>
+              <tr>
+                <th>CLIENTE</th>
+                <th>MARCA</th>
+                <th>CALIBRE</th>
+                <th>CANTIDAD</th>
+                <th>TAMAÑO</th>
+                <th>N° PALLET</th>
+                <th>DESTINO</th>
+                <th>VUELO</th>
+                <th>SALIDA VUELO</th>
+                <th>SALIDA EMPAQUE</th>
+                <th style="text-align:center;">ACCIONES</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyRenglonesDetalle"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; border-top:1px solid var(--color-border); padding-top:10px;">
+        <button type="button" class="btn-action-main" style="background:#64748B;" onclick="cerrarModalDetalle()">Cerrar Visor</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENEDOR DE TOAST NOTIFICACIONES -->
+  <div class="toast-container" id="toastContainer"></div>
 
   <script>
     const AÑO_ACTUAL = 2026;
@@ -441,6 +624,32 @@
     let proyeccionesGuardadas = new Map();
     let listaVuelos = [];
     let listaPrograma = [];
+    let bufferRenglonesTemp = [];
+    let programaSeleccionadoActual = null;
+
+    let servSinc = null;
+    let dbLocal = null;
+    if (typeof require === 'function') {
+      try {
+        servSinc = require('../servicios/sincronizacion.js');
+        dbLocal = require('../data/base.js').db;
+      } catch (e) {}
+    }
+
+    // Notificaciones Toast Profesionales
+    function mostrarToast(mensaje, tipo = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast-msg ${tipo}`;
+      const iconos = { success: '✅', error: '❌', info: 'ℹ️' };
+      toast.innerHTML = `<span>${iconos[tipo] || 'ℹ️'}</span><span>${mensaje}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
 
     document.addEventListener('DOMContentLoaded', async () => {
       const sesionRaw = localStorage.getItem('comex_sesion');
@@ -455,7 +664,7 @@
       document.getElementById('txtFechaInicioProyeccion').value = hoyStr;
 
       regenerarFechasProyeccion(hoyStr);
-      await Promise.all([cargarVuelos(), cargarProyecciones(), cargarProgramas()]);
+      await Promise.all([cargarVuelos(), cargarProyecciones(), cargarProgramas(), cargarClientesYMarcasModal()]);
       renderizarTabla11Dias();
     });
 
@@ -470,7 +679,7 @@
         document.getElementById('vistaProyeccion').style.display = 'none';
         document.getElementById('vistaPrograma').style.display = 'flex';
         actualizarBannerProyeccionEnPrograma();
-        renderizarTablaPrograma();
+        renderizarTablaProgramasConsolidados();
       }
     }
 
@@ -489,97 +698,160 @@
 
     async function cargarVuelos() {
       try {
-        const { data, error } = await supabaseClient
-          .from('logistitcas_temporada')
-          .select('*')
-          .eq('temporada', AÑO_ACTUAL);
-
-        if (!error && data) listaVuelos = data;
-      } catch (e) {
-        console.warn("Fallo al leer vuelos:", e);
+        if (navigator.onLine) {
+          const { data, error } = await supabaseClient
+            .from('logistitcas_temporada')
+            .select('*')
+            .eq('temporada', AÑO_ACTUAL);
+          if (!error && data) {
+            listaVuelos = data;
+            return;
+          }
+        }
+      } catch (e) {}
+      if (dbLocal) {
+        listaVuelos = dbLocal.prepare('SELECT * FROM local_logistitcas_temporada').all();
       }
     }
 
     async function cargarProyecciones() {
       try {
-        const { data, error } = await supabaseClient
-          .from('comex_proyeccion_dias')
-          .select('*')
-          .eq('usuario', sesionUsuario.usuario);
-
-        if (!error && data) {
-          proyeccionesGuardadas.clear();
-          data.forEach(p => proyeccionesGuardadas.set(p.fecha, p));
+        if (navigator.onLine) {
+          const { data, error } = await supabaseClient
+            .from('comex_proyeccion_dias')
+            .select('*')
+            .eq('usuario', sesionUsuario.usuario);
+          if (!error && data) {
+            proyeccionesGuardadas.clear();
+            data.forEach(p => proyeccionesGuardadas.set(p.fecha, p));
+            return;
+          }
         }
-      } catch (e) {
-        console.warn("Fallo proyecciones:", e);
+      } catch (e) {}
+      if (dbLocal) {
+        const localProy = dbLocal.prepare('SELECT * FROM local_comex_proyeccion_dias').all();
+        proyeccionesGuardadas.clear();
+        localProy.filter(p => p.usuario === sesionUsuario.usuario).forEach(p => proyeccionesGuardadas.set(p.fecha, p));
       }
     }
 
     async function cargarProgramas() {
       try {
-        const { data, error } = await supabaseClient
-          .from('comex_programa_trabajo')
-          .select('*')
-          .eq('temporada', AÑO_ACTUAL)
-          .order('fecha', { ascending: false });
-
-        if (!error && data) listaPrograma = data;
-      } catch (e) {
-        console.warn("Fallo programa:", e);
+        if (navigator.onLine) {
+          const { data, error } = await supabaseClient
+            .from('comex_programa_trabajo')
+            .select('*')
+            .eq('temporada', AÑO_ACTUAL)
+            .order('fecha', { ascending: false });
+          if (!error && data) {
+            listaPrograma = data;
+            return;
+          }
+        }
+      } catch (e) {}
+      if (dbLocal) {
+        listaPrograma = dbLocal.prepare('SELECT * FROM local_comex_programa_trabajo').all();
       }
+    }
+
+    async function cargarClientesYMarcasModal() {
+      const selectCliente = document.getElementById('progCliente');
+      const selectMarca = document.getElementById('progMarca');
+      let clientes = [];
+      let marcas = [];
+
+      try {
+        if (navigator.onLine) {
+          const [resC, resM] = await Promise.all([
+            supabaseClient.from('agronet_clientes').select('nombre').eq('activo', true).order('nombre'),
+            supabaseClient.from('agronet_marcas').select('detalle').eq('activo', true).order('detalle')
+          ]);
+          if (resC.data && resC.data.length > 0) clientes = resC.data.map(c => c.nombre);
+          if (resM.data && resM.data.length > 0) marcas = resM.data.map(m => m.detalle);
+        }
+      } catch (e) {}
+
+      if (clientes.length === 0 && dbLocal) {
+        clientes = dbLocal.prepare('SELECT * FROM local_agronet_clientes').all().map(c => c.nombre);
+        marcas = dbLocal.prepare('SELECT * FROM local_agronet_marcas').all().map(m => m.detalle);
+      }
+
+      if (clientes.length === 0) clientes = ['CECO S.A.', 'TRES ASES S.A.', 'DON LUIS S.R.L.', 'SAN CAYETANO'];
+      if (marcas.length === 0) marcas = ['CECO', 'TRES ASES', 'DON LUIS', 'SAN CAYETANO'];
+
+      selectCliente.innerHTML = clientes.map(c => `<option value="${c}">${c}</option>`).join('');
+      selectMarca.innerHTML = marcas.map(m => `<option value="${m}">${m}</option>`).join('');
     }
 
     function renderizarTabla11Dias() {
       const trHeader = document.getElementById('theadDias11');
-      trHeader.innerHTML = '<th class="col-concepto">CONCEPTO / DÍA</th>';
-
-      fechas11Dias.forEach((f, idx) => {
-        const [y, m, d] = f.split('-');
-        trHeader.innerHTML += `
-          <th>
-            <div>FECHA ${idx + 1}</div>
-            <span style="font-size:10.5px; color:#1E6B4C; font-weight:800;">${d}/${m}</span>
-          </th>
-        `;
-      });
+      if (trHeader) {
+        let htmlHeader = '<th class="col-concepto">CONCEPTO / DÍA</th>';
+        fechas11Dias.forEach((f, idx) => {
+          const [y, m, d] = f.split('-');
+          htmlHeader += `
+            <th>
+              <div>FECHA ${idx + 1}</div>
+              <span style="font-size:10.5px; color:#1E6B4C; font-weight:800;">${d}/${m}</span>
+            </th>
+          `;
+        });
+        trHeader.innerHTML = htmlHeader;
+      }
 
       const conceptos = ['cosecha', 'inspeccion', 'carga', 'ezeiza'];
       conceptos.forEach(c => {
-        let celdas = '';
-        fechas11Dias.forEach(f => {
-          const item = proyeccionesGuardadas.get(f) || {};
-          const valor = item[`${c}_kg`] !== undefined && item[`${c}_kg`] !== null ? item[`${c}_kg`] : '';
-          celdas += `
-            <td>
-              <input type="number" class="input-proy-cell" data-fecha="${f}" data-campo="${c}" value="${valor}" placeholder="0" min="0">
-            </td>
-          `;
-        });
-        const filaTarget = document.getElementById(`fila${c.charAt(0).toUpperCase() + c.slice(1)}Inputs`);
-        if (filaTarget) filaTarget.outerHTML = celdas;
-      });
+        const idFila = `fila${c.charAt(0).toUpperCase() + c.slice(1)}Inputs`;
+        const filaTarget = document.getElementById(idFila);
 
-      let celdasVuelos = '';
-      fechas11Dias.forEach(f => {
-        const vuelosDia = listaVuelos.filter(v => v.fecha === f || v.fecha_etd1 === f);
-        if (vuelosDia.length === 0) {
-          celdasVuelos += `<td><span style="color:#94A3B8; font-size:10px;">—</span></td>`;
-        } else {
-          let htmlV = '';
-          vuelosDia.forEach(v => {
-            htmlV += `
-              <div class="vuelo-badge-item">
-                <b>${v.destino || '-'}</b> · ${v.vuelo || '-'}<br>
-                <span>${v.linea_aerea || ''} (${Number(v.kilos || 0).toLocaleString()} kg)</span>
-              </div>
+        if (filaTarget) {
+          const thOriginal = filaTarget.querySelector('th') ? filaTarget.querySelector('th').outerHTML : '';
+          let celdasInputs = '';
+          fechas11Dias.forEach(f => {
+            const item = proyeccionesGuardadas.get(f) || {};
+            const valor = item[`${c}_kg`] !== undefined && item[`${c}_kg`] !== null ? item[`${c}_kg`] : '';
+            celdasInputs += `
+              <td>
+                <input type="number" 
+                       class="input-proy-cell" 
+                       data-fecha="${f}" 
+                       data-campo="${c}" 
+                       value="${valor}" 
+                       placeholder="0" 
+                       min="0">
+              </td>
             `;
           });
-          celdasVuelos += `<td style="vertical-align:top;">${htmlV}</td>`;
+          filaTarget.innerHTML = thOriginal + celdasInputs;
         }
       });
+
       const filaVuelos = document.getElementById('filaVuelosDia');
-      if (filaVuelos) filaVuelos.outerHTML = celdasVuelos;
+      if (filaVuelos) {
+        const thVuelosOriginal = filaVuelos.querySelector('th') ? filaVuelos.querySelector('th').outerHTML : '';
+        let celdasVuelos = '';
+
+        fechas11Dias.forEach(f => {
+          const vuelosDia = listaVuelos.filter(v => v.fecha === f || v.fecha_etd1 === f);
+
+          if (vuelosDia.length === 0) {
+            celdasVuelos += `<td><span style="color:#94A3B8; font-size:10px;">—</span></td>`;
+          } else {
+            let htmlV = '';
+            vuelosDia.forEach(v => {
+              htmlV += `
+                <div class="vuelo-badge-item">
+                  <b>${v.destino || '-'}</b> · ${v.vuelo || '-'}<br>
+                  <span>${v.linea_aerea || ''} (${Number(v.kilos || 0).toLocaleString()} kg)</span>
+                </div>
+              `;
+            });
+            celdasVuelos += `<td style="vertical-align:top;">${htmlV}</td>`;
+          }
+        });
+
+        filaVuelos.innerHTML = thVuelosOriginal + celdasVuelos;
+      }
     }
 
     async function guardarTodaLaProyeccionSilenciosa() {
@@ -606,20 +878,26 @@
       });
 
       const payloads = Object.values(mapa);
-      const { error } = await supabaseClient
-        .from('comex_proyeccion_dias')
-        .upsert(payloads, { onConflict: 'fecha,usuario' });
 
-      if (error) throw error;
+      try {
+        if (navigator.onLine) {
+          await supabaseClient.from('comex_proyeccion_dias').upsert(payloads, { onConflict: 'fecha,usuario' });
+        }
+      } catch (e) {}
+
+      if (dbLocal) {
+        payloads.forEach(p => dbLocal.prepare('INSERT INTO local_comex_proyeccion_dias').run(p));
+      }
       await cargarProyecciones();
     }
 
     async function guardarYContinuarAPrograma() {
       try {
         await guardarTodaLaProyeccionSilenciosa();
+        mostrarToast("Proyección guardada con éxito.");
         cambiarVistaPrincipal('programa', document.getElementById('btnTab2'));
       } catch (err) {
-        alert("Error al guardar proyección: " + err.message);
+        mostrarToast("Error guardando proyección: " + err.message, 'error');
       }
     }
 
@@ -653,49 +931,100 @@
       document.getElementById('lblTotalesProyBanner').innerText = `${totalKg.toLocaleString()} Kg Proyectados`;
     }
 
-    function renderizarTablaPrograma() {
-      const tbody = document.getElementById('tbodyProgramaTrabajo');
-      if (listaPrograma.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:30px; color:var(--color-text-secondary);">No hay renglones confeccionados en el programa aún.</td></tr>';
+    // Renderizado Master Seguro
+    function renderizarTablaProgramasConsolidados() {
+      const tbody = document.getElementById('tbodyProgramasConsolidados');
+      if (!Array.isArray(listaPrograma) || listaPrograma.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:30px; color:var(--color-text-secondary);">No hay programas confeccionados aún.</td></tr>';
         return;
       }
 
-      tbody.innerHTML = listaPrograma.map(r => `
-        <tr>
-          <td><b>${r.fecha}</b></td>
-          <td><b>${r.cliente}</b></td>
-          <td>${r.marca}</td>
-          <td style="font-weight:900; color:var(--color-adm); font-size:12px;">${r.calibre}</td>
-          <td><b>${Number(r.cantidad || 0).toLocaleString()}</b></td>
-          <td>${r.tamano || 'STD'}</td>
-          <td>${r.nro_pallet || '-'}</td>
-          <td><span style="background:var(--color-blue-soft); color:var(--color-blue); padding:2px 6px; border-radius:4px; font-weight:800;">${r.destino || '-'}</span></td>
-          <td><b>${r.vuelo || '-'}</b></td>
-          <td>${r.hora_salida_vuelo || '-'}</td>
-          <td><b>${r.salida_empaque ? r.salida_empaque.replace('T', ' ') : '-'}</b></td>
+      const grupos = {};
+      listaPrograma.forEach(r => {
+        const nro = r.programa_nro || `PRG-${r.fecha}`;
+        if (!grupos[nro]) {
+          grupos[nro] = {
+            programa_nro: nro,
+            fecha: r.fecha,
+            cliente: r.cliente,
+            marca: r.marca,
+            totalCajas: 0,
+            destino: r.destino,
+            vuelo: r.vuelo,
+            hora_salida_vuelo: r.hora_salida_vuelo,
+            salida_empaque: r.salida_empaque,
+            renglones: []
+          };
+        }
+        grupos[nro].totalCajas += Number(r.cantidad || 0);
+        grupos[nro].renglones.push(r);
+      });
+
+      const listaAgrupada = Object.values(grupos);
+
+      tbody.innerHTML = listaAgrupada.map(g => `
+        <tr class="tr-programa-row" onclick="abrirModalDetallePrograma('${g.programa_nro}')">
+          <td><b>${g.fecha}</b></td>
+          <td><span class="badge-pill badge-blue">${g.programa_nro}</span></td>
+          <td><b>${g.cliente}</b></td>
+          <td>${g.marca}</td>
+          <td><b style="color:var(--color-adm); font-size:12.5px;">${g.totalCajas.toLocaleString()}</b> cajas</td>
+          <td>${g.destino || '-'}</td>
+          <td><b>${g.vuelo || '-'}</b></td>
+          <td>${g.hora_salida_vuelo || '-'}</td>
+          <td>${g.salida_empaque ? String(g.salida_empaque).replace('T', ' ') : '-'}</td>
+          <td style="text-align:center;" onclick="event.stopPropagation();">
+            <button class="btn-action-main" style="padding:4px 8px; font-size:11px; background:#475569;" onclick="abrirModalDetallePrograma('${g.programa_nro}')">
+              👁️ Abrir Programa
+            </button>
+          </td>
         </tr>
       `).join('');
     }
 
+    // Apertura Blindada del Modal
     function abrirModalNuevoPrograma() {
-      document.getElementById('formPrograma').reset();
-      document.getElementById('progFecha').value = fechas11Dias[0] || new Date().toISOString().split('T')[0];
+      try {
+        const modal = document.getElementById('modalPrograma');
+        if (!modal) return alert("Error: No se encontró el modal en el DOM.");
 
-      const selVuelo = document.getElementById('progVueloSel');
-      selVuelo.innerHTML = '<option value="">Seleccionar vuelo cargado...</option>';
-      listaVuelos.forEach((v, i) => {
-        selVuelo.innerHTML += `
-          <option value="${i}">
-            ${v.vuelo || 'S/V'} | Destino: ${v.destino || '-'} | ETD: ${v.fecha_etd1 || ''} ${v.hora_etd1 || ''} (${v.linea_aerea || ''})
-          </option>
-        `;
-      });
+        bufferRenglonesTemp = [];
+        
+        const form = document.getElementById('formPrograma');
+        if (form) form.reset();
 
-      document.getElementById('modalPrograma').classList.add('show');
+        const hoy = fechas11Dias[0] || new Date().toISOString().split('T')[0];
+        document.getElementById('progFecha').value = hoy;
+        document.getElementById('progSalidaEmpaque').value = `${hoy}T08:00`;
+        document.getElementById('progNro').value = `PRG-${AÑO_ACTUAL}-${Date.now().toString().slice(-4)}`;
+
+        const selVuelo = document.getElementById('progVueloSel');
+        selVuelo.innerHTML = '<option value="">Seleccionar vuelo...</option>';
+        listaVuelos.forEach((v, i) => {
+          selVuelo.innerHTML += `
+            <option value="${i}">
+              ${v.vuelo || 'S/V'} | Destino: ${v.destino || '-'} | ETD: ${v.fecha_etd1 || ''} ${v.hora_etd1 || ''} (${v.linea_aerea || ''})
+            </option>
+          `;
+        });
+
+        actualizarTablaBufferPreview();
+
+        modal.classList.add('show');
+        modal.style.display = 'flex';
+
+      } catch (err) {
+        console.error("Error abriendo modal:", err);
+        mostrarToast("Ocurrió un error al abrir el formulario: " + err.message, 'error');
+      }
     }
 
     function cerrarModalPrograma() {
-      document.getElementById('modalPrograma').classList.remove('show');
+      const modal = document.getElementById('modalPrograma');
+      if (modal) {
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+      }
     }
 
     function vueloSeleccionadoCambio(valIndex) {
@@ -707,78 +1036,319 @@
       const v = listaVuelos[parseInt(valIndex, 10)];
       if (v) {
         document.getElementById('progDestino').value = v.destino || '';
-        document.getElementById('progHoraVuelo').value = `${v.fecha_etd1 || ''} ${v.hora_etd1 || ''}`.trim() || 'No especificada';
+        document.getElementById('progHoraVuelo').value = `${v.fecha_etd1 || ''} ${v.hora_etd1 || ''}`.trim() || 'S/D';
       }
     }
 
-    async function guardarRenglonesPrograma(e) {
-      e.preventDefault();
-      const btn = document.getElementById('btnGuardarProgModal');
-      btn.disabled = true;
-      btn.innerText = "Guardando...";
+    function agregarBloqueAlBufferTemporal() {
+      if (bufferRenglonesTemp.length >= 8) {
+        return mostrarToast("Límite de 8 bloques alcanzado para este programa.", 'info');
+      }
 
-      const fecha = document.getElementById('progFecha').value;
       const cliente = document.getElementById('progCliente').value;
       const marca = document.getElementById('progMarca').value;
       const destino = document.getElementById('progDestino').value;
       const vIdx = document.getElementById('progVueloSel').value;
       const vueloObj = vIdx !== "" ? listaVuelos[parseInt(vIdx, 10)] : {};
       const horaSalidaVuelo = document.getElementById('progHoraVuelo').value;
-      const salidaEmpaque = document.getElementById('progSalidaEmpaque').value;
+
+      if (!cliente || !marca) {
+        return mostrarToast("Seleccioná Cliente y Marca antes de añadir el bloque.", 'error');
+      }
 
       const calibres = ['24-26', '26-28', '28-30', '30-32', '32+'];
-      const renglonesNuevos = [];
+      const itemsCalibres = [];
+      let totalCajasBloque = 0;
 
       calibres.forEach(c => {
         const inCant = document.querySelector(`.input-cant-calibre[data-calibre="${c}"]`);
         const inTam = document.querySelector(`input[data-tamano="${c}"]`);
         const inPal = document.querySelector(`input[data-pallet="${c}"]`);
+        const cant = parseInt(inCant.value, 10) || 0;
 
-        const cantidad = parseInt(inCant.value, 10) || 0;
-        if (cantidad > 0) {
-          renglonesNuevos.push({
-            temporada: AÑO_ACTUAL,
-            semana: 1,
-            fecha: fecha,
-            cliente: cliente,
-            marca: marca,
+        if (cant > 0) {
+          totalCajasBloque += cant;
+          itemsCalibres.push({
             calibre: c,
-            cantidad: cantidad,
+            cantidad: cant,
             tamano: (inTam ? inTam.value : 'STD') || 'STD',
-            nro_pallet: inPal ? inPal.value : null,
-            destino: destino,
-            vuelo: vueloObj.vuelo || null,
-            hora_salida_vuelo: horaSalidaVuelo,
-            salida_empaque: salidaEmpaque,
-            usuario: sesionUsuario.usuario
+            nro_pallet: inPal ? inPal.value : null
           });
         }
       });
 
-      if (renglonesNuevos.length === 0) {
-        alert("Ingresá la cantidad de cajas al menos para un calibre.");
-        btn.disabled = false;
-        btn.innerText = "Guardar en Programa";
+      if (itemsCalibres.length === 0) {
+        return mostrarToast("Ingresá la cantidad de cajas en al menos un calibre.", 'error');
+      }
+
+      bufferRenglonesTemp.push({
+        id_temp: Date.now(),
+        cliente: cliente,
+        marca: marca,
+        destino: destino,
+        vuelo: vueloObj.vuelo || '-',
+        hora_salida_vuelo: horaSalidaVuelo,
+        calibres: itemsCalibres,
+        totalCajas: totalCajasBloque
+      });
+
+      document.querySelectorAll('.input-cant-calibre').forEach(inp => inp.value = '');
+      document.querySelectorAll('input[data-pallet]').forEach(inp => inp.value = '');
+
+      actualizarTablaBufferPreview();
+      mostrarToast(`Bloque #${bufferRenglonesTemp.length} añadido correctamente.`);
+    }
+
+    function quitarBloqueBuffer(idTemp) {
+      bufferRenglonesTemp = bufferRenglonesTemp.filter(b => b.id_temp !== idTemp);
+      actualizarTablaBufferPreview();
+    }
+
+    // Actualizador Seguro con Guardrails de Elementos
+    function actualizarTablaBufferPreview() {
+      const tbody = document.querySelector('#tablaBufferPreview tbody');
+      
+      const elCant = document.getElementById('lblCantBuffer');
+      if (elCant) elCant.innerText = bufferRenglonesTemp.length;
+
+      const elCont = document.getElementById('lblContadorBloques');
+      if (elCont) elCont.innerText = `Bloque temporal ${bufferRenglonesTemp.length + 1} de 8`;
+
+      const sumaCajas = bufferRenglonesTemp.reduce((acc, b) => acc + b.totalCajas, 0);
+      const elTotal = document.getElementById('lblTotalCajasBuffer');
+      if (elTotal) elTotal.innerText = sumaCajas.toLocaleString();
+
+      if (!tbody) return;
+
+      if (bufferRenglonesTemp.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:12px; color:var(--color-text-secondary);">No agregaste bloques aún.</td></tr>';
         return;
       }
 
-      try {
-        const { error } = await supabaseClient
-          .from('comex_programa_trabajo')
-          .insert(renglonesNuevos);
+      tbody.innerHTML = bufferRenglonesTemp.map((b, idx) => {
+        const resumenCalibres = b.calibres.map(c => `${c.calibre}: ${c.cantidad}`).join(' | ');
+        return `
+          <tr>
+            <td><b>#${idx + 1}</b></td>
+            <td><b>${b.cliente}</b></td>
+            <td>${b.marca}</td>
+            <td>${b.destino} (${b.vuelo})</td>
+            <td style="font-size:10px; color:#1E6B4C;">${resumenCalibres}</td>
+            <td><b>${b.totalCajas}</b></td>
+            <td><button type="button" onclick="quitarBloqueBuffer(${b.id_temp})" style="background:none; border:none; color:#DC2626; cursor:pointer; font-weight:800;">✕</button></td>
+          </tr>
+        `;
+      }).join('');
+    }
 
-        if (error) throw error;
-
-        cerrarModalPrograma();
-        await cargarProgramas();
-        renderizarTablaPrograma();
-        alert(`✅ Se agregaron ${renglonesNuevos.length} registros al Programa de Trabajo.`);
-      } catch (err) {
-        alert("Error al guardar: " + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.innerText = "Guardar en Programa";
+    // Guardado de Programa con Inyección Inmediata en Memoria
+    async function confirmarYGuardarProgramaCompleto() {
+      if (bufferRenglonesTemp.length === 0) {
+        return mostrarToast("Debés añadir al menos un bloque al programa.", 'error');
       }
+
+      const btn = document.getElementById('btnGuardarProgramaCompleto');
+      btn.disabled = true;
+      btn.innerText = "Guardando...";
+
+      const progNro = document.getElementById('progNro').value.trim();
+      const fecha = document.getElementById('progFecha').value;
+      const salidaEmpaque = document.getElementById('progSalidaEmpaque').value || null;
+
+      const renglonesDefinitivos = [];
+      bufferRenglonesTemp.forEach(bloque => {
+        bloque.calibres.forEach(c => {
+          renglonesDefinitivos.push({
+            temporada: AÑO_ACTUAL,
+            semana: 1,
+            programa_nro: progNro,
+            fecha: fecha,
+            cliente: bloque.cliente,
+            marca: bloque.marca,
+            calibre: c.calibre,
+            cantidad: c.cantidad,
+            tamano: c.tamano,
+            nro_pallet: c.nro_pallet,
+            destino: bloque.destino,
+            vuelo: bloque.vuelo,
+            hora_salida_vuelo: bloque.hora_salida_vuelo || null,
+            salida_empaque: salidaEmpaque,
+            usuario: sesionUsuario.usuario
+          });
+        });
+      });
+
+      try {
+        if (navigator.onLine) {
+          const { error } = await supabaseClient.from('comex_programa_trabajo').insert(renglonesDefinitivos);
+          if (error) {
+            console.error("Error Supabase:", error);
+            mostrarToast("Aviso nube: " + error.message, 'info');
+          }
+        }
+      } catch (e) {
+        console.warn("Fallo inserción en nube, guardando local.");
+      }
+
+      if (dbLocal) {
+        renglonesDefinitivos.forEach(r => dbLocal.prepare('INSERT INTO local_comex_programa_trabajo').run(r));
+      }
+
+      // Actualización en memoria para que se muestre en pantalla al instante
+      listaPrograma = [...renglonesDefinitivos, ...listaPrograma];
+
+      cerrarModalPrograma();
+      renderizarTablaProgramasConsolidados();
+      mostrarToast(`Programa ${progNro} guardado exitosamente.`);
+      
+      btn.disabled = false;
+      btn.innerText = "Guardar Programa Completo";
+    }
+
+    function abrirModalDetallePrograma(progNro) {
+      const renglones = listaPrograma.filter(r => (r.programa_nro || `PRG-${r.fecha}`) === progNro);
+      if (renglones.length === 0) return;
+
+      programaSeleccionadoActual = {
+        programa_nro: progNro,
+        fecha: renglones[0].fecha,
+        salida_empaque: renglones[0].salida_empaque,
+        renglones: renglones
+      };
+
+      document.getElementById('lblDetalleProgTitulo').innerText = `Programa de Trabajo: ${progNro}`;
+      document.getElementById('lblDetalleProgSub').innerText = `Fecha: ${renglones[0].fecha} · Salida de Empaque: ${renglones[0].salida_empaque ? String(renglones[0].salida_empaque).replace('T', ' ') : 'S/D'}`;
+
+      const tbody = document.getElementById('tbodyRenglonesDetalle');
+      tbody.innerHTML = renglones.map(r => `
+        <tr>
+          <td><b>${r.cliente}</b></td>
+          <td>${r.marca}</td>
+          <td style="font-weight:900; color:var(--color-adm);">${r.calibre}</td>
+          <td><b>${Number(r.cantidad || 0).toLocaleString()}</b></td>
+          <td>${r.tamano || 'STD'}</td>
+          <td>${r.nro_pallet || '-'}</td>
+          <td>${r.destino || '-'}</td>
+          <td><b>${r.vuelo || '-'}</b></td>
+          <td>${r.hora_salida_vuelo || '-'}</td>
+          <td>${r.salida_empaque ? String(r.salida_empaque).replace('T', ' ') : '-'}</td>
+          <td style="text-align:center;">
+            <button class="btn-action-main" style="padding:4px 8px; font-size:10px; background:#D97706;" onclick="editarCantidadRenglonRapida('${r.id || r.calibre}')">
+              ✏️ Modificar
+            </button>
+          </td>
+        </tr>
+      `).join('');
+
+      const modalDet = document.getElementById('modalDetallePrograma');
+      modalDet.classList.add('show');
+      modalDet.style.display = 'flex';
+    }
+
+    function cerrarModalDetalle() {
+      const modalDet = document.getElementById('modalDetallePrograma');
+      if (modalDet) {
+        modalDet.classList.remove('show');
+        modalDet.style.display = 'none';
+      }
+    }
+
+    async function editarCantidadRenglonRapida(identificador) {
+      const r = programaSeleccionadoActual.renglones.find(x => (x.id && String(x.id) === String(identificador)) || x.calibre === identificador);
+      if (!r) return;
+
+      const nuevaCant = prompt(`Modificar pallets para ${r.cliente} (${r.marca}) Calibre ${r.calibre}:`, r.cantidad);
+      if (nuevaCant === null) return;
+      const cantNum = parseInt(nuevaCant, 10);
+      if (isNaN(cantNum) || cantNum < 0) return mostrarToast("Cantidad inválida.", 'error');
+
+      try {
+        if (r.id && navigator.onLine) {
+          await supabaseClient.from('comex_programa_trabajo').update({ cantidad: cantNum }).eq('id', r.id);
+        }
+        r.cantidad = cantNum;
+        abrirModalDetallePrograma(programaSeleccionadoActual.programa_nro);
+        renderizarTablaProgramasConsolidados();
+        mostrarToast("Cantidad actualizada.");
+      } catch (err) {
+        mostrarToast("Error actualizando: " + err.message, 'error');
+      }
+    }
+
+    function exportarProgramaAPDF() {
+      if (!programaSeleccionadoActual) return;
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('p', 'mm', 'a4');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.setTextColor(18, 63, 44);
+      doc.text("PROGRAMA DE TRABAJO", 105, 16, { align: 'center' });
+
+      doc.setFontSize(10);
+      doc.setTextColor(85, 99, 88);
+      doc.text(`PROGRAMA N°: ${programaSeleccionadoActual.programa_nro}`, 14, 25);
+      doc.text(`FECHA DE EMPAQUE: ${programaSeleccionadoActual.fecha}`, 105, 25, { align: 'center' });
+      doc.text(`SALIDA EMPAQUE: ${programaSeleccionadoActual.salida_empaque ? String(programaSeleccionadoActual.salida_empaque).replace('T', ' ') : 'S/D'}`, 196, 25, { align: 'right' });
+
+      const columnas = ["CLIENTE", "MARCA", "CALIBRE", "CANT", "TAMAÑO", "N° PALLET", "DESTINO", "VUELO", "SALIDA DE"];
+      const filas = programaSeleccionadoActual.renglones.map(r => [
+        r.cliente,
+        r.marca,
+        r.calibre,
+        r.cantidad,
+        r.tamano || 'STD',
+        r.nro_pallet || '-',
+        r.destino || '-',
+        r.vuelo || '-',
+        r.hora_salida_vuelo || '-'
+      ]);
+
+      doc.autoTable({
+        startY: 30,
+        head: [columnas],
+        body: filas,
+        theme: 'grid',
+        headStyles: { fillColor: [30, 107, 76], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+        styles: { fontSize: 8.5, cellPadding: 3, halign: 'center' },
+        columnStyles: {
+          0: { halign: 'left', fontStyle: 'bold' },
+          1: { halign: 'left' }
+        }
+      });
+
+      const totalCajas = programaSeleccionadoActual.renglones.reduce((a, b) => a + Number(b.cantidad || 0), 0);
+      const finalY = doc.lastAutoTable.finalY + 8;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(18, 63, 44);
+      doc.text(`TOTAL PALLETS PROGRAMADAS: ${totalCajas.toLocaleString()} PCS`, 14, finalY);
+
+      doc.save(`Programa_Trabajo_${programaSeleccionadoActual.programa_nro}.pdf`);
+      mostrarToast("PDF generado con éxito.");
+    }
+
+    async function sincronizar() {
+      const btn = document.getElementById('btnSync');
+      btn.classList.add('rotating');
+      btn.disabled = true;
+
+      try {
+        await Promise.all([cargarVuelos(), cargarProyecciones(), cargarProgramas()]);
+        renderizarTabla11Dias();
+        renderizarTablaProgramasConsolidados();
+        mostrarToast("Datos sincronizados con éxito.");
+      } catch (e) {
+        mostrarToast("Fallo de sincronización: " + e.message, 'error');
+      } finally {
+        btn.classList.remove('rotating');
+        btn.disabled = false;
+      }
+    }
+
+    function cerrarSesion() {
+      localStorage.removeItem('comex_sesion');
+      window.location.href = '../loguer.html';
     }
   </script>
 </body>
