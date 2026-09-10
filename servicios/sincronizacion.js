@@ -172,6 +172,7 @@ async function guardarProgramaTrabajo(renglones) {
 }
 
 
+
 // Descargar proyecciones de 11 días desde Supabase y guardarlas en el JSON local
 async function pullProyecciones(usuarioActivo) {
   let query = supabaseCampo.from('comex_proyeccion_dias').select('*');
@@ -234,6 +235,23 @@ async function sincronizarVuelosCompleto(temporada, usuarioActivo) {
   return { ...pushRes, descargados: pullCount };
 }
 
+// Sincronización Integral Bidireccional (Push de pendientes + Pull de todas las tablas)
+async function sincronizarTodoElSistema(temporada = 2026, usuarioActivo) {
+  // 1. PUSH: Subir vuelos y eliminaciones pendientes locales
+  const pushVuelosRes = await pushVuelos(usuarioActivo);
+
+  // 2. PULL: Descargar el estado consolidado de Supabase a la base local
+  const pullRes = await descargarTodoElEstado(temporada, usuarioActivo);
+
+  return {
+    subidos: pushVuelosRes.subidos,
+    eliminados: pushVuelosRes.eliminados,
+    vuelosDescargados: pullRes.vuelosDescargados,
+    proyeccionesDescargadas: pullRes.proyeccionesDescargadas,
+    programaDescargado: pullRes.programaDescargado
+  };
+}
+
 module.exports = {
   guardarVueloLocal,
   eliminarVueloLocal,
@@ -245,5 +263,6 @@ module.exports = {
   pullProgramaTrabajo,
   guardarProyeccionDia,
   guardarProgramaTrabajo,
-  descargarTodoElEstado
+  descargarTodoElEstado,
+  sincronizarTodoElSistema // <-- Exportar la función maestra
 };

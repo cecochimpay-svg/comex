@@ -98,7 +98,6 @@
       transition: all 0.2s ease;
     }
     
-    /* Pestaña 1: Verde Menta Pastel */
     .tab-nav-btn.tab-proyeccion {
       background: #F1F8F3; color: #4A6B53; border-color: #D3E6D7;
     }
@@ -108,7 +107,6 @@
       box-shadow: 0 -2px 6px rgba(46, 125, 50, 0.08);
     }
 
-    /* Pestaña 2: Azul Cielo Pastel */
     .tab-nav-btn.tab-programa {
       background: #F0F7FD; color: #4D6E8E; border-color: #CFE3F5;
     }
@@ -211,7 +209,7 @@
     .modal-overlay.show { display: flex !important; }
     .modal-box {
       background: #FFFFFF; border-radius: var(--radius-lg);
-      padding: 22px; width: 100%; max-width: 900px; max-height: 94vh;
+      padding: 22px; width: 100%; max-width: 920px; max-height: 94vh;
       display: flex; flex-direction: column; gap: 14px; border: 1px solid var(--color-border);
       box-shadow: 0 20px 40px rgba(0,0,0,0.18);
     }
@@ -224,6 +222,16 @@
       font-size: 12.5px; font-weight: 600; outline: none; background: #FAFAFA; font-family: inherit; width: 100%;
     }
     .modal-control:focus { border-color: var(--color-adm); background: #FFFFFF; }
+
+    /* Indicador de Cupos del Vuelo */
+    .banner-cupo-vuelo {
+      background: #F0FDF4; border: 1.5px solid #86EFAC; border-radius: var(--radius-md);
+      padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;
+      font-size: 11.5px; font-weight: 700; color: #166534; margin-top: 8px;
+    }
+    .banner-cupo-vuelo.alerta {
+      background: #FEF2F2; border-color: #FCA5A5; color: #991B1B;
+    }
 
     .calibres-table-box { border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow-x: auto; }
     .tabla-calibres-input { width: 100%; border-collapse: collapse; font-size: 11.5px; min-width: 320px; }
@@ -241,7 +249,7 @@
     .badge-pill { display: inline-block; padding: 2px 7px; border-radius: 12px; font-size: 10px; font-weight: 800; }
     .badge-blue { background: var(--color-blue-soft); color: var(--color-blue); }
 
-    /* TOAST DE NOTIFICACIONES PROFESIONAL */
+    /* TOAST DE NOTIFICACIONES */
     .toast-container {
       position: fixed; bottom: 20px; right: 20px; z-index: 5000;
       display: flex; flex-direction: column; gap: 8px; pointer-events: none;
@@ -286,7 +294,7 @@
 
     <div class="top-right-bar">
       <div class="system-datetime" id="lblFechaHora">09/09/2026</div>
-      <button class="btn-sync-top" id="btnSync" onclick="sincronizar()" title="Sincronizar con Supabase">
+      <button class="btn-sync-top" id="btnSync" onclick="sincronizar()" title="Sincronizar">
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
         Sincronizar
       </button>
@@ -294,7 +302,7 @@
     </div>
   </header>
 
-  <!-- Pestañas Diferenciadas con Tonos Pastel -->
+  <!-- Pestañas -->
   <nav class="tabs-view-header">
     <button class="tab-nav-btn tab-proyeccion active" id="btnTab1" onclick="cambiarVistaPrincipal('proyeccion', this)">
       🌱 1. Proyección Operativa (11 Días)
@@ -406,7 +414,7 @@
 
   </div>
 
-  <!-- MODAL 1: FORMULARIO CORREGIDO -->
+  <!-- MODAL 1: FORMULARIO DE CONFECCIÓN DE PROGRAMA -->
   <div class="modal-overlay" id="modalPrograma">
     <div class="modal-box">
       <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border); padding-bottom:8px;">
@@ -414,7 +422,6 @@
           <h3 style="margin:0; font-family:'Montserrat'; font-size:15px; color:var(--color-adm-dark);">
             Confección de Programa de Empaque
           </h3>
-          <!-- Elemento restaurado para evitar excepciones en JS -->
           <span style="font-size:11px; font-weight:700; color:var(--color-blue);" id="lblContadorBloques">
             Bloque temporal 1 de 8
           </span>
@@ -432,7 +439,7 @@
             </div>
             <div class="modal-group">
               <label>Fecha de Empaque *</label>
-              <input type="date" id="progFecha" class="modal-control" required />
+              <input type="date" id="progFecha" class="modal-control" required onchange="filtrarVuelosPorFechaSeleccionada(this.value)" />
             </div>
             <div class="modal-group">
               <label>Cuándo saldrá de Empaque *</label>
@@ -455,9 +462,16 @@
                 <select id="progMarca" class="modal-control" required></select>
               </div>
               <div class="modal-group">
-                <label>Vuelo Disponible *</label>
+                <label>Vuelo Disponible (Filtrado por Fecha) *</label>
                 <select id="progVueloSel" class="modal-control" required onchange="vueloSeleccionadoCambio(this.value)"></select>
               </div>
+            </div>
+
+            <!-- Banner de Cupos de Pallets (PCS) en tiempo real -->
+            <div class="banner-cupo-vuelo" id="bannerCupoVuelo">
+              <span>✈️ Capacidad de Vuelo: <b id="lblVueloPcsMax">0</b> pallets (PCS)</span>
+              <span>Usados / Comprometidos: <b id="lblVueloPcsUsados">0</b></span>
+              <span>Disponibles: <b id="lblVueloPcsRestantes" style="font-size:13px;">0</b></span>
             </div>
 
             <div class="modal-grid-row" style="margin-top:8px;">
@@ -487,31 +501,31 @@
                   <tbody>
                     <tr>
                       <td><b>24-26</b></td>
-                      <td><input type="number" class="input-cant-calibre" data-calibre="24-26" min="0" placeholder="0"></td>
+                      <td><input type="number" class="input-cant-calibre" data-calibre="24-26" min="0" placeholder="0" oninput="validarCupoPalletsEnVivo()"></td>
                       <td><input type="text" class="modal-control" data-tamano="24-26" value="STD" style="padding:4px; text-align:center;"></td>
                       <td><input type="text" class="modal-control" data-pallet="24-26" placeholder="PL-01" style="padding:4px; text-align:center;"></td>
                     </tr>
                     <tr>
                       <td><b>26-28</b></td>
-                      <td><input type="number" class="input-cant-calibre" data-calibre="26-28" min="0" placeholder="0"></td>
+                      <td><input type="number" class="input-cant-calibre" data-calibre="26-28" min="0" placeholder="0" oninput="validarCupoPalletsEnVivo()"></td>
                       <td><input type="text" class="modal-control" data-tamano="26-28" value="STD" style="padding:4px; text-align:center;"></td>
                       <td><input type="text" class="modal-control" data-pallet="26-28" placeholder="PL-02" style="padding:4px; text-align:center;"></td>
                     </tr>
                     <tr>
                       <td><b>28-30</b></td>
-                      <td><input type="number" class="input-cant-calibre" data-calibre="28-30" min="0" placeholder="0"></td>
+                      <td><input type="number" class="input-cant-calibre" data-calibre="28-30" min="0" placeholder="0" oninput="validarCupoPalletsEnVivo()"></td>
                       <td><input type="text" class="modal-control" data-tamano="28-30" value="STD" style="padding:4px; text-align:center;"></td>
                       <td><input type="text" class="modal-control" data-pallet="28-30" placeholder="PL-03" style="padding:4px; text-align:center;"></td>
                     </tr>
                     <tr>
                       <td><b>30-32</b></td>
-                      <td><input type="number" class="input-cant-calibre" data-calibre="30-32" min="0" placeholder="0"></td>
+                      <td><input type="number" class="input-cant-calibre" data-calibre="30-32" min="0" placeholder="0" oninput="validarCupoPalletsEnVivo()"></td>
                       <td><input type="text" class="modal-control" data-tamano="30-32" value="STD" style="padding:4px; text-align:center;"></td>
                       <td><input type="text" class="modal-control" data-pallet="30-32" placeholder="PL-04" style="padding:4px; text-align:center;"></td>
                     </tr>
                     <tr>
                       <td><b>32+</b></td>
-                      <td><input type="number" class="input-cant-calibre" data-calibre="32+" min="0" placeholder="0"></td>
+                      <td><input type="number" class="input-cant-calibre" data-calibre="32+" min="0" placeholder="0" oninput="validarCupoPalletsEnVivo()"></td>
                       <td><input type="text" class="modal-control" data-tamano="32+" value="STD" style="padding:4px; text-align:center;"></td>
                       <td><input type="text" class="modal-control" data-pallet="32+" placeholder="PL-05" style="padding:4px; text-align:center;"></td>
                     </tr>
@@ -610,7 +624,7 @@
     </div>
   </div>
 
-  <!-- CONTENEDOR DE TOAST NOTIFICACIONES -->
+  <!-- TOAST NOTIFICACIONES -->
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
@@ -626,6 +640,8 @@
     let listaPrograma = [];
     let bufferRenglonesTemp = [];
     let programaSeleccionadoActual = null;
+    let vuelosFiltradosModal = [];
+    let vueloActivoSeleccionado = null;
 
     let servSinc = null;
     let dbLocal = null;
@@ -636,7 +652,6 @@
       } catch (e) {}
     }
 
-    // Notificaciones Toast Profesionales
     function mostrarToast(mensaje, tipo = 'success') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
@@ -842,7 +857,7 @@
               htmlV += `
                 <div class="vuelo-badge-item">
                   <b>${v.destino || '-'}</b> · ${v.vuelo || '-'}<br>
-                  <span>${v.linea_aerea || ''} (${Number(v.kilos || 0).toLocaleString()} kg)</span>
+                  <span>${v.linea_aerea || ''} (${Number(v.pcs || 0)} pallets)</span>
                 </div>
               `;
             });
@@ -931,7 +946,6 @@
       document.getElementById('lblTotalesProyBanner').innerText = `${totalKg.toLocaleString()} Kg Proyectados`;
     }
 
-    // Renderizado Master Seguro
     function renderizarTablaProgramasConsolidados() {
       const tbody = document.getElementById('tbodyProgramasConsolidados');
       if (!Array.isArray(listaPrograma) || listaPrograma.length === 0) {
@@ -968,7 +982,7 @@
           <td><span class="badge-pill badge-blue">${g.programa_nro}</span></td>
           <td><b>${g.cliente}</b></td>
           <td>${g.marca}</td>
-          <td><b style="color:var(--color-adm); font-size:12.5px;">${g.totalCajas.toLocaleString()}</b> cajas</td>
+          <td><b style="color:var(--color-adm); font-size:12.5px;">${g.totalCajas.toLocaleString()}</b> pallets</td>
           <td>${g.destino || '-'}</td>
           <td><b>${g.vuelo || '-'}</b></td>
           <td>${g.hora_salida_vuelo || '-'}</td>
@@ -982,6 +996,129 @@
       `).join('');
     }
 
+    // 1. Filtrar Vuelos estrictamente por la Fecha de Empaque
+    function filtrarVuelosPorFechaSeleccionada(fechaEmpaque) {
+      const selVuelo = document.getElementById('progVueloSel');
+      if (!selVuelo) return;
+
+      selVuelo.innerHTML = '<option value="">Seleccionar vuelo del día...</option>';
+      vueloActivoSeleccionado = null;
+      document.getElementById('progDestino').value = '';
+      document.getElementById('progHoraVuelo').value = '';
+
+      if (!fechaEmpaque) {
+        vuelosFiltradosModal = [];
+        actualizarBannerCuposUI(0, 0, 0);
+        return;
+      }
+
+      // Normalizar formato YYYY-MM-DD
+      const fechaLimpia = String(fechaEmpaque).split('T')[0];
+
+      vuelosFiltradosModal = listaVuelos.filter(v => {
+        const fVuelo = v.fecha ? String(v.fecha).split('T')[0] : '';
+        const fEtd1 = v.fecha_etd1 ? String(v.fecha_etd1).split('T')[0] : '';
+        return fVuelo === fechaLimpia || fEtd1 === fechaLimpia;
+      });
+
+      if (vuelosFiltradosModal.length === 0) {
+        selVuelo.innerHTML = `<option value="">⚠️ Sin vuelos cargados para el ${fechaLimpia}</option>`;
+        actualizarBannerCuposUI(0, 0, 0);
+        return;
+      }
+
+      vuelosFiltradosModal.forEach((v, i) => {
+        const capacidadPcs = Number(v.pcs || 0);
+        selVuelo.innerHTML += `
+          <option value="${i}">
+            ${v.vuelo || 'S/V'} | Destino: ${v.destino || '-'} | Capacidad: ${capacidadPcs} Pallets (${v.linea_aerea || ''})
+          </option>
+        `;
+      });
+
+      actualizarBannerCuposUI(0, 0, 0);
+    }
+
+    // 2. Control del Vuelo Seleccionado y cálculo de pallets usados
+    function vueloSeleccionadoCambio(valIndex) {
+      if (valIndex === "") {
+        vueloActivoSeleccionado = null;
+        document.getElementById('progDestino').value = '';
+        document.getElementById('progHoraVuelo').value = '';
+        actualizarBannerCuposUI(0, 0, 0);
+        return;
+      }
+
+      vueloActivoSeleccionado = vuelosFiltradosModal[parseInt(valIndex, 10)];
+      if (vueloActivoSeleccionado) {
+        document.getElementById('progDestino').value = vueloActivoSeleccionado.destino || '';
+        document.getElementById('progHoraVuelo').value = `${vueloActivoSeleccionado.fecha_etd1 || ''} ${vueloActivoSeleccionado.hora_etd1 || ''}`.trim() || 'S/D';
+        recalcularCupoVueloActual();
+      }
+    }
+
+    // 3. Recalcular cupos (Capacidad Total vs Pallets Usados en Programas y Buffer)
+    function recalcularCupoVueloActual() {
+      if (!vueloActivoSeleccionado) {
+        actualizarBannerCuposUI(0, 0, 0);
+        return;
+      }
+
+      const totalCapacidadPcs = Number(vueloActivoSeleccionado.pcs || 0);
+
+      // Pallets ya guardados en la base de datos para este vuelo
+      let palletsGuardados = 0;
+      if (Array.isArray(listaPrograma)) {
+        palletsGuardados = listaPrograma
+          .filter(p => p.vuelo === vueloActivoSeleccionado.vuelo && String(p.fecha).split('T')[0] === String(document.getElementById('progFecha').value).split('T')[0])
+          .reduce((acc, r) => acc + Number(r.cantidad || 0), 0);
+      }
+
+      // Pallets asignados en el buffer temporal de este modal
+      let palletsEnBuffer = 0;
+      bufferRenglonesTemp
+        .filter(b => b.vuelo === vueloActivoSeleccionado.vuelo)
+        .forEach(b => { palletsEnBuffer += b.totalCajas; });
+
+      // Pallets tipeados en las celdas del bloque actual
+      let palletsTipeadosActual = 0;
+      document.querySelectorAll('.input-cant-calibre').forEach(inp => {
+        palletsTipeadosActual += (parseInt(inp.value, 10) || 0);
+      });
+
+      const totalUsado = palletsGuardados + palletsEnBuffer + palletsTipeadosActual;
+      const disponibles = totalCapacidadPcs - totalUsado;
+
+      actualizarBannerCuposUI(totalCapacidadPcs, totalUsado, disponibles);
+    }
+
+    function actualizarBannerCuposUI(max, usados, disponibles) {
+      document.getElementById('lblVueloPcsMax').innerText = max;
+      document.getElementById('lblVueloPcsUsados').innerText = usados;
+      
+      const elDisp = document.getElementById('lblVueloPcsRestantes');
+      elDisp.innerText = disponibles;
+
+      const banner = document.getElementById('bannerCupoVuelo');
+      if (disponibles < 0) {
+        banner.classList.add('alerta');
+      } else {
+        banner.classList.remove('alerta');
+      }
+    }
+
+    function validarCupoPalletsEnVivo() {
+      if (!vueloActivoSeleccionado) return;
+      recalcularCupoVueloActual();
+
+      const elDisp = document.getElementById('lblVueloPcsRestantes');
+      const disponibles = parseInt(elDisp.innerText, 10);
+
+      if (disponibles < 0) {
+        mostrarToast(`⚠️ Superaste la capacidad de pallets de este vuelo por ${Math.abs(disponibles)} pallet(s).`, 'error');
+      }
+    }
+
     // Apertura Blindada del Modal
     function abrirModalNuevoPrograma() {
       try {
@@ -989,6 +1126,7 @@
         if (!modal) return alert("Error: No se encontró el modal en el DOM.");
 
         bufferRenglonesTemp = [];
+        vueloActivoSeleccionado = null;
         
         const form = document.getElementById('formPrograma');
         if (form) form.reset();
@@ -998,15 +1136,8 @@
         document.getElementById('progSalidaEmpaque').value = `${hoy}T08:00`;
         document.getElementById('progNro').value = `PRG-${AÑO_ACTUAL}-${Date.now().toString().slice(-4)}`;
 
-        const selVuelo = document.getElementById('progVueloSel');
-        selVuelo.innerHTML = '<option value="">Seleccionar vuelo...</option>';
-        listaVuelos.forEach((v, i) => {
-          selVuelo.innerHTML += `
-            <option value="${i}">
-              ${v.vuelo || 'S/V'} | Destino: ${v.destino || '-'} | ETD: ${v.fecha_etd1 || ''} ${v.hora_etd1 || ''} (${v.linea_aerea || ''})
-            </option>
-          `;
-        });
+        // Filtrar automáticamente los vuelos para la fecha inicial
+        filtrarVuelosPorFechaSeleccionada(hoy);
 
         actualizarTablaBufferPreview();
 
@@ -1027,29 +1158,18 @@
       }
     }
 
-    function vueloSeleccionadoCambio(valIndex) {
-      if (valIndex === "") {
-        document.getElementById('progDestino').value = '';
-        document.getElementById('progHoraVuelo').value = '';
-        return;
-      }
-      const v = listaVuelos[parseInt(valIndex, 10)];
-      if (v) {
-        document.getElementById('progDestino').value = v.destino || '';
-        document.getElementById('progHoraVuelo').value = `${v.fecha_etd1 || ''} ${v.hora_etd1 || ''}`.trim() || 'S/D';
-      }
-    }
-
     function agregarBloqueAlBufferTemporal() {
       if (bufferRenglonesTemp.length >= 8) {
         return mostrarToast("Límite de 8 bloques alcanzado para este programa.", 'info');
       }
 
+      if (!vueloActivoSeleccionado) {
+        return mostrarToast("Seleccioná un vuelo válido para este día antes de añadir.", 'error');
+      }
+
       const cliente = document.getElementById('progCliente').value;
       const marca = document.getElementById('progMarca').value;
       const destino = document.getElementById('progDestino').value;
-      const vIdx = document.getElementById('progVueloSel').value;
-      const vueloObj = vIdx !== "" ? listaVuelos[parseInt(vIdx, 10)] : {};
       const horaSalidaVuelo = document.getElementById('progHoraVuelo').value;
 
       if (!cliente || !marca) {
@@ -1078,7 +1198,18 @@
       });
 
       if (itemsCalibres.length === 0) {
-        return mostrarToast("Ingresá la cantidad de cajas en al menos un calibre.", 'error');
+        return mostrarToast("Ingresá la cantidad de pallets en al menos un calibre.", 'error');
+      }
+
+      // Validar que no supere el límite de PCS del vuelo
+      const capacidadVuelo = Number(vueloActivoSeleccionado.pcs || 0);
+      let palletsYaAsignados = bufferRenglonesTemp
+        .filter(b => b.vuelo === vueloActivoSeleccionado.vuelo)
+        .reduce((acc, b) => acc + b.totalCajas, 0);
+
+      if (capacidadVuelo > 0 && (palletsYaAsignados + totalCajasBloque) > capacidadVuelo) {
+        const exceso = (palletsYaAsignados + totalCajasBloque) - capacidadVuelo;
+        return mostrarToast(`No podés superar los ${capacidadVuelo} pallets (PCS) del vuelo. Exceso: ${exceso}`, 'error');
       }
 
       bufferRenglonesTemp.push({
@@ -1086,7 +1217,7 @@
         cliente: cliente,
         marca: marca,
         destino: destino,
-        vuelo: vueloObj.vuelo || '-',
+        vuelo: vueloActivoSeleccionado.vuelo || '-',
         hora_salida_vuelo: horaSalidaVuelo,
         calibres: itemsCalibres,
         totalCajas: totalCajasBloque
@@ -1095,16 +1226,17 @@
       document.querySelectorAll('.input-cant-calibre').forEach(inp => inp.value = '');
       document.querySelectorAll('input[data-pallet]').forEach(inp => inp.value = '');
 
+      recalcularCupoVueloActual();
       actualizarTablaBufferPreview();
       mostrarToast(`Bloque #${bufferRenglonesTemp.length} añadido correctamente.`);
     }
 
     function quitarBloqueBuffer(idTemp) {
       bufferRenglonesTemp = bufferRenglonesTemp.filter(b => b.id_temp !== idTemp);
+      recalcularCupoVueloActual();
       actualizarTablaBufferPreview();
     }
 
-    // Actualizador Seguro con Guardrails de Elementos
     function actualizarTablaBufferPreview() {
       const tbody = document.querySelector('#tablaBufferPreview tbody');
       
@@ -1141,7 +1273,6 @@
       }).join('');
     }
 
-    // Guardado de Programa con Inyección Inmediata en Memoria
     async function confirmarYGuardarProgramaCompleto() {
       if (bufferRenglonesTemp.length === 0) {
         return mostrarToast("Debés añadir al menos un bloque al programa.", 'error');
@@ -1194,7 +1325,6 @@
         renglonesDefinitivos.forEach(r => dbLocal.prepare('INSERT INTO local_comex_programa_trabajo').run(r));
       }
 
-      // Actualización en memoria para que se muestre en pantalla al instante
       listaPrograma = [...renglonesDefinitivos, ...listaPrograma];
 
       cerrarModalPrograma();
@@ -1334,12 +1464,28 @@
       btn.disabled = true;
 
       try {
-        await Promise.all([cargarVuelos(), cargarProyecciones(), cargarProgramas()]);
+        if (servSinc && typeof servSinc.sincronizarTodoElSistema === 'function') {
+          const res = await servSinc.sincronizarTodoElSistema(AÑO_ACTUAL, sesionUsuario.usuario);
+          console.log('Sincronización Electron completada:', res);
+        } else {
+          await guardarTodaLaProyeccionSilenciosa();
+        }
+
+        await Promise.all([
+          cargarVuelos(),
+          cargarProyecciones(),
+          cargarProgramas()
+        ]);
+
         renderizarTabla11Dias();
+        actualizarBannerProyeccionEnPrograma();
         renderizarTablaProgramasConsolidados();
-        mostrarToast("Datos sincronizados con éxito.");
+
+        mostrarToast("Datos sincronizados correctamente.");
+
       } catch (e) {
-        mostrarToast("Fallo de sincronización: " + e.message, 'error');
+        console.error("Error al sincronizar:", e);
+        mostrarToast("Fallo de sincronización: " + (e.message || e), "error");
       } finally {
         btn.classList.remove('rotating');
         btn.disabled = false;
