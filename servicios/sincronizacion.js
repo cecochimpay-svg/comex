@@ -252,6 +252,91 @@ async function sincronizarTodoElSistema(temporada = 2026, usuarioActivo) {
   };
 }
 
+// Subir a Supabase los programas que están en local con sincronizado = 0
+async function pushProgramaTrabajo() {
+  const pendientes = db.prepare(`SELECT * FROM local_comex_programa_trabajo WHERE sincronizado = 0`).all();
+  if (!pendientes || pendientes.length === 0) return 0;
+
+  // Omitimos 'id' si no es un número generado por Supabase para que la base aplique IDENTITY
+  const payloads = pendientes.map(r => {
+    const p = {
+      temporada: r.temporada || 2026,
+      semana: r.semana || 1,
+      programa_nro: r.programa_nro,
+      fecha: r.fecha,
+      cliente: r.cliente,
+      marca: r.marca,
+      calibre: r.calibre,
+      cantidad: Number(r.cantidad) || 0,
+      tamano: r.tamano || 'STD',
+      nro_pallet: r.nro_pallet || null,
+      destino: r.destino || null,
+      vuelo: r.vuelo || null,
+      fecha_salida: r.fecha_salida || null,
+      hora_salida_vuelo: r.hora_salida_vuelo || null,
+      salida_empaque: r.salida_empaque ? String(r.salida_empaque) : null,
+      usuario: r.usuario || null
+    };
+    if (r.id && !isNaN(Number(r.id))) {
+      p.id = Number(r.id);
+    }
+    return p;
+  });
+
+  const { data, error } = await supabaseCampo
+    .from('comex_programa_trabajo')
+    .upsert(payloads, { onConflict: 'id' })
+    .select();
+
+  if (error) throw error;
+
+  // Marcamos como sincronizados localmente
+  pendientes.forEach((item, idx) => {
+    item.sincronizado = 1;
+    if (data && data[idx]) item.id = data[idx].id;
+  });
+
+  return payloads.length;
+}
+
+// Descargar programa de Supabase asegurando no pisar los pendientes locales
+async function pullProgramaTrabajo(usuarioActivo) {
+  let query = supabaseCampo.from('comex_programa_trabajo').select('*');
+  if (usuarioActivo) {
+    query = query.eq('usuario', usuarioActivo);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  if (!data || data.length === 0) return 0;
+
+  data.forEach(row => {
+    db.prepare(`INSERT INTO local_comex_programa_trabajo`).run({
+      ...row,
+      sincronizado: 1
+    });
+  });
+
+  return data.length;
+}
+
+// Función maestra completa
+async function sincronizarTodoElSistema(temporada = 2026, usuarioActivo) {
+  // 1. PUSH: Subir lo pendiente a Supabase primero
+  const pushV = await pushVuelos(usuarioActivo);
+  const pushP = await pushProgramaTrabajo();
+
+  // 2. PULL: Traer las novedades de Supabase
+  const pullDescargas = await descargarTodoElEstado(temporada, usuarioActivo);
+
+  return {
+    vuelosSubidos: pushV.subidos,
+    programasSubidos: pushP,
+    vuelosDescargados: pullDescargas.vuelosDescargados,
+    programasDescargados: pullDescargas.programaDescargado
+  };
+}
+
 module.exports = {
   guardarVueloLocal,
   eliminarVueloLocal,
@@ -264,5 +349,6 @@ module.exports = {
   guardarProyeccionDia,
   guardarProgramaTrabajo,
   descargarTodoElEstado,
+  pushProgramaTrabajo,
   sincronizarTodoElSistema // <-- Exportar la función maestra
 };

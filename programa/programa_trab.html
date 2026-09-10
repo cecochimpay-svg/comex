@@ -750,25 +750,7 @@
       }
     }
 
-    async function cargarProgramas() {
-      try {
-        if (navigator.onLine) {
-          const { data, error } = await supabaseClient
-            .from('comex_programa_trabajo')
-            .select('*')
-            .eq('temporada', AÑO_ACTUAL)
-            .order('fecha', { ascending: false });
-          if (!error && data) {
-            listaPrograma = data;
-            return;
-          }
-        }
-      } catch (e) {}
-      if (dbLocal) {
-        listaPrograma = dbLocal.prepare('SELECT * FROM local_comex_programa_trabajo').all();
-      }
-    }
-
+    
     async function cargarClientesYMarcasModal() {
       const selectCliente = document.getElementById('progCliente');
       const selectMarca = document.getElementById('progMarca');
@@ -1298,10 +1280,10 @@
             marca: bloque.marca,
             calibre: c.calibre,
             cantidad: c.cantidad,
-            tamano: c.tamano,
-            nro_pallet: c.nro_pallet,
-            destino: bloque.destino,
-            vuelo: bloque.vuelo,
+            tamano: c.tamano || 'STD',
+            nro_pallet: c.nro_pallet || null,
+            destino: bloque.destino || null,
+            vuelo: bloque.vuelo || null,
             hora_salida_vuelo: bloque.hora_salida_vuelo || null,
             salida_empaque: salidaEmpaque,
             usuario: sesionUsuario.usuario
@@ -1309,31 +1291,79 @@
         });
       });
 
+      let guardadoEnNube = false;
+
+      // 1. Guardar en Supabase (Omitiendo ID para que PostgreSQL aplique su identity)
       try {
         if (navigator.onLine) {
-          const { error } = await supabaseClient.from('comex_programa_trabajo').insert(renglonesDefinitivos);
-          if (error) {
-            console.error("Error Supabase:", error);
-            mostrarToast("Aviso nube: " + error.message, 'info');
+          const { data, error } = await supabaseClient
+            .from('comex_programa_trabajo')
+            .insert(renglonesDefinitivos)
+            .select();
+
+          if (error) throw error;
+
+          if (data && data.length > 0) {
+            guardadoEnNube = true;
+            // Asignamos el ID numérico real devuelto por la base
+            data.forEach((itemInsertado, i) => {
+              renglonesDefinitivos[i].id = itemInsertado.id;
+            });
           }
         }
-      } catch (e) {
-        console.warn("Fallo inserción en nube, guardando local.");
+      } catch (errNube) {
+        console.warn("Fallo subida a Supabase, quedará guardado localmente:", errNube.message);
       }
 
+      // 2. Guardar en la base de datos local (con flag sincronizado según corresponda)
       if (dbLocal) {
-        renglonesDefinitivos.forEach(r => dbLocal.prepare('INSERT INTO local_comex_programa_trabajo').run(r));
+        renglonesDefinitivos.forEach(r => {
+          dbLocal.prepare('INSERT INTO local_comex_programa_trabajo').run({
+            ...r,
+            sincronizado: guardadoEnNube ? 1 : 0
+          });
+        });
       }
 
+      // 3. Fusionar en memoria para que se muestre en pantalla de inmediato
       listaPrograma = [...renglonesDefinitivos, ...listaPrograma];
 
       cerrarModalPrograma();
       renderizarTablaProgramasConsolidados();
-      mostrarToast(`Programa ${progNro} guardado exitosamente.`);
-      
+      mostrarToast(`✅ Programa ${progNro} guardado (${renglonesDefinitivos.length} renglones).`);
+
       btn.disabled = false;
       btn.innerText = "Guardar Programa Completo";
     }
+
+    async function cargarProgramas() {
+      try {
+        // En primer lugar intentamos consultar a Supabase
+        if (navigator.onLine) {
+          const { data, error } = await supabaseClient
+            .from('comex_programa_trabajo')
+            .select('*')
+            .eq('temporada', AÑO_ACTUAL)
+            .order('fecha', { ascending: false });
+
+          if (!error && data && data.length > 0) {
+            listaPrograma = data;
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn("Fallo lectura de Supabase, recurriendo a local:", e.message);
+      }
+
+      // Si falló o no devolvió datos, protegemos la vista usando los datos locales
+      if (dbLocal) {
+        const local = dbLocal.prepare('SELECT * FROM local_comex_programa_trabajo').all();
+        if (local && local.length > 0) {
+          listaPrograma = local;
+        }
+      }
+    }
+
 
     function abrirModalDetallePrograma(progNro) {
       const renglones = listaPrograma.filter(r => (r.programa_nro || `PRG-${r.fecha}`) === progNro);

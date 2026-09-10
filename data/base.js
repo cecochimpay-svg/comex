@@ -98,9 +98,22 @@ const db = {
 
         // 4. PROGRAMA DE TRABAJO (Captura 2)
         if (query.includes('INTO LOCAL_COMEX_PROGRAMA_TRABAJO')) {
-          const regId = payload.id ? String(payload.id) : `PROG-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-          payload.id = regId;
-          store.local_comex_programa_trabajo.push(payload);
+          const itemLimpio = {
+            ...payload,
+            sincronizado: payload.sincronizado !== undefined ? payload.sincronizado : 0,
+            created_at: payload.created_at || new Date().toISOString()
+          };
+          // Si el ID viene de Supabase (numérico) se preserva, si no, se deja undefined para que la nube asigne el identity
+          if (payload.id && !isNaN(Number(payload.id))) {
+            const idx = store.local_comex_programa_trabajo.findIndex(x => Number(x.id) === Number(payload.id));
+            if (idx >= 0) {
+              store.local_comex_programa_trabajo[idx] = { ...store.local_comex_programa_trabajo[idx], ...itemLimpio };
+            } else {
+              store.local_comex_programa_trabajo.push(itemLimpio);
+            }
+          } else {
+            store.local_comex_programa_trabajo.push(itemLimpio);
+          }
           persistir();
           return { changes: 1 };
         }
@@ -155,6 +168,9 @@ const db = {
       all: (...params) => {
         if (query.includes('FROM LOCAL_COMEX_PROYECCION_DIAS')) {
           return store.local_comex_proyeccion_dias || [];
+        }
+        if (query.includes('FROM LOCAL_COMEX_PROGRAMA_TRABAJO WHERE SINCRONIZADO = 0')) {
+          return store.local_comex_programa_trabajo.filter(x => x.sincronizado === 0);
         }
         if (query.includes('FROM LOCAL_COMEX_PROGRAMA_TRABAJO')) {
           return store.local_comex_programa_trabajo || [];
