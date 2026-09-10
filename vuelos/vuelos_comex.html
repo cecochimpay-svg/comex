@@ -5,7 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Despacho y Vuelos COMEX · CECO S.A.</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- CDN Supabase y jsPDF -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
   <style>
     :root {
@@ -50,24 +54,38 @@
     ::-webkit-scrollbar-thumb { background: #C4CCC6; border-radius: 20px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--color-adm); }
 
-    /* Barra Superior */
+    /* Barra Superior Compacta */
     .top-system-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       background: #FFFFFF;
-      padding: 10px 20px;
+      padding: 8px 16px;
       border-bottom: 1px solid var(--color-border);
       height: 56px;
       flex-shrink: 0;
-      gap: 12px;
+      gap: 10px;
       z-index: 20;
+    }
+
+    .topbar-izq {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .topbar-logo {
+      height: 34px;
+      max-width: 105px;
+      object-fit: contain;
+      flex-shrink: 0;
     }
 
     .user-access-info {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       font-size: 12px;
       font-weight: 600;
       color: var(--color-text-secondary);
@@ -79,21 +97,54 @@
       font-family: 'Montserrat', sans-serif;
     }
 
+    .badge-rol {
+      padding: 2px 7px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .rol-adm { background: #FEE2E2; color: #991B1B; border: 1px solid #F87171; }
+    .rol-comex { background: #DCFCE7; color: #166534; border: 1px solid #86EFAC; }
+
     .top-right-bar {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       flex-shrink: 0;
     }
+
+    .system-datetime {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--color-text-secondary);
+    }
+
+    .btn-top-nav {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--color-blue-soft);
+      border: 1px solid rgba(0, 113, 227, 0.25);
+      color: var(--color-blue);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .btn-top-nav:hover { background: var(--color-blue); color: #FFFFFF; }
 
     .btn-sync-top {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       background: var(--color-adm-soft);
       border: 1px solid rgba(30, 107, 76, 0.25);
       color: var(--color-adm-dark);
-      padding: 6px 14px;
+      padding: 6px 12px;
       border-radius: 20px;
       font-size: 11px;
       font-weight: 700;
@@ -107,7 +158,7 @@
     .btn-logout {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       background: #FFFDE7;
       border: 1px solid #FBC02D;
       padding: 6px 12px;
@@ -123,7 +174,7 @@
     /* Layout Completo */
     .main-content {
       flex: 1;
-      padding: 14px 18px;
+      padding: 12px 18px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -165,6 +216,13 @@
       margin-top: 2px;
     }
 
+    .header-botones {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
     .btn-action {
       border: 1px solid transparent;
       border-radius: var(--radius-sm);
@@ -183,6 +241,13 @@
       box-shadow: 0 2px 6px rgba(30, 107, 76, 0.2);
     }
     .btn-nuevo:hover { background: var(--color-adm-dark); transform: translateY(-1px); }
+
+    .btn-pdf {
+      background: #FFFFFF;
+      border-color: #B91C1C;
+      color: #B91C1C;
+    }
+    .btn-pdf:hover { background: #B91C1C; color: #FFFFFF; }
 
     /* Barra Filtros y Totales */
     .filtro-fechas-card {
@@ -333,7 +398,7 @@
       font-family: 'Montserrat', sans-serif;
       font-size: 16px;
       font-weight: 900;
-      color: var(--color-plant-dark);
+      color: var(--color-adm-dark);
     }
     .card-vuelo-ruta {
       background: #F8FAFC;
@@ -362,7 +427,7 @@
     .btn-accion.edit:hover { background: #FFFDE7; border-color: #FFF176; color: #F57F17; }
     .btn-accion.delete:hover { background: #FFEBEE; border-color: #FFCDD2; color: #C62828; }
 
-    /* Modales y Solapas de Carga */
+    /* Modales */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -374,10 +439,7 @@
       z-index: 9999;
       padding: 12px;
     }
-    .modal-overlay.show {
-      display: flex !important;
-    }
-    .modal-overlay.show { display: flex; }
+    .modal-overlay.show { display: flex !important; }
     .modal-box {
       background: #FFFFFF;
       border-radius: var(--radius-lg);
@@ -391,7 +453,6 @@
       flex-direction: column;
     }
 
-    /* Pestañas del Formulario */
     .form-tabs-nav {
       display: flex;
       gap: 6px;
@@ -446,7 +507,6 @@
       font-family: 'Montserrat', sans-serif;
     }
 
-    /* Adaptación Celular */
     @media (max-width: 860px) {
       body { overflow-y: auto; }
       .system-datetime { display: none; }
@@ -475,17 +535,22 @@
 </head>
 <body>
 
-  <!-- Barra Superior Compacta -->
+  <!-- Barra Superior Compacta con Logo -->
   <header class="top-system-bar">
-    <div style="display:flex; align-items:center; gap:12px;">
-      <img src="../logo.png" alt="Logo" style="height:32px; max-width:105px; object-fit:contain;" onerror="this.style.display='none'">
-    <div class="user-access-info">
-      👤 <span class="highlight" id="lblUsuarioTopbar">—</span> &nbsp;·&nbsp;
-      TEMPORADA <span class="highlight" id="lblTemporadaTopbar">2026</span>
+    <div class="topbar-izq">
+      <img src="../logo.png" alt="Logo" class="topbar-logo" onerror="this.style.display='none'">
+      <div class="user-access-info">
+        👤 <span class="highlight" id="lblUsuarioTopbar">—</span>
+        <span class="badge-rol" id="badgeRolUsuario">COMEX</span>
+        &nbsp;·&nbsp; TEMP <span class="highlight" id="lblTemporadaTopbar">2026</span>
+      </div>
     </div>
 
     <div class="top-right-bar">
-      <div class="system-datetime" id="lblFechaHora">MIERCOLES 09 DE SEPTIEMBRE DE 2026</div>
+      <div class="system-datetime" id="lblFechaHora">09/09/2026</div>
+      <a href="../programa/programa_trab.html" class="btn-top-nav">
+        📋 Programa
+      </a>
       <button class="btn-sync-top" id="btnSync" onclick="sincronizar()" title="Sincronizar con Supabase">
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
         Sincronizar
@@ -495,18 +560,23 @@
       </a>
     </div>
   </header>
-  
 
   <!-- Contenedor Principal (100% Ancho) -->
   <main class="main-content">
     <div class="header-area">
       <div class="seccion-titulo-wrap">
         <h1 class="seccion-titulo">Despacho de Vuelos de Cosecha</h1>
-        <div class="seccion-subtitulo">Operaciones aéreas y logística internacional de la temporada.</div>
+        <div class="seccion-subtitulo" id="lblSubtituloModo">
+          Operaciones aéreas y logística internacional de la temporada.
+        </div>
       </div>
 
-      <div>
-        <button class="btn-action btn-nuevo" onclick="abrirModalNuevoVuelo()">
+      <div class="header-botones">
+        <button class="btn-action btn-pdf" onclick="exportarVuelosAPDF()">
+          📄 Exportar Detalle (PDF)
+        </button>
+        <!-- Este botón solo se muestra para operadores COMEX (se oculta a ADM) -->
+        <button class="btn-action btn-nuevo" id="btnNuevoDespachoHeader" onclick="abrirModalNuevoVuelo()">
           ➕ Registrar Despacho
         </button>
       </div>
@@ -551,19 +621,20 @@
             <thead>
               <tr>
                 <th>Registro</th>
+                <th>Operador</th>
                 <th>Fecha / Ingreso</th>
                 <th>Cliente</th>
                 <th>Destino</th>
                 <th>Línea Aérea</th>
                 <th>AWB / Vuelo 1</th>
                 <th>Conexión (Tramo 2)</th>
-                <th>Cajas / Kilos</th>
+                <th>Pallets / Kilos</th>
                 <th>Tarifa / Fijos</th>
-                <th style="text-align: right;">Acciones</th>
+                <th style="text-align: right;" id="thAccionesTabla">Acciones</th>
               </tr>
             </thead>
             <tbody id="tbodyDetalleVuelos">
-              <tr><td colspan="10" style="text-align: center; padding: 24px; color: var(--color-text-secondary);">Seleccioná una semana.</td></tr>
+              <tr><td colspan="11" style="text-align: center; padding: 24px; color: var(--color-text-secondary);">Seleccioná una semana.</td></tr>
             </tbody>
           </table>
         </div>
@@ -597,56 +668,55 @@
           <input type="hidden" id="txtRegistroId" />
 
           <!-- PESTAÑA 1: Carga y Fechas Principales -->
-          <!-- PESTAÑA 1: Carga y Fechas Principales -->
-<div class="form-tab-pane active" id="modalTab0">
-  <div class="modal-row-grid">
-    <div class="modal-group">
-      <label>Fecha de Despacho *</label>
-      <input type="date" id="txtFecha" class="modal-input" required onchange="actualizarSemanaSegunFecha(this.value)" />
-    </div>
-    <div class="modal-group">
-      <label>Semana Calculada</label>
-      <div class="badge-semana-calculada">
-        📅 Semana: <span id="lblSemanaCalculada">—</span>
-      </div>
-      <input type="hidden" id="valSemanaCalculada" />
-    </div>
-    <div class="modal-group">
-      <label>Fecha de Ingreso</label>
-      <input type="date" id="txtIngresoFecha" class="modal-input" />
-    </div>
-  </div>
+          <div class="form-tab-pane active" id="modalTab0">
+            <div class="modal-row-grid">
+              <div class="modal-group">
+                <label>Fecha de Despacho *</label>
+                <input type="date" id="txtFecha" class="modal-input" required onchange="actualizarSemanaSegunFecha(this.value)" />
+              </div>
+              <div class="modal-group">
+                <label>Semana Calculada</label>
+                <div class="badge-semana-calculada">
+                  📅 Semana: <span id="lblSemanaCalculada">—</span>
+                </div>
+                <input type="hidden" id="valSemanaCalculada" />
+              </div>
+              <div class="modal-group">
+                <label>Fecha de Ingreso</label>
+                <input type="date" id="txtIngresoFecha" class="modal-input" />
+              </div>
+            </div>
 
-  <div class="modal-row-grid" style="grid-template-columns: 1fr 2fr;">
-    <div class="modal-group">
-      <label>Cliente</label>
-      <input type="text" class="modal-input" value="CECO" readonly style="background: #F1F5F9; font-weight:800; color:#1E3A8A;" />
-    </div>
-    <div class="modal-group">
-      <label>Destino (Aeropuerto / Ciudad) *</label>
-      <input type="text" id="txtDestino" class="modal-input" required placeholder="Ej: PVG / CAN / MIA" />
-    </div>
-  </div>
+            <div class="modal-row-grid" style="grid-template-columns: 1fr 2fr;">
+              <div class="modal-group">
+                <label>Cliente</label>
+                <input type="text" class="modal-input" value="CECO" readonly style="background: #F1F5F9; font-weight:800; color:#1E3A8A;" />
+              </div>
+              <div class="modal-group">
+                <label>Destino (Aeropuerto / Ciudad) *</label>
+                <input type="text" id="txtDestino" class="modal-input" required placeholder="Ej: PVG / CAN / MIA" />
+              </div>
+            </div>
 
-  <div class="modal-row-grid">
-    <div class="modal-group">
-      <label>Cajas (PCS) *</label>
-      <input type="number" id="txtPcs" class="modal-input" required min="0" placeholder="Ej: 3250" />
-    </div>
-    <div class="modal-group">
-      <label>Kilos Brutos *</label>
-      <input type="number" id="txtKilos" class="modal-input" required min="0" placeholder="Ej: 3250" />
-    </div>
-    <div class="modal-group">
-      <label>Kilos Netos</label>
-      <input type="number" id="txtNeta" class="modal-input" min="0" placeholder="Opcional" />
-    </div>
-    <div class="modal-group">
-      <label>ULDs / Pallets</label>
-      <input type="number" id="txtUld" class="modal-input" min="0" placeholder="Cantidad ULD" />
-    </div>
-  </div>
-</div>
+            <div class="modal-row-grid">
+              <div class="modal-group">
+                <label>Pallets (PCS) *</label>
+                <input type="number" id="txtPcs" class="modal-input" required min="0" placeholder="Ej: 5" />
+              </div>
+              <div class="modal-group">
+                <label>Kilos Totales *</label>
+                <input type="number" id="txtKilos" class="modal-input" required min="0" placeholder="Ej: 3250" />
+              </div>
+              <div class="modal-group">
+                <label>Kilos Netos</label>
+                <input type="number" id="txtNeta" class="modal-input" min="0" placeholder="Opcional" />
+              </div>
+              <div class="modal-group">
+                <label>ULDs / Contenedores</label>
+                <input type="number" id="txtUld" class="modal-input" min="0" placeholder="Cantidad ULD" />
+              </div>
+            </div>
+          </div>
 
           <!-- PESTAÑA 2: Vuelo Tramo 1 (Salida) -->
           <div class="form-tab-pane" id="modalTab1">
@@ -743,12 +813,13 @@
   </div>
 
   <script>
-    const AÑO_ACTUAL = new Date().getFullYear();
+    const AÑO_ACTUAL = 2026;
     const SUPABASE_URL = 'https://veqpyhifwubcdxocckmf.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlcXB5aGlmd3ViY2R4b2Nja21mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NzI5NzAsImV4cCI6MjA5MTQ0ODk3MH0.mIRsPLLoHn9jQtvCCwxG3aNFWtXIdcV12kLTC_MqybY';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let sesionUsuario = null;
+    let esAdministrador = false;
     let vuelosUsuario = [];
     let semanaSeleccionada = null;
 
@@ -765,13 +836,31 @@
       }
 
       sesionUsuario = JSON.parse(sesionRaw);
+      
+      // Determinar si es ADM
+      const rol = (sesionUsuario.rol || 'COMEX').toUpperCase();
+      esAdministrador = (rol === 'ADM' || sesionUsuario.usuario.toUpperCase() === 'ADMIN');
+
+      // Actualizar UI según el rol
       document.getElementById('lblUsuarioTopbar').innerText = sesionUsuario.usuario;
       document.getElementById('lblTemporadaTopbar').innerText = AÑO_ACTUAL;
+      
+      const badgeRol = document.getElementById('badgeRolUsuario');
+      badgeRol.innerText = rol;
+      badgeRol.className = `badge-rol ${esAdministrador ? 'rol-adm' : 'rol-comex'}`;
+
+      if (esAdministrador) {
+        // Modo Auditoría / Solo Lectura para ADM en Vuelos
+        document.getElementById('btnNuevoDespachoHeader').style.display = 'none';
+        document.getElementById('thAccionesTabla').style.display = 'none';
+        document.getElementById('lblSubtituloModo').innerText = 'Modo Auditoría General: Visualizando todos los vuelos de la temporada (Solo lectura y exportación).';
+      } else {
+        document.getElementById('lblSubtituloModo').innerText = 'Operaciones aéreas y logística internacional cargadas por tu usuario.';
+      }
 
       cargarDatosVuelos();
     });
 
-    // Cálculo ISO-8601 de Semana
     function calcularNumeroSemana(fechaStr) {
       if (!fechaStr) return null;
       const [year, month, day] = fechaStr.split('-').map(Number);
@@ -793,7 +882,6 @@
       }
     }
 
-    // Pestañas del Modal
     function cambiarTabModal(idx, btn) {
       document.querySelectorAll('.form-tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.form-tab-pane').forEach(p => p.classList.remove('active'));
@@ -802,15 +890,20 @@
       document.getElementById(`modalTab${idx}`).classList.add('active');
     }
 
-    // Cargar Vuelos
+    // Cargar Vuelos: ADM ve TODO, COMEX ve lo suyo
     async function cargarDatosVuelos() {
       try {
-        const { data, error } = await supabaseClient
+        let query = supabaseClient
           .from('logistitcas_temporada')
           .select('*')
-          .eq('temporada', AÑO_ACTUAL)
-          .eq('usuario', sesionUsuario.usuario)
-          .order('semana', { ascending: false });
+          .eq('temporada', AÑO_ACTUAL);
+
+        // Si NO es ADM, filtra estrictamente por el usuario
+        if (!esAdministrador) {
+          query = query.ilike('usuario', sesionUsuario.usuario.trim());
+        }
+
+        const { data, error } = await query.order('semana', { ascending: false });
 
         if (error) throw error;
         vuelosUsuario = data || [];
@@ -819,8 +912,10 @@
         console.warn("Offline local:", err.message);
         if (servSinc) {
           const { db } = require('../data/base.js');
-          vuelosUsuario = db.prepare(`SELECT * FROM local_logistitcas_temporada`).all()
-            .filter(x => x.temporada === AÑO_ACTUAL && x.usuario === sesionUsuario.usuario);
+          const todosLocales = db.prepare(`SELECT * FROM local_logistitcas_temporada`).all()
+            .filter(x => x.temporada === AÑO_ACTUAL);
+          
+          vuelosUsuario = esAdministrador ? todosLocales : todosLocales.filter(x => String(x.usuario).toLowerCase() === sesionUsuario.usuario.toLowerCase());
         }
       }
 
@@ -830,7 +925,7 @@
     function actualizarMetricasYRenders() {
       const totalPcs = vuelosUsuario.reduce((acc, v) => acc + Number(v.pcs || 0), 0);
       const totalKilos = vuelosUsuario.reduce((acc, v) => acc + Number(v.kilos || 0), 0);
-      document.getElementById('lblResumenTotales').innerText = `${totalPcs.toLocaleString()} Cajas · ${totalKilos.toLocaleString()} Kilos`;
+      document.getElementById('lblResumenTotales').innerText = `${totalPcs.toLocaleString()} Pallets · ${totalKilos.toLocaleString()} Kilos`;
 
       renderListaSemanas();
     }
@@ -841,8 +936,8 @@
       const semanasArr = Array.from(semanasSet).sort((a, b) => b - a);
 
       if (semanasArr.length === 0) {
-        cont.innerHTML = '<div style="font-size:11px; color:var(--color-text-secondary); padding:8px;">Sin despachos.</div>';
-        document.getElementById('tbodyDetalleVuelos').innerHTML = '<tr><td colspan="10" style="text-align:center; padding:20px;">Sin registros.</td></tr>';
+        cont.innerHTML = '<div style="font-size:11px; color:var(--color-text-secondary); padding:8px;">Sin despachos cargados.</div>';
+        document.getElementById('tbodyDetalleVuelos').innerHTML = '<tr><td colspan="11" style="text-align:center; padding:20px;">Sin registros.</td></tr>';
         document.getElementById('contenedorCardsMovil').innerHTML = '<div style="text-align:center; padding:20px; color:var(--color-text-secondary);">Sin registros.</div>';
         return;
       }
@@ -876,7 +971,6 @@
       renderDetalleVuelos();
     }
 
-    // Render Dual: Tabla en Desktop y Cards en Celular
     function renderDetalleVuelos(filtroTexto = '') {
       const tbody = document.getElementById('tbodyDetalleVuelos');
       const contMovil = document.getElementById('contenedorCardsMovil');
@@ -891,12 +985,13 @@
           (v.awb || '').toLowerCase().includes(t) ||
           (v.vuelo || '').toLowerCase().includes(t) ||
           (v.destino || '').toLowerCase().includes(t) ||
-          (v.linea_aerea || '').toLowerCase().includes(t)
+          (v.linea_aerea || '').toLowerCase().includes(t) ||
+          (v.usuario || '').toLowerCase().includes(t)
         );
       }
 
       if (vuelosSem.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:20px;">No hay despachos.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:20px;">No hay despachos para esta selección.</td></tr>';
         contMovil.innerHTML = '<div style="text-align:center; padding:20px; color:var(--color-text-secondary);">No hay despachos.</div>';
         return;
       }
@@ -905,18 +1000,20 @@
       tbody.innerHTML = vuelosSem.map(v => `
         <tr>
           <td><b>${v.registro}</b></td>
+          <td><span class="badge-tag tag-verde">${v.usuario || 'S/D'}</span></td>
           <td>${formatearFechaCorta(v.fecha)}<br><small style="color:var(--color-text-secondary);">${formatearFechaCorta(v.ingreso)}</small></td>
           <td><b>${v.cliente || '-'}</b></td>
           <td><span class="badge-tag tag-azul">${v.destino || '-'}</span></td>
           <td>${v.linea_aerea || '-'}</td>
           <td><b>${v.awb || '-'}</b><br><small>${v.vuelo || '-'}</small></td>
           <td>${v.vuelo_cnx ? `<b>${v.vuelo_cnx}</b><br><small>${formatearFechaCorta(v.fecha_etd2 || '')}</small>` : '<span style="color:#94A3B8;">Directo</span>'}</td>
-          <td><b>${Number(v.pcs || 0).toLocaleString()} pcs</b><br>${Number(v.kilos || 0).toLocaleString()} kg</td>
+          <td><b>${Number(v.pcs || 0).toLocaleString()} pallets</b><br>${Number(v.kilos || 0).toLocaleString()} kg</td>
           <td><span class="badge-tag tag-amarillo">${v.tarifa_kg || '-'}</span><br><small>${v.fijos || ''}</small></td>
+          ${!esAdministrador ? `
           <td style="text-align: right; white-space: nowrap;">
             <button class="btn-accion edit" title="Editar" onclick='abrirModalEditarVuelo(${JSON.stringify(v)})'>✏️</button>
             <button class="btn-accion delete" title="Eliminar" onclick="confirmarEliminarVuelo('${v.registro}')">🗑️</button>
-          </td>
+          </td>` : ''}
         </tr>
       `).join('');
 
@@ -928,10 +1025,11 @@
               <span class="card-vuelo-destino">${v.destino || '—'}</span>
               <span style="font-size:11px; font-weight:700; color:var(--color-text-secondary); margin-left:6px;">${v.linea_aerea || ''}</span>
             </div>
+            ${!esAdministrador ? `
             <div style="display:flex; gap:4px;">
               <button class="btn-accion edit" onclick='abrirModalEditarVuelo(${JSON.stringify(v)})'>✏️</button>
               <button class="btn-accion delete" onclick="confirmarEliminarVuelo('${v.registro}')">🗑️</button>
-            </div>
+            </div>` : `<span class="badge-tag tag-verde">${v.usuario || ''}</span>`}
           </div>
 
           <div style="display:flex; justify-content:space-between; font-size:11.5px;">
@@ -945,7 +1043,7 @@
           </div>
 
           <div style="display:flex; justify-content:space-between; align-items:center; font-size:11.5px; border-top:1px dashed var(--color-border); padding-top:6px;">
-            <span>📦 <b>${Number(v.pcs || 0).toLocaleString()}</b> cajas (${Number(v.kilos || 0).toLocaleString()} kg)</span>
+            <span>📦 <b>${Number(v.pcs || 0).toLocaleString()}</b> pallets (${Number(v.kilos || 0).toLocaleString()} kg)</span>
             <span class="badge-tag tag-amarillo">${v.tarifa_kg || 'Sin tarifa'}</span>
           </div>
         </div>
@@ -961,24 +1059,16 @@
       renderDetalleVuelos(term);
     }
 
-    // Generador Max(registro) + 1 con formato USUARIO&0001
     function generarUniqueId() {
-      const uNombre = (sesionUsuario && sesionUsuario.usuario) ? sesionUsuario.usuario.toUpperCase().trim() : 'USUARIO';
-      const randomCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-      // Formato: USUARIO&XXXXXXXX (Ej: JUAN&A8B2C3D4)
-      return randomCode;
+      return Math.random().toString(36).substring(2, 10).toUpperCase();
     }
-   //generarSiguienteRegistro
 
-    function generarSiguienteRegistro() {
-      const uNombre = (sesionUsuario && sesionUsuario.usuario) ? sesionUsuario.usuario.toUpperCase().trim() : 'USUARIO';
-      const randomCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-      // Formato: USUARIO&XXXXXXXX (Ej: JUAN&A8B2C3D4)
-      return randomCode;
-    }
-    
-    // Modal Alta / Edición
     function abrirModalNuevoVuelo() {
+      if (esAdministrador) {
+        alert("El rol Administrador tiene permisos de solo lectura en este módulo.");
+        return;
+      }
+
       try {
         const modal = document.getElementById('modalVuelo');
         if (!modal) return alert("No se encontró el elemento modalVuelo en el HTML.");
@@ -988,7 +1078,7 @@
         const form = document.getElementById('formVuelo');
         if (form) form.reset();
 
-        const nuevoReg = generarSiguienteRegistro();
+        const nuevoReg = generarUniqueId();
         const inputReg = document.getElementById('txtRegistroId');
         if (inputReg) inputReg.value = '';
 
@@ -1002,13 +1092,11 @@
           actualizarSemanaSegunFecha(hoyStr);
         }
 
-        // Activar la primera pestaña
         const primerTabBtn = document.querySelector('.form-tab-btn');
         if (primerTabBtn) {
           cambiarTabModal(0, primerTabBtn);
         }
 
-        // Mostrar el modal tanto por clase como por estilo directo
         modal.classList.add('show');
         modal.style.display = 'flex';
 
@@ -1026,17 +1114,12 @@
       }
     }
 
-    function cambiarTabModal(idx, btn) {
-      document.querySelectorAll('.form-tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.form-tab-pane').forEach(p => p.classList.remove('active'));
-
-      if (btn) btn.classList.add('active');
-      const pane = document.getElementById(`modalTab${idx}`);
-      if (pane) pane.classList.add('active');
-    }
-
-    // 3. Abrir Modal Editar Vuelo
     function abrirModalEditarVuelo(v) {
+      if (esAdministrador) {
+        alert("El rol Administrador tiene permisos de solo lectura en este módulo.");
+        return;
+      }
+
       document.getElementById('lblModalTitulo').innerText = `Editar Despacho`;
       document.getElementById('txtRegistroId').value = v.registro;
       document.getElementById('lblRegistroIdBadge').innerText = v.registro;
@@ -1067,7 +1150,6 @@
       document.getElementById('txtFechaEta2').value = formatearFechaCorta(eta2Val);
       document.getElementById('txtHoraEta2').value = v.hora_eta2 || '';
 
-      // Limpiar prefijo USD al cargar para que sea fácil editar
       document.getElementById('txtTarifa').value = (v.tarifa_kg || '').replace(/^USD\s*/i, '').trim();
       document.getElementById('txtFijos').value = (v.fijos || '').replace(/^USD\s*/i, '').trim();
       document.getElementById('txtInfo').value = v.info || '';
@@ -1079,14 +1161,17 @@
       modal.style.display = 'flex';
     }
 
-// 4. Guardar Formulario Vuelo
     async function guardarFormularioVuelo(e) {
       e.preventDefault();
+      if (esAdministrador) {
+        alert("El rol Administrador no puede crear ni modificar registros.");
+        return;
+      }
+
       const btn = document.getElementById('btnGuardarModal');
       btn.disabled = true;
       btn.innerText = "Guardando...";
 
-      // Si existe toma el ID anterior, si es nuevo genera el ID único alfanumérico
       const idExistente = document.getElementById('txtRegistroId').value.trim();
       const registroId = idExistente || generarUniqueId();
       const semanaCalculada = parseInt(document.getElementById('valSemanaCalculada').value, 10);
@@ -1104,7 +1189,6 @@
         return el.value.trim();
       };
 
-      // Formateo seguro para no duplicar USD
       const formatearMonedaUSD = (val) => {
         if (!val) return null;
         const limpio = val.replace(/^USD\s*/i, '').trim();
@@ -1136,7 +1220,7 @@
         vuelo_cnx: getValOrNull('txtVueloCnx'),
         fecha_etd2: getValOrNull('txtFechaEtd2'),
         hora_etd2: getValOrNull('txtHoraEtd2'),
-        fecha_eta_2: fechaEta2, // Nombre de columna exacto en Supabase
+        fecha_eta_2: fechaEta2,
         hora_eta2: getValOrNull('txtHoraEta2'),
         tarifa_kg: formatearMonedaUSD(getValOrNull('txtTarifa')),
         fijos: formatearMonedaUSD(getValOrNull('txtFijos')),
@@ -1144,17 +1228,12 @@
       };
 
       try {
-        // 1. Guardar en Supabase
         const { error } = await supabaseClient
           .from('logistitcas_temporada')
           .upsert([vueloData], { onConflict: 'registro' });
 
-        if (error) {
-          console.error("Detalle error Supabase:", error);
-          throw error;
-        }
+        if (error) throw error;
 
-        // 2. Guardar réplica local
         if (servSinc && typeof servSinc.guardarVueloLocal === 'function') {
           servSinc.guardarVueloLocal(vueloData, sesionUsuario.usuario);
         }
@@ -1163,12 +1242,111 @@
         await cargarDatosVuelos();
 
       } catch (err) {
-        console.error("Error completo al guardar:", err);
+        console.error("Error al guardar:", err);
         alert("Error al guardar el vuelo: " + (err.message || JSON.stringify(err)));
       } finally {
         btn.disabled = false;
         btn.innerText = "Guardar Despacho";
       }
+    }
+
+    async function confirmarEliminarVuelo(regId) {
+      if (esAdministrador) {
+        alert("El rol Administrador no puede eliminar registros.");
+        return;
+      }
+
+      if (!confirm(`¿Estás seguro de eliminar el despacho ${regId}?`)) return;
+
+      try {
+        const { error } = await supabaseClient
+          .from('logistitcas_temporada')
+          .delete()
+          .eq('registro', regId)
+          .eq('usuario', sesionUsuario.usuario);
+
+        if (error) throw error;
+
+        if (servSinc) {
+          servSinc.eliminarVueloLocal(regId);
+        }
+
+        await cargarDatosVuelos();
+
+      } catch (err) {
+        alert("Error al eliminar: " + err.message);
+      }
+    }
+
+    // EXPORTACIÓN A PDF DEL DETALLE DE VUELOS
+    function exportarVuelosAPDF() {
+      const vuelosAExportar = semanaSeleccionada 
+        ? vuelosUsuario.filter(v => Number(v.semana) === semanaSeleccionada)
+        : vuelosUsuario;
+
+      if (!vuelosAExportar || vuelosAExportar.length === 0) {
+        alert("No hay registros de vuelos para exportar en esta semana.");
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('l', 'mm', 'a4'); // Horizontal (Landscape)
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.setTextColor(18, 63, 44);
+      doc.text("PLANILLA DE DESPACHO DE VUELOS DE COSECHA · CECO S.A.", 148, 14, { align: 'center' });
+
+      doc.setFontSize(10);
+      doc.setTextColor(85, 99, 88);
+      const subtitulo = `SEMANA: ${semanaSeleccionada || 'TODAS'} · TEMPORADA: ${AÑO_ACTUAL} · FECHA EMISIÓN: ${new Date().toLocaleDateString('es-AR')}`;
+      doc.text(subtitulo, 148, 20, { align: 'center' });
+
+      const columnas = [
+        "REGISTRO", "OPERADOR", "FECHA", "CLIENTE", "DESTINO", 
+        "AEROLÍNEA", "AWB", "VUELO 1", "CONEXIÓN", "PALLETS", "KILOS", "TARIFA"
+      ];
+
+      const filas = vuelosAExportar.map(v => [
+        v.registro || '-',
+        v.usuario || '-',
+        formatearFechaCorta(v.fecha),
+        v.cliente || '-',
+        v.destino || '-',
+        v.linea_aerea || '-',
+        v.awb || '-',
+        v.vuelo || '-',
+        v.vuelo_cnx || 'DIRECTO',
+        Number(v.pcs || 0).toLocaleString(),
+        Number(v.kilos || 0).toLocaleString(),
+        v.tarifa_kg || '-'
+      ]);
+
+      doc.autoTable({
+        startY: 24,
+        head: [columnas],
+        body: filas,
+        theme: 'grid',
+        headStyles: { fillColor: [30, 107, 76], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
+        styles: { fontSize: 8, cellPadding: 2.5, halign: 'center' },
+        columnStyles: {
+          0: { halign: 'center', fontStyle: 'bold' },
+          3: { halign: 'left' },
+          5: { halign: 'left' },
+          6: { halign: 'center' }
+        }
+      });
+
+      const totalPallets = vuelosAExportar.reduce((a, b) => a + Number(b.pcs || 0), 0);
+      const totalKilos = vuelosAExportar.reduce((a, b) => a + Number(b.kilos || 0), 0);
+      const finalY = doc.lastAutoTable.finalY + 6;
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(18, 63, 44);
+      doc.text(`TOTALES SEMANA ${semanaSeleccionada}: ${totalPallets.toLocaleString()} PALLETS  |  ${totalKilos.toLocaleString()} KILOS`, 14, finalY);
+
+      doc.save(`Despacho_Vuelos_Semana_${semanaSeleccionada || 'Todas'}.pdf`);
     }
 
     async function sincronizar() {

@@ -28,6 +28,7 @@
   "build": {
     "appId": "com.comex.app",
     "productName": "COMEX",
+    "icon": "icono.ico",
     "directories": {
       "output": "dist"
     },
@@ -40,7 +41,9 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "COMEX"
+      "shortcutName": "COMEX",
+      "installerIcon": "icono.ico",
+      "uninstallerIcon": "icono.ico"
     },
     "files": [
       "**/*"

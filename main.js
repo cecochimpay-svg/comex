@@ -12,6 +12,7 @@ function createWindow() {
     minHeight: 700,
     autoHideMenuBar: true,
     title: 'COMEX · CECO S.A.',
+    icon: path.join(__dirname, 'icono.ico'), // <--- ÍCONO DE LA VENTANA / BARRA DE TAREAS
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,

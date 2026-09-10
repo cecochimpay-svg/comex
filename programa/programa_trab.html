@@ -65,9 +65,56 @@
     .topbar-info { font-size: 12px; font-weight: 700; color: var(--color-text-secondary); white-space: nowrap; }
     .topbar-info span { color: var(--color-adm); font-family: 'Montserrat'; font-weight: 800; }
     
-    .top-right-bar { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+    /*.top-right-bar { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    /* Barra Superior Compacta */
+    .top-right-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+
+    .top-system-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #FFFFFF;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--color-border);
+      height: 56px;
+      flex-shrink: 0;
+      gap: 10px;
+      z-index: 20;
+    }
+
+    .topbar-izq {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
     .system-datetime { font-size: 11px; font-weight: 700; color: var(--color-text-secondary); }
 
+    .btn-top-nav {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--color-blue-soft);
+      border: 1px solid rgba(0, 113, 227, 0.25);
+      color: var(--color-blue);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .btn-top-nav:hover { background: var(--color-blue); color: #FFFFFF; }
+
+    
     .btn-sync-top {
       display: flex; align-items: center; gap: 6px;
       background: var(--color-adm-soft); border: 1px solid rgba(30, 107, 76, 0.25);
@@ -294,6 +341,9 @@
 
     <div class="top-right-bar">
       <div class="system-datetime" id="lblFechaHora">09/09/2026</div>
+      <a href="../vuelos/vuelos_comex.html" class="btn-top-nav">
+        ✈️ Vuelos
+      </a>
       <button class="btn-sync-top" id="btnSync" onclick="sincronizar()" title="Sincronizar">
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
         Sincronizar

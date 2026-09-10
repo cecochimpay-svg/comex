@@ -12,7 +12,8 @@
       "inspeccion_kg": 2000,
       "carga_kg": 1500,
       "ezeiza_kg": 1500,
-      "updated_at": "2026-09-10T11:41:05.349Z"
+      "updated_at": "2026-09-10T13:46:34.081Z",
+      "id": 2
     },
     {
       "temporada": 2026,
@@ -22,7 +23,8 @@
       "inspeccion_kg": 0,
       "carga_kg": 0,
       "ezeiza_kg": 0,
-      "updated_at": "2026-09-10T11:41:05.350Z"
+      "updated_at": "2026-09-10T13:46:34.083Z",
+      "id": 3
     },
     {
       "temporada": 2026,
@@ -32,7 +34,8 @@
       "inspeccion_kg": 0,
       "carga_kg": 0,
       "ezeiza_kg": 0,
-      "updated_at": "2026-09-10T11:41:05.350Z"
+      "updated_at": "2026-09-10T13:46:34.085Z",
+      "id": 4
     },
     {
       "temporada": 2026,
@@ -42,7 +45,8 @@
       "inspeccion_kg": 0,
       "carga_kg": 0,
       "ezeiza_kg": 0,
-      "updated_at": "2026-09-10T11:41:05.351Z"
+      "updated_at": "2026-09-10T13:46:34.087Z",
+      "id": 5
     },
     {
       "temporada": 2026,
@@ -52,7 +56,8 @@
       "inspeccion_kg": 0,
       "carga_kg": 0,
       "ezeiza_kg": 0,
-      "updated_at": "2026-09-10T11:41:05.351Z"
+      "updated_at": "2026-09-10T13:46:34.089Z",
+      "id": 6
     },
     {
       "temporada": 2026,
@@ -62,7 +67,8 @@
       "inspeccion_kg": 0,
       "carga_kg": 0,
       "ezeiza_kg": 0,
-      "updated_at": "2026-09-10T11:41:05.351Z"
+      "updated_at": "2026-09-10T13:46:34.091Z",
+      "id": 7
     },
     {
       "temporada": 2026,
@@ -72,7 +78,8 @@
       "inspeccion_kg": 0,
       "carga_kg": 0,
       "ezeiza_kg": 0,
-      "updated_at": "2026-09-10T11:41:05.352Z"
+      "updated_at": "2026-09-10T13:46:34.092Z",
+      "id": 8
     },
     {
       "temporada": 2026,
@@ -82,7 +89,8 @@
       "inspeccion_kg": 0,
       "carga_kg": 0,
       "ezeiza_kg": 0,
-      "updated_at": "2026-09-10T11:41:05.352Z"
+      "updated_at": "2026-09-10T13:46:34.094Z",
+      "id": 9
     },
     {
       "temporada": 2026,
@@ -92,7 +100,8 @@
       "inspeccion_kg": 0,
       "carga_kg": 0,
       "ezeiza_kg": 0,
-      "updated_at": "2026-09-10T11:41:05.353Z"
+      "updated_at": "2026-09-10T13:46:34.096Z",
+      "id": 10
     },
     {
       "temporada": 2026,
@@ -102,7 +111,8 @@
       "inspeccion_kg": 0,
       "carga_kg": 0,
       "ezeiza_kg": 0,
-      "updated_at": "2026-09-10T11:41:05.353Z"
+      "updated_at": "2026-09-10T13:46:34.098Z",
+      "id": 11
     },
     {
       "temporada": 2026,
@@ -112,7 +122,19 @@
       "inspeccion_kg": 0,
       "carga_kg": 0,
       "ezeiza_kg": 0,
-      "updated_at": "2026-09-10T11:41:05.353Z"
+      "updated_at": "2026-09-10T13:46:34.098Z",
+      "id": 33
+    },
+    {
+      "id": 1,
+      "temporada": 2026,
+      "fecha": "2026-09-09",
+      "cosecha_kg": 2500,
+      "inspeccion_kg": 1500,
+      "carga_kg": 2000,
+      "ezeiza_kg": 2000,
+      "usuario": "Gerardo",
+      "updated_at": "2026-09-10T13:46:34.079Z"
     }
   ],
   "local_comex_programa_trabajo": [
@@ -457,6 +479,69 @@
       "salida_empaque": "2026-09-10T08:00",
       "usuario": "Gerardo",
       "id": "PROG-1789044287146-634"
+    },
+    {
+      "id": 1,
+      "temporada": 2026,
+      "semana": 1,
+      "programa_nro": "PRG-2026-5233",
+      "fecha": "2026-09-10",
+      "cliente": "CULTIVAR S.A.U  MADRID",
+      "marca": "FINCA CHIMPAY",
+      "calibre": "24-26",
+      "cantidad": 3,
+      "tamano": "STD",
+      "nro_pallet": "516q6",
+      "destino": "MIA",
+      "vuelo": "De 115",
+      "fecha_salida": null,
+      "usuario": "Gerardo",
+      "created_at": "2026-09-10T13:07:15.118464+00:00",
+      "hora_salida_vuelo": "2026-09-10 15:37",
+      "salida_empaque": "2026-09-10T08:00",
+      "sincronizado": 1
+    },
+    {
+      "id": 2,
+      "temporada": 2026,
+      "semana": 1,
+      "programa_nro": "PRG-2026-5233",
+      "fecha": "2026-09-10",
+      "cliente": "CULTIVAR S.A.U  MADRID",
+      "marca": "FINCA CHIMPAY",
+      "calibre": "26-28",
+      "cantidad": 1,
+      "tamano": "STD",
+      "nro_pallet": "61717",
+      "destino": "MIA",
+      "vuelo": "De 115",
+      "fecha_salida": null,
+      "usuario": "Gerardo",
+      "created_at": "2026-09-10T13:07:15.118464+00:00",
+      "hora_salida_vuelo": "2026-09-10 15:37",
+      "salida_empaque": "2026-09-10T08:00",
+      "sincronizado": 1
+    },
+    {
+      "id": 3,
+      "temporada": 2026,
+      "semana": 1,
+      "programa_nro": "PRG-2026-5233",
+      "fecha": "2026-09-10",
+      "cliente": "CULTIVAR S.A.U  MADRID",
+      "marca": "FINCA CHIMPAY",
+      "calibre": "28-30",
+      "cantidad": 1,
+      "tamano": "STD",
+      "nro_pallet": "71717",
+      "destino": "MIA",
+      "vuelo": "De 115",
+      "fecha_salida": null,
+      "usuario": "Gerardo",
+      "created_at": "2026-09-10T13:07:15.118464+00:00",
+      "hora_salida_vuelo": "2026-09-10 15:37",
+      "salida_empaque": "2026-09-10T08:00",
+      "sincronizado": 1
     }
   ],
   "local_agronet_clientes": [],

@@ -270,12 +270,12 @@
 
         localStorage.setItem('comex_sesion', JSON.stringify(sesion));
 
-        // 3. Redirección por rol
-        if (sesion.rol === 'COMEX') {
-          window.location.href = 'vuelos/vuelos_comex.html';
-        } else {
-          window.location.href = 'programa/programa_trab.html';
-        }
+        // 3. Guardar sesión y redirección
+        localStorage.setItem('comex_sesion', JSON.stringify(sesion));
+
+        // Tanto ADM como COMEX pueden ingresar directamente a Vuelos
+        // (ADM verá todos los vuelos en modo auditoría/exportación, y COMEX verá los suyos para operar)
+        window.location.href = 'vuelos/vuelos_comex.html';
 
       } catch (err) {
         alerta.innerText = 'Error al verificar credenciales: ' + err.message;
