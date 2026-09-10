@@ -427,12 +427,12 @@
     .btn-accion.edit:hover { background: #FFFDE7; border-color: #FFF176; color: #F57F17; }
     .btn-accion.delete:hover { background: #FFEBEE; border-color: #FFCDD2; color: #C62828; }
 
-    /* Modales */
+    /* Modales Estilo Apple Soft */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(4px);
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(5px);
       display: none;
       align-items: center;
       justify-content: center;
@@ -446,11 +446,42 @@
       padding: 20px;
       width: 100%;
       max-width: 860px;
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
       border: 1px solid var(--color-border);
       max-height: 94vh;
       display: flex;
       flex-direction: column;
+    }
+
+    /* Modal de Confirmación Estilizado */
+    .modal-box-confirm {
+      max-width: 400px !important;
+      text-align: center;
+      padding: 24px;
+      gap: 12px;
+    }
+    .modal-confirm-icon {
+      font-size: 38px;
+      margin-bottom: 2px;
+    }
+    .modal-confirm-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--color-text);
+      margin: 0;
+    }
+    .modal-confirm-desc {
+      font-size: 12.5px;
+      color: var(--color-text-secondary);
+      line-height: 1.4;
+      margin: 0;
+    }
+    .modal-confirm-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 10px;
     }
 
     .form-tabs-nav {
@@ -492,6 +523,7 @@
     .modal-btn { border-radius: var(--radius-sm); padding: 8px 16px; font-size: 11.5px; font-weight: 700; cursor: pointer; border: 1px solid transparent; }
     .modal-btn.cancel { background: transparent; border-color: var(--color-border); color: var(--color-text-secondary); }
     .modal-btn.save { background: var(--color-adm); color: #FFFFFF; }
+    .modal-btn.danger { background: #DC2626; color: #FFFFFF; }
 
     .badge-semana-calculada {
       display: inline-flex;
@@ -548,9 +580,12 @@
 
     <div class="top-right-bar">
       <div class="system-datetime" id="lblFechaHora">09/09/2026</div>
-      <a href="../programa/programa_trab.html" class="btn-top-nav">
-        📋 Programa
+      
+      <!-- Botón de Navegación a Programa (Solo visible para ADM/ADMIN) -->
+      <a href="../programa/programa_trab.html" class="btn-top-nav" id="btnIrProgramaHeader">
+        📋 Ir a Programa
       </a>
+
       <button class="btn-sync-top" id="btnSync" onclick="sincronizar()" title="Sincronizar con Supabase">
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
         Sincronizar
@@ -561,7 +596,7 @@
     </div>
   </header>
 
-  <!-- Contenedor Principal (100% Ancho) -->
+  <!-- Contenedor Principal -->
   <main class="main-content">
     <div class="header-area">
       <div class="seccion-titulo-wrap">
@@ -575,7 +610,7 @@
         <button class="btn-action btn-pdf" onclick="exportarVuelosAPDF()">
           📄 Exportar Detalle (PDF)
         </button>
-        <!-- Este botón solo se muestra para operadores COMEX (se oculta a ADM) -->
+        <!-- Visible para COMEX (se oculta a ADM/ADMIN) -->
         <button class="btn-action btn-nuevo" id="btnNuevoDespachoHeader" onclick="abrirModalNuevoVuelo()">
           ➕ Registrar Despacho
         </button>
@@ -655,7 +690,6 @@
         <span id="lblRegistroIdBadge" class="badge-tag tag-azul">—</span>
       </div>
 
-      <!-- Pestañas de Carga Rápida -->
       <div class="form-tabs-nav">
         <button type="button" class="form-tab-btn active" onclick="cambiarTabModal(0, this)">1. Carga y Destino</button>
         <button type="button" class="form-tab-btn" onclick="cambiarTabModal(1, this)">2. Tramo 1 (Salida)</button>
@@ -667,7 +701,7 @@
         <div class="modal-body">
           <input type="hidden" id="txtRegistroId" />
 
-          <!-- PESTAÑA 1: Carga y Fechas Principales -->
+          <!-- PESTAÑA 1 -->
           <div class="form-tab-pane active" id="modalTab0">
             <div class="modal-row-grid">
               <div class="modal-group">
@@ -718,7 +752,7 @@
             </div>
           </div>
 
-          <!-- PESTAÑA 2: Vuelo Tramo 1 (Salida) -->
+          <!-- PESTAÑA 2 -->
           <div class="form-tab-pane" id="modalTab1">
             <div class="modal-row-grid">
               <div class="modal-group">
@@ -755,7 +789,7 @@
             </div>
           </div>
 
-          <!-- PESTAÑA 3: Vuelo Tramo 2 (Conexión) -->
+          <!-- PESTAÑA 3 -->
           <div class="form-tab-pane" id="modalTab2">
             <div class="modal-row-grid">
               <div class="modal-group">
@@ -784,7 +818,7 @@
             </div>
           </div>
 
-          <!-- PESTAÑA 4: Tarifas y Costos -->
+          <!-- PESTAÑA 4 -->
           <div class="form-tab-pane" id="modalTab3">
             <div class="modal-row-grid">
               <div class="modal-group">
@@ -812,6 +846,19 @@
     </div>
   </div>
 
+  <!-- MODAL DE CONFIRMACIÓN ELEGANTE (APPLE SOFT) -->
+  <div class="modal-overlay" id="modalConfirmacionGenerico">
+    <div class="modal-box modal-box-confirm">
+      <div class="modal-confirm-icon" id="confirmModalIcon">🗑️</div>
+      <h3 class="modal-confirm-title" id="confirmModalTitulo">¿Eliminar registro?</h3>
+      <p class="modal-confirm-desc" id="confirmModalDesc">Esta acción no se puede deshacer.</p>
+      <div class="modal-confirm-actions">
+        <button type="button" class="modal-btn cancel" id="btnConfirmCancelar">Cancelar</button>
+        <button type="button" class="modal-btn danger" id="btnConfirmAceptar">Aceptar</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const AÑO_ACTUAL = 2026;
     const SUPABASE_URL = 'https://veqpyhifwubcdxocckmf.supabase.co';
@@ -828,6 +875,36 @@
       try { servSinc = require('../servicios/sincronizacion.js'); } catch (e) {}
     }
 
+    // Modal de confirmación moderno tipo Apple Soft
+    function mostrarModalConfirmacion({ icono = '⚠️', titulo, mensaje, btnTexto = 'Eliminar', btnClase = 'danger' }) {
+      return new Promise((resolve) => {
+        const overlay = document.getElementById('modalConfirmacionGenerico');
+        document.getElementById('confirmModalIcon').innerText = icono;
+        document.getElementById('confirmModalTitulo').innerText = titulo;
+        document.getElementById('confirmModalDesc').innerText = mensaje;
+        
+        const btnAceptar = document.getElementById('btnConfirmAceptar');
+        const btnCancelar = document.getElementById('btnConfirmCancelar');
+        
+        btnAceptar.innerText = btnTexto;
+        btnAceptar.className = `modal-btn ${btnClase}`;
+
+        const cerrarYResolver = (valor) => {
+          overlay.classList.remove('show');
+          overlay.style.display = 'none';
+          btnAceptar.onclick = null;
+          btnCancelar.onclick = null;
+          resolve(valor);
+        };
+
+        btnAceptar.onclick = () => cerrarYResolver(true);
+        btnCancelar.onclick = () => cerrarYResolver(false);
+
+        overlay.classList.add('show');
+        overlay.style.display = 'flex';
+      });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const sesionRaw = localStorage.getItem('comex_sesion');
       if (!sesionRaw) {
@@ -837,11 +914,9 @@
 
       sesionUsuario = JSON.parse(sesionRaw);
       
-      // Determinar si es ADM
       const rol = (sesionUsuario.rol || 'COMEX').toUpperCase();
-      esAdministrador = (rol === 'ADM' || sesionUsuario.usuario.toUpperCase() === 'ADMIN');
+      esAdministrador = (rol === 'ADM' || rol === 'ADMIN' || sesionUsuario.usuario.toUpperCase() === 'ADMIN');
 
-      // Actualizar UI según el rol
       document.getElementById('lblUsuarioTopbar').innerText = sesionUsuario.usuario;
       document.getElementById('lblTemporadaTopbar').innerText = AÑO_ACTUAL;
       
@@ -849,12 +924,22 @@
       badgeRol.innerText = rol;
       badgeRol.className = `badge-rol ${esAdministrador ? 'rol-adm' : 'rol-comex'}`;
 
+      const btnIrPrograma = document.getElementById('btnIrProgramaHeader');
+      const btnNuevoDespacho = document.getElementById('btnNuevoDespachoHeader');
+      const thAcciones = document.getElementById('thAccionesTabla');
+
+      // REGLA DE ROLES:
       if (esAdministrador) {
-        // Modo Auditoría / Solo Lectura para ADM en Vuelos
-        document.getElementById('btnNuevoDespachoHeader').style.display = 'none';
-        document.getElementById('thAccionesTabla').style.display = 'none';
-        document.getElementById('lblSubtituloModo').innerText = 'Modo Auditoría General: Visualizando todos los vuelos de la temporada (Solo lectura y exportación).';
+        // Rol ADM / ADMIN: Muestra botón de programa, pero OCULTA el botón de nuevo despacho
+        if (btnIrPrograma) btnIrPrograma.style.display = 'inline-flex';
+        if (btnNuevoDespacho) btnNuevoDespacho.style.display = 'none';
+        if (thAcciones) thAcciones.style.display = 'none';
+        document.getElementById('lblSubtituloModo').innerText = 'Modo Auditoría General: Visualizando todos los vuelos de la temporada.';
       } else {
+        // Rol COMEX: OCULTA botón hacia Programa, pero MUESTRA el botón de registrar despacho
+        if (btnIrPrograma) btnIrPrograma.style.display = 'none';
+        if (btnNuevoDespacho) btnNuevoDespacho.style.display = 'inline-flex';
+        if (thAcciones) thAcciones.style.display = '';
         document.getElementById('lblSubtituloModo').innerText = 'Operaciones aéreas y logística internacional cargadas por tu usuario.';
       }
 
@@ -890,7 +975,7 @@
       document.getElementById(`modalTab${idx}`).classList.add('active');
     }
 
-    // Cargar Vuelos: ADM ve TODO, COMEX ve lo suyo
+    // Cargar Vuelos: ADM ve todo; COMEX ve sus registros
     async function cargarDatosVuelos() {
       try {
         let query = supabaseClient
@@ -898,7 +983,6 @@
           .select('*')
           .eq('temporada', AÑO_ACTUAL);
 
-        // Si NO es ADM, filtra estrictamente por el usuario
         if (!esAdministrador) {
           query = query.ilike('usuario', sesionUsuario.usuario.trim());
         }
@@ -990,13 +1074,15 @@
         );
       }
 
+      const totalColumnas = !esAdministrador ? 11 : 10;
+
       if (vuelosSem.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:20px;">No hay despachos para esta selección.</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="${totalColumnas}" style="text-align:center; padding:20px;">No hay despachos para esta selección.</td></tr>`;
         contMovil.innerHTML = '<div style="text-align:center; padding:20px; color:var(--color-text-secondary);">No hay despachos.</div>';
         return;
       }
 
-      // 1. Render para Desktop (Tabla)
+      // 1. Render para Desktop
       tbody.innerHTML = vuelosSem.map(v => `
         <tr>
           <td><b>${v.registro}</b></td>
@@ -1017,7 +1103,7 @@
         </tr>
       `).join('');
 
-      // 2. Render para Celular (Cards Táctiles)
+      // 2. Render para Celular
       contMovil.innerHTML = vuelosSem.map(v => `
         <div class="card-vuelo-movil">
           <div class="card-vuelo-header">
@@ -1064,14 +1150,11 @@
     }
 
     function abrirModalNuevoVuelo() {
-      if (esAdministrador) {
-        alert("El rol Administrador tiene permisos de solo lectura en este módulo.");
-        return;
-      }
+      if (esAdministrador) return;
 
       try {
         const modal = document.getElementById('modalVuelo');
-        if (!modal) return alert("No se encontró el elemento modalVuelo en el HTML.");
+        if (!modal) return;
 
         document.getElementById('lblModalTitulo').innerText = "Registrar Despacho Aéreo";
         
@@ -1102,7 +1185,6 @@
 
       } catch (err) {
         console.error("Error abriendo modal:", err);
-        alert("Ocurrió un error al abrir el formulario: " + err.message);
       }
     }
 
@@ -1115,10 +1197,7 @@
     }
 
     function abrirModalEditarVuelo(v) {
-      if (esAdministrador) {
-        alert("El rol Administrador tiene permisos de solo lectura en este módulo.");
-        return;
-      }
+      if (esAdministrador) return;
 
       document.getElementById('lblModalTitulo').innerText = `Editar Despacho`;
       document.getElementById('txtRegistroId').value = v.registro;
@@ -1163,10 +1242,7 @@
 
     async function guardarFormularioVuelo(e) {
       e.preventDefault();
-      if (esAdministrador) {
-        alert("El rol Administrador no puede crear ni modificar registros.");
-        return;
-      }
+      if (esAdministrador) return;
 
       const btn = document.getElementById('btnGuardarModal');
       btn.disabled = true;
@@ -1243,7 +1319,6 @@
 
       } catch (err) {
         console.error("Error al guardar:", err);
-        alert("Error al guardar el vuelo: " + (err.message || JSON.stringify(err)));
       } finally {
         btn.disabled = false;
         btn.innerText = "Guardar Despacho";
@@ -1251,19 +1326,23 @@
     }
 
     async function confirmarEliminarVuelo(regId) {
-      if (esAdministrador) {
-        alert("El rol Administrador no puede eliminar registros.");
-        return;
-      }
+      if (esAdministrador) return;
 
-      if (!confirm(`¿Estás seguro de eliminar el despacho ${regId}?`)) return;
+      const confirmacion = await mostrarModalConfirmacion({
+        icono: '🗑️',
+        titulo: '¿Eliminar Despacho?',
+        mensaje: `Estás por eliminar el registro ${regId}. Esta acción se sincronizará con la base de datos.`,
+        btnTexto: 'Eliminar Despacho',
+        btnClase: 'danger'
+      });
+
+      if (!confirmacion) return;
 
       try {
         const { error } = await supabaseClient
           .from('logistitcas_temporada')
           .delete()
-          .eq('registro', regId)
-          .eq('usuario', sesionUsuario.usuario);
+          .eq('registro', regId);
 
         if (error) throw error;
 
@@ -1274,23 +1353,28 @@
         await cargarDatosVuelos();
 
       } catch (err) {
-        alert("Error al eliminar: " + err.message);
+        console.error("Error al eliminar:", err);
       }
     }
 
-    // EXPORTACIÓN A PDF DEL DETALLE DE VUELOS
     function exportarVuelosAPDF() {
       const vuelosAExportar = semanaSeleccionada 
         ? vuelosUsuario.filter(v => Number(v.semana) === semanaSeleccionada)
         : vuelosUsuario;
 
       if (!vuelosAExportar || vuelosAExportar.length === 0) {
-        alert("No hay registros de vuelos para exportar en esta semana.");
+        mostrarModalConfirmacion({
+          icono: '📄',
+          titulo: 'Sin Registros',
+          mensaje: 'No hay despachos de vuelos registrados para exportar en esta semana.',
+          btnTexto: 'Entendido',
+          btnClase: 'save'
+        });
         return;
       }
 
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF('l', 'mm', 'a4'); // Horizontal (Landscape)
+      const doc = new jsPDF('l', 'mm', 'a4');
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(16);
@@ -1357,11 +1441,17 @@
       try {
         if (servSinc) {
           const res = await servSinc.sincronizarVuelosCompleto(AÑO_ACTUAL, sesionUsuario.usuario);
-          alert(`Sincronización finalizada: ${res.subidos} subidos, ${res.eliminados} eliminados, ${res.descargados} actualizados.`);
+          mostrarModalConfirmacion({
+            icono: '🔄',
+            titulo: 'Sincronización Completada',
+            mensaje: `${res.subidos} registros subidos, ${res.eliminados} eliminados, ${res.descargados} actualizados desde Supabase.`,
+            btnTexto: 'Aceptar',
+            btnClase: 'save'
+          });
         }
         await cargarDatosVuelos();
       } catch (e) {
-        alert("Error de sincronización: " + e.message);
+        console.error("Error sincronizando:", e);
       } finally {
         btn.classList.remove('rotating');
         btn.disabled = false;
