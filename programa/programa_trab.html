@@ -779,25 +779,104 @@
       }
     }
 
+    // Carga de Proyecciones guardando el ID de Supabase en memoria
     async function cargarProyecciones() {
       try {
         if (navigator.onLine) {
           const { data, error } = await supabaseClient
             .from('comex_proyeccion_dias')
             .select('*')
-            .eq('usuario', sesionUsuario.usuario);
-          if (!error && data) {
+            .order('fecha', { ascending: true });
+
+          if (error) {
+            console.error("Error al cargar proyecciones:", error);
+          } else if (data) {
             proyeccionesGuardadas.clear();
-            data.forEach(p => proyeccionesGuardadas.set(p.fecha, p));
+            data.forEach(p => {
+              // Si coincide con el usuario activo o es un admin
+              if (!p.usuario || p.usuario.toLowerCase() === sesionUsuario.usuario.toLowerCase()) {
+                proyeccionesGuardadas.set(p.fecha, p);
+              }
+            });
             return;
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn("Fallo lectura proyecciones en nube:", e);
+      }
+
       if (dbLocal) {
         const localProy = dbLocal.prepare('SELECT * FROM local_comex_proyeccion_dias').all();
         proyeccionesGuardadas.clear();
-        localProy.filter(p => p.usuario === sesionUsuario.usuario).forEach(p => proyeccionesGuardadas.set(p.fecha, p));
+        localProy
+          .filter(p => !p.usuario || p.usuario.toLowerCase() === sesionUsuario.usuario.toLowerCase())
+          .forEach(p => proyeccionesGuardadas.set(p.fecha, p));
       }
+    }
+
+    // Guardado de Proyecciones blindado (Asigna ID si existe para forzar el UPDATE)
+    async function guardarTodaLaProyeccionSilenciosa() {
+      const inputs = document.querySelectorAll('.input-proy-cell');
+      if (!inputs || inputs.length === 0) return;
+
+      const mapa = {};
+
+      inputs.forEach(inp => {
+        const f = inp.dataset.fecha;
+        const campo = inp.dataset.campo;
+        const val = parseFloat(inp.value) || 0;
+
+        if (!mapa[f]) {
+          const existente = proyeccionesGuardadas.get(f) || {};
+          
+          mapa[f] = {
+            temporada: AÑO_ACTUAL,
+            fecha: f,
+            usuario: sesionUsuario.usuario,
+            cosecha_kg: 0,
+            inspeccion_kg: 0,
+            carga_kg: 0,
+            ezeiza_kg: 0,
+            updated_at: new Date().toISOString()
+          };
+
+          // Si ya existe en Supabase y tiene ID numérico, lo agregamos para forzar el UPDATE directo
+          if (existente.id && !isNaN(Number(existente.id))) {
+            mapa[f].id = Number(existente.id);
+          }
+        }
+
+        mapa[f][`${campo}_kg`] = val;
+      });
+
+      const payloads = Object.values(mapa);
+
+      // 1. Guardar en Supabase
+      if (navigator.onLine) {
+        const { data, error } = await supabaseClient
+          .from('comex_proyeccion_dias')
+          .upsert(payloads, { onConflict: 'fecha,usuario' })
+          .select();
+
+        if (error) {
+          console.error("Detalle error Supabase Proyecciones:", error);
+          throw new Error(error.message || "Error al actualizar en Supabase");
+        }
+
+        // Si devolvió los registros con sus IDs asignados, actualizamos la memoria local
+        if (data && data.length > 0) {
+          data.forEach(item => proyeccionesGuardadas.set(item.fecha, item));
+        }
+      }
+
+      // 2. Réplica local en Electron si está disponible
+      if (dbLocal) {
+        payloads.forEach(p => {
+          dbLocal.prepare('INSERT INTO local_comex_proyeccion_dias').run(p);
+        });
+      }
+
+      await cargarProyecciones();
     }
 
     
