@@ -10,6 +10,7 @@
   <script src="../vendor/supabase-2.109.0.js"></script>
   <script src="../vendor/jspdf-2.5.1.umd.min.js"></script>
   <script src="../vendor/jspdf.plugin.autotable-3.5.31.min.js"></script>
+  <script src="../compartido/pdf-comex.js"></script>
 
   <style>
     * { box-sizing: border-box; }
@@ -2168,56 +2169,60 @@
     // ==========================================
     function exportarProgramaAPDF() {
       if (!programaSeleccionadoActual) return;
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF('l', 'mm', 'a4'); // Horizontal para dar espacio a camión y pallets
+      const prog = programaSeleccionadoActual;
+      const renglones = prog.renglones;
+      const doc = PDF_COMEX.nuevo({
+        titulo: 'PROGRAMA DE TRABAJO Y DESPACHO',
+        subtitulo: `Empaque · Temporada ${AÑO_ACTUAL}`
+      });
 
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(15);
-      doc.setTextColor(18, 63, 44);
-      doc.text("PROGRAMA DE TRABAJO Y DESPACHO DE EMPAQUE", 148, 14, { align: 'center' });
+      const camiones = new Set(renglones.map(r => r.camion_no || 'S/D'));
+      const vuelos = new Set(renglones.map(r => r.vuelo).filter(Boolean));
+      const totalPallets = renglones.reduce((a, b) => a + Number(b.cantidad || 0), 0);
 
-      doc.setFontSize(9.5);
-      doc.setTextColor(85, 99, 88);
-      doc.text(`PROGRAMA N°: ${programaSeleccionadoActual.programa_nro}`, 14, 22);
-      doc.text(`FECHA DE EMPAQUE: ${programaSeleccionadoActual.fecha}`, 148, 22, { align: 'center' });
-      doc.text(`SALIDA EMPAQUE: ${programaSeleccionadoActual.salida_empaque ? String(programaSeleccionadoActual.salida_empaque).replace('T', ' ') : 'S/D'}`, 282, 22, { align: 'right' });
-
-      const columnas = ["CAMIÓN", "CLIENTE", "MARCA", "CALIBRE", "CANT", "TAMAÑO", "N° PALLET(S)", "DESTINO", "VUELO", "HORA VUELO"];
-      const filas = programaSeleccionadoActual.renglones.map(r => [
-        r.camion_no || 'S/D',
-        r.cliente,
-        r.marca,
-        r.calibre,
-        r.cantidad,
-        r.tamano || 'STD',
-        r.nro_pallet || '-',
-        r.destino || '-',
-        r.vuelo || '-',
-        r.hora_salida_vuelo || '-'
+      const y = PDF_COMEX.fichas(doc, [
+        ['Programa N°', prog.programa_nro],
+        ['Fecha de empaque', PDF_COMEX.formatearFecha(prog.fecha)],
+        ['Semana', calcularNumeroSemana(prog.fecha) || '-'],
+        ['Salida empaque', PDF_COMEX.formatearFecha(prog.salida_empaque, true)],
+        ['Camiones', camiones.size]
       ]);
 
-      doc.autoTable({
-        startY: 26,
-        head: [columnas],
-        body: filas,
-        theme: 'grid',
-        headStyles: { fillColor: [30, 107, 76], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
-        styles: { fontSize: 8, cellPadding: 2.5, halign: 'center' },
+      const finalY = PDF_COMEX.tabla(doc, {
+        startY: y,
+        head: [["CAMIÓN", "CLIENTE", "CONSIGNATARIO", "MARCA", "CALIBRE", "CANT.", "TAMAÑO", "N° PALLET(S)", "DESTINO", "VUELO", "HORA VUELO"]],
+        body: renglones.map(r => [
+          r.camion_no || 'S/D',
+          r.cliente || '-',
+          (r.consignatario && r.consignatario !== '-') ? r.consignatario : deducirConsignatario(r.cliente, r.destino),
+          r.marca || '-',
+          r.calibre || '-',
+          Number(r.cantidad || 0).toLocaleString('es-AR'),
+          r.tamano || 'STD',
+          r.nro_pallet || '-',
+          r.destino || '-',
+          r.vuelo || '-',
+          PDF_COMEX.formatearFecha(r.hora_salida_vuelo, true)
+        ]),
         columnStyles: {
-          0: { halign: 'left', fontStyle: 'bold' },
+          0: { halign: 'left', fontStyle: 'bold', textColor: PDF_COMEX.colores.verde },
           1: { halign: 'left', fontStyle: 'bold' },
-          6: { halign: 'left' }
+          2: { halign: 'left' },
+          5: { fontStyle: 'bold' },
+          7: { halign: 'left', cellWidth: 38 },
+          9: { fontStyle: 'bold' }
         }
       });
 
-      const totalCajas = programaSeleccionadoActual.renglones.reduce((a, b) => a + Number(b.cantidad || 0), 0);
-      const finalY = doc.lastAutoTable.finalY + 8;
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10.5);
-      doc.setTextColor(18, 63, 44);
-      doc.text(`TOTAL PALLETS PROGRAMADOS: ${totalCajas.toLocaleString()} PCS`, 14, finalY);
+      const yTotales = PDF_COMEX.totales(doc, [
+        ['Pallets programados', totalPallets.toLocaleString('es-AR')],
+        ['Camiones', camiones.size],
+        ['Vuelos', vuelos.size],
+        ['Renglones', renglones.length]
+      ], finalY);
 
-      doc.save(`Programa_Trabajo_${programaSeleccionadoActual.programa_nro}.pdf`);
+      PDF_COMEX.firmas(doc, ['Responsable de empaque', 'Responsable COMEX', 'Transporte'], yTotales);
+      PDF_COMEX.guardar(doc, `Programa_Trabajo_${prog.programa_nro}.pdf`);
       mostrarToast("PDF generado con éxito.");
     }
 

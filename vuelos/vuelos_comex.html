@@ -11,6 +11,7 @@
   <script src="../vendor/supabase-2.109.0.js"></script>
   <script src="../vendor/jspdf-2.5.1.umd.min.js"></script>
   <script src="../vendor/jspdf.plugin.autotable-3.5.31.min.js"></script>
+  <script src="../compartido/pdf-comex.js"></script>
 
   <style>
     :root {
@@ -1400,64 +1401,58 @@
         return;
       }
 
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF('l', 'mm', 'a4');
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(16);
-      doc.setTextColor(18, 63, 44);
-      doc.text("PLANILLA DE DESPACHO DE VUELOS DE COSECHA · CECO S.A.", 148, 14, { align: 'center' });
-
-      doc.setFontSize(10);
-      doc.setTextColor(85, 99, 88);
-      const subtitulo = `SEMANA: ${semanaSeleccionada || 'TODAS'} · TEMPORADA: ${AÑO_ACTUAL} · FECHA EMISIÓN: ${new Date().toLocaleDateString('es-AR')}`;
-      doc.text(subtitulo, 148, 20, { align: 'center' });
-
-      const columnas = [
-        "REGISTRO", "OPERADOR", "FECHA", "CLIENTE", "DESTINO", 
-        "AEROLÍNEA", "AWB", "VUELO 1", "CONEXIÓN", "PALLETS", "KILOS", "TARIFA"
-      ];
-
-      const filas = vuelosAExportar.map(v => [
-        v.registro || '-',
-        v.usuario || '-',
-        formatearFechaCorta(v.fecha),
-        v.cliente || '-',
-        v.destino || '-',
-        v.linea_aerea || '-',
-        v.awb || '-',
-        v.vuelo || '-',
-        v.vuelo_cnx || 'DIRECTO',
-        Number(v.pcs || 0).toLocaleString(),
-        Number(v.kilos || 0).toLocaleString(),
-        v.tarifa_kg || '-'
-      ]);
-
-      doc.autoTable({
-        startY: 24,
-        head: [columnas],
-        body: filas,
-        theme: 'grid',
-        headStyles: { fillColor: [30, 107, 76], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
-        styles: { fontSize: 8, cellPadding: 2.5, halign: 'center' },
-        columnStyles: {
-          0: { halign: 'center', fontStyle: 'bold' },
-          3: { halign: 'left' },
-          5: { halign: 'left' },
-          6: { halign: 'center' }
-        }
+      const doc = PDF_COMEX.nuevo({
+        titulo: 'PLANILLA DE DESPACHO DE VUELOS',
+        subtitulo: `Cosecha · Temporada ${AÑO_ACTUAL}`
       });
 
       const totalPallets = vuelosAExportar.reduce((a, b) => a + Number(b.pcs || 0), 0);
       const totalKilos = vuelosAExportar.reduce((a, b) => a + Number(b.kilos || 0), 0);
-      const finalY = doc.lastAutoTable.finalY + 6;
+      const destinos = new Set(vuelosAExportar.map(v => v.destino).filter(Boolean));
 
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.setTextColor(18, 63, 44);
-      doc.text(`TOTALES SEMANA ${semanaSeleccionada}: ${totalPallets.toLocaleString()} PALLETS  |  ${totalKilos.toLocaleString()} KILOS`, 14, finalY);
+      const y = PDF_COMEX.fichas(doc, [
+        ['Semana', semanaSeleccionada || 'Todas'],
+        ['Temporada', AÑO_ACTUAL],
+        ['Alcance', esAdministrador ? 'Todos los operadores' : sesionUsuario.usuario],
+        ['Despachos', vuelosAExportar.length],
+        ['Destinos', destinos.size]
+      ]);
 
-      doc.save(`Despacho_Vuelos_Semana_${semanaSeleccionada || 'Todas'}.pdf`);
+      const finalY = PDF_COMEX.tabla(doc, {
+        startY: y,
+        head: [["REGISTRO", "OPERADOR", "FECHA", "CLIENTE", "DESTINO", "AEROLÍNEA", "AWB", "VUELO 1", "CONEXIÓN", "PALLETS", "KILOS", "TARIFA"]],
+        body: vuelosAExportar.map(v => [
+          v.registro || '-',
+          v.usuario || '-',
+          PDF_COMEX.formatearFecha(v.fecha),
+          v.cliente || '-',
+          v.destino || '-',
+          v.linea_aerea || '-',
+          v.awb || '-',
+          v.vuelo || '-',
+          v.vuelo_cnx || 'DIRECTO',
+          Number(v.pcs || 0).toLocaleString('es-AR'),
+          Number(v.kilos || 0).toLocaleString('es-AR'),
+          v.tarifa_kg || '-'
+        ]),
+        columnStyles: {
+          0: { fontStyle: 'bold', textColor: PDF_COMEX.colores.verde },
+          3: { halign: 'left', fontStyle: 'bold' },
+          5: { halign: 'left' },
+          7: { fontStyle: 'bold' },
+          9: { halign: 'right' },
+          10: { halign: 'right', fontStyle: 'bold' },
+          11: { halign: 'right' }
+        }
+      });
+
+      PDF_COMEX.totales(doc, [
+        ['Pallets', totalPallets.toLocaleString('es-AR')],
+        ['Kilos', totalKilos.toLocaleString('es-AR')],
+        ['Despachos', vuelosAExportar.length]
+      ], finalY);
+
+      PDF_COMEX.guardar(doc, `Despacho_Vuelos_Semana_${semanaSeleccionada || 'Todas'}.pdf`);
     }
 
     async function sincronizar() {
