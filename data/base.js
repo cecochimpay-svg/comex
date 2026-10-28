@@ -12,6 +12,7 @@ let store = {
   local_comex_proyeccion_dias: [],       // Proyección a 11 días (Captura 1)
   local_comex_programa_trabajo: [],      // Programa de trabajo por calibre (Captura 2)
   local_agronet_clientes: [],            // Catálogo Clientes de Agronet
+  local_clientes_consignatarios: [],
   local_agronet_marcas: []               // Catálogo Marcas de Agronet
 };
 
@@ -100,6 +101,7 @@ const db = {
         if (query.includes('INTO LOCAL_COMEX_PROGRAMA_TRABAJO')) {
           const itemLimpio = {
             ...payload,
+            camion_no: payload.camion_no || 'S/D', // <-- Persistir camión asignado
             sincronizado: payload.sincronizado !== undefined ? payload.sincronizado : 0,
             created_at: payload.created_at || new Date().toISOString()
           };
@@ -114,6 +116,27 @@ const db = {
           } else {
             store.local_comex_programa_trabajo.push(itemLimpio);
           }
+          persistir();
+          return { changes: 1 };
+        }
+
+        // 4b. BORRAR TODOS LOS RENGLONES DE UN PROGRAMA (al reemplazarlo por su versión editada)
+        if (query.includes('DELETE FROM LOCAL_COMEX_PROGRAMA_TRABAJO')) {
+          const nro = String(params[0]);
+          const antes = store.local_comex_programa_trabajo.length;
+          store.local_comex_programa_trabajo = store.local_comex_programa_trabajo.filter(x => String(x.programa_nro) !== nro);
+          persistir();
+          return { changes: antes - store.local_comex_programa_trabajo.length };
+        }
+
+        // 4c. REGISTRAR BAJA PENDIENTE DE SUBIR (cualquier tabla)
+        if (query.includes('INTO LOCAL_ELIMINADOS')) {
+          store.local_eliminados.push({
+            id: Date.now() + Math.floor(Math.random() * 1000),
+            tabla: payload.tabla,
+            registro_id: String(payload.registro_id),
+            fecha_baja: new Date().toISOString()
+          });
           persistir();
           return { changes: 1 };
         }
@@ -182,7 +205,11 @@ const db = {
           return store.local_agronet_marcas || [];
         }
         if (query.includes('FROM LOCAL_ELIMINADOS')) {
-          return store.local_eliminados || [];
+          // Respeta el filtro "WHERE tabla = '...'" para no mezclar bajas de distintas tablas
+          const filtroTabla = query.match(/TABLA\s*=\s*'([A-Z_]+)'/);
+          const lista = store.local_eliminados || [];
+          if (!filtroTabla) return lista;
+          return lista.filter(x => String(x.tabla || '').toUpperCase() === filtroTabla[1]);
         }
         if (query.includes('FROM LOCAL_LOGISTITCAS_TEMPORADA WHERE SINCRONIZADO = 0')) {
           return store.local_logistitcas_temporada.filter(x => x.sincronizado === 0);

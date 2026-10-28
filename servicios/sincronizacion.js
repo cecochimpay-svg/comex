@@ -222,13 +222,16 @@ async function descargarTodoElEstado(temporada, usuarioActivo) {
   const vuelos = await pullVuelos(temporada, usuarioActivo);
   const proyecciones = await pullProyecciones(usuarioActivo);
   const programa = await pullProgramaTrabajo(usuarioActivo);
+  const marcas = await pullMarcas(); // <-- Agregado
 
   return {
     vuelosDescargados: vuelos,
     proyeccionesDescargadas: proyecciones,
-    programaDescargado: programa
+    programaDescargado: programa,
+    marcasDescargadas: marcas
   };
 }
+
 async function sincronizarVuelosCompleto(temporada, usuarioActivo) {
   const pushRes = await pushVuelos(usuarioActivo);
   const pullCount = await pullVuelos(temporada, usuarioActivo);
@@ -252,8 +255,30 @@ async function sincronizarTodoElSistema(temporada = 2026, usuarioActivo) {
   };
 }
 
+// Si todavía no se creó la columna consignatario en Supabase, reintenta sin ella
+async function conReintentoSinConsignatario(filas, enviar) {
+  const res = await enviar(filas);
+  if (res.error && String(res.error.message || '').includes('consignatario')) {
+    console.warn('Supabase sin columna consignatario: se sube sin ella. Ejecutá supabase/migraciones/001_programa_consignatario.sql');
+    return enviar(filas.map(({ consignatario, ...resto }) => resto));
+  }
+  return res;
+}
+
 // Subir a Supabase los programas que están en local con sincronizado = 0
 async function pushProgramaTrabajo() {
+  // 1. Bajas pendientes (renglones quitados al editar un programa sin conexión)
+  const eliminaciones = db.prepare(`SELECT * FROM local_eliminados WHERE tabla = 'comex_programa_trabajo'`).all();
+  if (eliminaciones.length > 0) {
+    const ids = eliminaciones.map(e => Number(e.registro_id)).filter(n => !isNaN(n));
+    if (ids.length > 0) {
+      const { error: errDel } = await supabaseCampo.from('comex_programa_trabajo').delete().in('id', ids);
+      if (errDel) throw errDel;
+    }
+    db.prepare(`DELETE FROM local_eliminados`).run(...eliminaciones.map(e => e.id));
+  }
+
+  // 2. Altas y ediciones pendientes
   const pendientes = db.prepare(`SELECT * FROM local_comex_programa_trabajo WHERE sincronizado = 0`).all();
   if (!pendientes || pendientes.length === 0) return 0;
 
@@ -265,6 +290,7 @@ async function pushProgramaTrabajo() {
       programa_nro: r.programa_nro,
       fecha: r.fecha,
       cliente: r.cliente,
+      consignatario: r.consignatario && r.consignatario !== '-' ? r.consignatario : null,
       marca: r.marca,
       calibre: r.calibre,
       cantidad: Number(r.cantidad) || 0,
@@ -275,6 +301,7 @@ async function pushProgramaTrabajo() {
       fecha_salida: r.fecha_salida || null,
       hora_salida_vuelo: r.hora_salida_vuelo || null,
       salida_empaque: r.salida_empaque ? String(r.salida_empaque) : null,
+      camion_no: r.camion_no || null,
       usuario: r.usuario || null
     };
     if (r.id && !isNaN(Number(r.id))) {
@@ -283,17 +310,32 @@ async function pushProgramaTrabajo() {
     return p;
   });
 
-  const { data, error } = await supabaseCampo
-    .from('comex_programa_trabajo')
-    .upsert(payloads, { onConflict: 'id' })
-    .select();
+  // Los que ya tienen id se actualizan; los nuevos se insertan aparte para que Supabase asigne el id
+  const idxExistentes = payloads.map((p, i) => (p.id ? i : -1)).filter(i => i >= 0);
+  const idxNuevos = payloads.map((p, i) => (p.id ? -1 : i)).filter(i => i >= 0);
 
-  if (error) throw error;
+  if (idxExistentes.length > 0) {
+    const { error } = await conReintentoSinConsignatario(idxExistentes.map(i => payloads[i]), filas => supabaseCampo
+      .from('comex_programa_trabajo')
+      .upsert(filas, { onConflict: 'id' }));
+    if (error) throw error;
+  }
 
-  // Marcamos como sincronizados localmente
-  pendientes.forEach((item, idx) => {
+  if (idxNuevos.length > 0) {
+    const { data, error } = await conReintentoSinConsignatario(idxNuevos.map(i => payloads[i]), filas => supabaseCampo
+      .from('comex_programa_trabajo')
+      .insert(filas)
+      .select());
+    if (error) throw error;
+    idxNuevos.forEach((i, k) => {
+      if (data && data[k]) pendientes[i].id = data[k].id;
+    });
+  }
+
+  // Marcamos como sincronizados localmente (y se persiste en disco)
+  pendientes.forEach(item => {
     item.sincronizado = 1;
-    if (data && data[idx]) item.id = data[idx].id;
+    db.prepare(`INSERT INTO local_comex_programa_trabajo`).run(item);
   });
 
   return payloads.length;
@@ -337,6 +379,32 @@ async function sincronizarTodoElSistema(temporada = 2026, usuarioActivo) {
   };
 }
 
+async function pullMarcas() {
+  const { data, error } = await supabaseCampo
+    .from('agronet_marcas')
+    .select('id_marca, detalle, abreviatura, activo')
+    .eq('activo', true)
+    .order('detalle');
+
+  if (error) {
+    console.warn('Error descargando agronet_marcas:', error.message);
+    return 0;
+  }
+  if (!data || data.length === 0) return 0;
+
+  data.forEach(row => {
+    db.prepare(`INSERT INTO local_agronet_marcas`).run({
+      id_marca: row.id_marca,
+      detalle: row.detalle,
+      abreviatura: row.abreviatura,
+      activo: row.activo ? 1 : 0
+    });
+  });
+
+  return data.length;
+}
+
+
 module.exports = {
   guardarVueloLocal,
   eliminarVueloLocal,
@@ -350,5 +418,6 @@ module.exports = {
   guardarProgramaTrabajo,
   descargarTodoElEstado,
   pushProgramaTrabajo,
+  pullMarcas,
   sincronizarTodoElSistema // <-- Exportar la función maestra
 };

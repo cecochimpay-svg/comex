@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co;" />
   <title>Acceso COMEX · CECO S.A.</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -26,14 +26,19 @@
     html, body {
       margin: 0;
       height: 100%;
-      font-family: 'Roboto', sans-serif;
+      font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
       background: var(--color-bg);
       color: var(--color-text);
       display: flex;
       align-items: center;
       justify-content: center;
-      background-image: repeating-linear-gradient(100deg, rgba(30, 107, 76, 0.035) 0px, rgba(30, 107, 76, 0.035) 1.5px, transparent 1.5px, transparent 38px);
+      -webkit-font-smoothing: antialiased;
+      background-image:
+        radial-gradient(1200px 600px at 10% -10%, rgba(30, 107, 76, 0.10), transparent 60%),
+        radial-gradient(900px 500px at 110% 110%, rgba(30, 107, 76, 0.08), transparent 60%);
     }
+
+    body { width: 100%; }
 
     .login-container {
       width: 100%;
@@ -43,10 +48,10 @@
 
     .login-card {
       background: var(--color-surface);
-      border: 1.5px solid var(--color-border);
+      border: 1px solid var(--color-border);
       border-radius: var(--radius-card);
-      padding: 36px 30px;
-      box-shadow: 0 16px 38px rgba(0, 0, 0, 0.06);
+      padding: 40px 34px 34px;
+      box-shadow: 0 1px 3px rgba(16, 26, 21, 0.06), 0 24px 48px -16px rgba(16, 26, 21, 0.18);
       text-align: center;
     }
 
@@ -85,22 +90,21 @@
 
     .form-group label {
       display: block;
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      color: var(--color-text-secondary);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--color-text);
       margin-bottom: 6px;
-      letter-spacing: 0.4px;
     }
 
     .form-input {
       width: 100%;
       padding: 12px 16px;
-      font-size: 14.5px;
-      font-weight: 600;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: inherit;
       border-radius: var(--radius-input);
-      border: 1.5px solid var(--color-border);
-      background: #FAFAF9;
+      border: 1px solid #CBD5D0;
+      background: #FFFFFF;
       color: var(--color-text);
       outline: none;
       transition: all 0.2s ease;
@@ -119,26 +123,17 @@
       color: #FFFFFF;
       border: none;
       border-radius: var(--radius-input);
-      font-size: 13.5px;
-      font-weight: 800;
-      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(30, 107, 76, 0.25);
-      transition: all 0.2s ease;
-      margin-top: 6px;
+      box-shadow: 0 1px 2px rgba(16, 26, 21, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      transition: background 0.15s ease, transform 0.05s ease;
+      margin-top: 8px;
     }
 
-    .btn-login:hover {
-      background: var(--color-plant-dark);
-      transform: translateY(-1px);
-    }
-
-    .btn-login:active {
-      background-color: #FFFDE7 !important;
-      border: 1px solid #FBC02D !important;
-      color: #D97706 !important;
-      transform: scale(0.98);
-    }
+    .btn-login:hover { background: var(--color-plant-dark); }
+    .btn-login:active { transform: translateY(1px); }
 
     .btn-login:disabled { opacity: 0.6; cursor: wait; }
 
@@ -176,7 +171,7 @@
           <input type="password" id="inputClave" class="form-input" placeholder="••••••••" required autocomplete="current-password" />
         </div>
 
-        <button type="submit" class="btn-login" id="btnLogin">INGRESAR AL SISTEMA</button>
+        <button type="submit" class="btn-login" id="btnLogin">Ingresar</button>
       </form>
 
       <div id="alertaMsg" class="alert-box"></div>
@@ -226,7 +221,7 @@
 
       alerta.style.display = 'none';
       btn.disabled = true;
-      btn.innerText = 'VALIDANDO...';
+      btn.innerText = 'Validando…';
 
       let usuarioEncontrado = null;
 
@@ -258,7 +253,7 @@
           alerta.innerText = 'Credenciales incorrectas o usuario inactivo.';
           alerta.style.display = 'block';
           btn.disabled = false;
-          btn.innerText = 'INGRESAR AL SISTEMA';
+          btn.innerText = 'Ingresar';
           return;
         }
 
@@ -281,7 +276,7 @@
         alerta.innerText = 'Error al verificar credenciales: ' + err.message;
         alerta.style.display = 'block';
         btn.disabled = false;
-        btn.innerText = 'INGRESAR AL SISTEMA';
+        btn.innerText = 'Ingresar';
       }
     }
   </script>

@@ -4,361 +4,383 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Programa de Trabajo & Proyección · COMEX CECO S.A.</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
   <style>
-    :root {
-      --color-bg: #F4F6F4;
-      --color-surface: #FFFFFF;
-      --color-text: #1A211C;
-      --color-text-secondary: #556358;
-      --color-border: #D2D7D3;
-      --color-adm: #1E6B4C;
-      --color-adm-dark: #104630;
-      --color-adm-soft: rgba(30, 107, 76, 0.08);
-      --color-ok: #2E7D32;
-      --color-ok-soft: #E8F5E9;
-      --color-blue: #0071E3;
-      --color-blue-soft: #EBF3FA;
-      
-      /* Colores Pastel para Solapas */
-      --tab1-pastel-bg: #E8F5E9;
-      --tab1-pastel-border: #A5D6A7;
-      --tab1-pastel-text: #1B5E20;
-      --tab2-pastel-bg: #E3F2FD;
-      --tab2-pastel-border: #90CAF9;
-      --tab2-pastel-text: #0D47A1;
-
-      --radius-lg: 16px;
-      --radius-md: 10px;
-      --radius-sm: 8px;
-      --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-
     * { box-sizing: border-box; }
     html, body {
       margin: 0; height: 100%;
-      font-family: var(--font-family);
-      background: var(--color-bg);
-      color: var(--color-text);
       display: flex; flex-direction: column;
       overflow: hidden;
-      -webkit-font-smoothing: antialiased;
     }
 
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-thumb { background: #C4CCC6; border-radius: 20px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--color-adm); }
-
-    .topbar {
-      height: 56px; background: #FFFFFF;
-      border-bottom: 1px solid var(--color-border);
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 0 16px; flex-shrink: 0; z-index: 20; gap: 10px;
+    .topbar { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; z-index: 20; gap: 10px; }
+    .topbar-izq { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .topbar-logo { max-width: 110px; object-fit: contain; flex-shrink: 0; }
+    .topbar-sep { width: 1px; height: 24px; background: var(--color-border); }
+    .topbar-info { white-space: nowrap; display: flex; align-items: center; gap: 8px; }
+    .temporada-chip {
+      font-size: 11px; font-weight: 600; color: var(--color-adm-dark); background: var(--color-adm-soft);
+      padding: 3px 8px; border-radius: 6px;
     }
-    .topbar-izq { display: flex; align-items: center; gap: 12px; min-width: 0; }
-    .topbar-logo { height: 34px; max-width: 110px; object-fit: contain; flex-shrink: 0; }
-    .topbar-info { font-size: 12px; font-weight: 700; color: var(--color-text-secondary); white-space: nowrap; }
-    .topbar-info span { color: var(--color-adm); font-family: 'Montserrat'; font-weight: 800; }
-    
-
-    /*.top-right-bar { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-    /* Barra Superior Compacta */
-    .top-right-bar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-
-    .top-system-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #FFFFFF;
-      padding: 8px 16px;
-      border-bottom: 1px solid var(--color-border);
-      height: 56px;
-      flex-shrink: 0;
-      gap: 10px;
-      z-index: 20;
-    }
-
-    .topbar-izq {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
-    }
-    .system-datetime { font-size: 11px; font-weight: 700; color: var(--color-text-secondary); }
-
-    .btn-top-nav {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      background: var(--color-blue-soft);
-      border: 1px solid rgba(0, 113, 227, 0.25);
-      color: var(--color-blue);
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.2s ease;
-    }
-    .btn-top-nav:hover { background: var(--color-blue); color: #FFFFFF; }
-
-    
-    .btn-sync-top {
-      display: flex; align-items: center; gap: 6px;
-      background: var(--color-adm-soft); border: 1px solid rgba(30, 107, 76, 0.25);
-      color: var(--color-adm-dark); padding: 6px 12px; border-radius: 20px;
-      font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s ease;
-    }
-    .btn-sync-top:hover { background: var(--color-adm); color: #FFFFFF; }
+    .top-right-bar { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .btn-sync-top.rotating svg { animation: girar 1s linear infinite; }
     @keyframes girar { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-    .btn-logout {
-      display: flex; align-items: center; gap: 4px;
-      background: #FFFDE7; border: 1px solid #FBC02D;
-      padding: 6px 12px; border-radius: 20px; font-size: 11px;
-      font-weight: 700; color: #F57F17; cursor: pointer; text-decoration: none;
-    }
-    .btn-logout:hover { background: #FFF9C4; color: #E65100; }
-
-    /* Solapas con Colores Pastel Diferenciados */
-    .tabs-view-header {
-      background: #FFFFFF; border-bottom: 1.5px solid var(--color-border);
-      display: flex; gap: 10px; padding: 8px 16px 0; flex-shrink: 0; overflow-x: auto;
-    }
-    .tab-nav-btn {
-      padding: 9px 18px; font-size: 12px; font-weight: 800;
-      border: 1.5px solid transparent; border-bottom: none;
-      border-radius: 12px 12px 0 0; cursor: pointer; white-space: nowrap;
-      transition: all 0.2s ease;
-    }
-    
-    .tab-nav-btn.tab-proyeccion {
-      background: #F1F8F3; color: #4A6B53; border-color: #D3E6D7;
-    }
-    .tab-nav-btn.tab-proyeccion.active {
-      background: var(--tab1-pastel-bg); color: var(--tab1-pastel-text);
-      border-color: var(--tab1-pastel-border); border-bottom: 3.5px solid var(--color-adm);
-      box-shadow: 0 -2px 6px rgba(46, 125, 50, 0.08);
-    }
-
-    .tab-nav-btn.tab-programa {
-      background: #F0F7FD; color: #4D6E8E; border-color: #CFE3F5;
-    }
-    .tab-nav-btn.tab-programa.active {
-      background: var(--tab2-pastel-bg); color: var(--tab2-pastel-text);
-      border-color: var(--tab2-pastel-border); border-bottom: 3.5px solid var(--color-blue);
-      box-shadow: 0 -2px 6px rgba(13, 71, 161, 0.08);
-    }
+    .tabs-view-header { display: flex; flex-shrink: 0; overflow-x: auto; }
+    .tab-nav-btn { cursor: pointer; white-space: nowrap; }
 
     .main-wrapper { flex: 1; display: flex; overflow: hidden; }
 
-    /* VISTA 1 */
-    .proyeccion-container {
-      flex: 1; padding: 12px 16px; display: flex; flex-direction: column;
-      overflow: hidden; gap: 12px;
+    /* Encabezado de cada vista */
+    .vista-header {
+      display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; flex-shrink: 0;
     }
-    .fechas-barra-control {
-      background: #FFFFFF; border: 1px solid var(--color-border);
-      border-radius: var(--radius-md); padding: 10px 14px; display: flex;
-      justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+    .vista-titulo { margin: 0; font-family: var(--font-display); font-size: 19px; font-weight: 700; color: var(--color-text); }
+    .vista-sub { font-size: 12.5px; color: var(--color-text-secondary); margin-top: 4px; }
+    .vista-acciones { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    .card {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
     }
-    .tabla-proyeccion-wrap {
-      flex: 1; background: #FFFFFF; border: 1.5px solid var(--color-border);
-      border-radius: var(--radius-lg); overflow: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+
+    /* VISTA 1 · Proyección */
+    .proyeccion-container, .programa-container {
+      flex: 1; padding: 20px 24px; display: flex; flex-direction: column; overflow: hidden; gap: 16px;
     }
-    .tabla-proyeccion { width: 100%; border-collapse: collapse; text-align: center; font-size: 12px; }
+    .control-fecha { display: flex; align-items: center; gap: 10px; }
+    .control-fecha label { font-size: 12px; font-weight: 600; color: var(--color-text-secondary); }
+    .control-fecha .modal-control { width: auto; }
+    .hint { font-size: 11.5px; color: var(--color-text-muted); }
+
+    .tabla-proyeccion-wrap { flex: 0 1 auto; overflow: auto; }
+    .tabla-proyeccion { width: 100%; border-collapse: separate; border-spacing: 0; text-align: center; font-size: 12.5px; }
     .tabla-proyeccion th {
-      background: #FAFAF8; color: var(--color-text-secondary);
-      padding: 10px 6px; font-size: 11px; font-weight: 800;
-      border: 1px solid var(--color-border); white-space: nowrap;
+      background: var(--color-surface-2); color: var(--color-text-secondary);
+      padding: 10px 6px; font-size: 11px; font-weight: 600; white-space: nowrap;
+      border-bottom: 1px solid var(--color-border); position: sticky; top: 0; z-index: 2;
     }
+    .tabla-proyeccion thead th .th-dia { font-size: 10.5px; color: var(--color-text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: .3px; }
+    .tabla-proyeccion thead th .th-fecha { font-size: 13px; color: var(--color-text); font-weight: 700; margin-top: 1px; }
     .tabla-proyeccion th.col-concepto {
-      text-align: left; padding-left: 14px; width: 150px;
-      background: #ECEFF1; color: var(--color-adm-dark); position: sticky; left: 0; z-index: 3;
+      text-align: left; padding-left: 16px; width: 170px; min-width: 170px;
+      background: var(--color-surface); color: var(--color-text); font-weight: 600; font-size: 12.5px;
+      position: sticky; left: 0; z-index: 3; border-right: 1px solid var(--color-border);
     }
-    .tabla-proyeccion td { border: 1px solid var(--color-border); padding: 4px; vertical-align: middle; }
+    .tabla-proyeccion thead th.col-concepto { background: var(--color-surface-2); z-index: 4; color: var(--color-text-secondary); font-size: 11px; }
+    .tabla-proyeccion td { border-bottom: 1px solid var(--color-border); padding: 6px 4px; vertical-align: middle; }
+    .tabla-proyeccion tbody tr:hover td { background: #FAFCFB; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; vertical-align: 1px; }
+    .dot-cosecha { background: #16A34A; }
+    .dot-inspeccion { background: #F59E0B; }
+    .dot-carga { background: #2563EB; }
+    .dot-ezeiza { background: #7C3AED; }
+    .dot-vuelos { background: #0EA5E9; }
     .input-proy-cell {
-      width: 100%; min-width: 80px; text-align: center;
-      border: 1.2px solid transparent; border-radius: 6px;
-      padding: 8px 4px; font-weight: 700; font-size: 12.5px; background: transparent;
-      outline: none; font-family: inherit;
+      width: 100%; min-width: 84px; text-align: center; border: 1px solid transparent;
+      border-radius: 7px; padding: 8px 4px; font-weight: 600; font-size: 13px; color: var(--color-text);
+      background: transparent; outline: none; font-family: inherit;
+      transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
     }
-    .input-proy-cell:focus {
-      background: #FFFFFF; border-color: var(--color-adm);
-      box-shadow: 0 0 0 2px var(--color-adm-soft);
-    }
+    .input-proy-cell:hover { background: var(--color-surface-2); border-color: var(--color-border); }
+    .input-proy-cell:focus { background: #FFFFFF; border-color: var(--color-adm); box-shadow: 0 0 0 3px var(--color-adm-ring); }
+    .input-proy-cell::placeholder { color: #C3CCC7; }
+    .fila-vuelos td { background: var(--color-surface-2); }
+    .fila-vuelos th.col-concepto { background: var(--color-surface-2); }
     .vuelo-badge-item {
-      font-size: 10px; text-align: left; background: #F8FAFC;
-      border-radius: 6px; padding: 4px 6px; border-left: 3px solid var(--color-blue);
-      margin-bottom: 4px; line-height: 1.35; min-width: 120px;
+      font-size: 11px; text-align: left; background: #FFFFFF; border-radius: 7px;
+      padding: 5px 8px; border: 1px solid var(--color-border); border-left: 3px solid var(--color-blue);
+      margin-bottom: 4px; line-height: 1.4; min-width: 120px; color: var(--color-text-secondary);
     }
+    .vuelo-badge-item b { color: var(--color-text); }
 
-    /* VISTA 2 */
-    .programa-container {
-      flex: 1; padding: 12px 16px; display: flex; flex-direction: column;
-      overflow: hidden; gap: 12px;
-    }
-    .resumen-proyeccion-banner {
-      background: #FFFFFF; border: 1.5px solid var(--color-blue-soft);
-      border-left: 4px solid var(--color-blue);
-      border-radius: var(--radius-md); padding: 10px 14px;
-      display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;
-    }
-    .resumen-scroll-fechas { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+    /* VISTA 2 · Programa */
+    .resumen-proyeccion-banner { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
+    .resumen-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+    .resumen-head b { font-size: 13px; font-weight: 600; color: var(--color-text); }
+    .resumen-total { font-size: 12px; font-weight: 600; color: var(--color-adm-dark); background: var(--color-adm-soft); padding: 4px 10px; border-radius: 6px; }
+    .resumen-scroll-fechas { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
     .card-dia-resumen {
-      background: #F8FAFC; border: 1px solid var(--color-border);
-      border-radius: 8px; padding: 6px 12px; min-width: 130px; flex-shrink: 0; font-size: 11px;
+      background: var(--color-surface-2); border: 1px solid var(--color-border);
+      border-radius: var(--radius-md); padding: 8px 12px; min-width: 140px; flex-shrink: 0; font-size: 11.5px;
+      color: var(--color-text-secondary); line-height: 1.6;
     }
-    .card-dia-resumen b { color: var(--color-adm-dark); }
+    .card-dia-resumen .cdr-titulo { font-weight: 700; color: var(--color-text); font-size: 12px; border-bottom: 1px solid var(--color-border); padding-bottom: 4px; margin-bottom: 4px; }
+    .card-dia-resumen b { color: var(--color-text); font-weight: 600; float: right; margin-left: 10px; }
 
-    .panel-grilla-programa {
-      flex: 1; background: #FFFFFF; border: 1.5px solid var(--color-border);
-      border-radius: var(--radius-lg); display: flex; flex-direction: column; overflow: hidden;
+    .panel-grilla-programa { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .panel-head {
+      padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--color-border); flex-wrap: wrap; gap: 10px;
     }
+    .panel-head-titulo { font-size: 14px; font-weight: 700; color: var(--color-text); }
+    .panel-head-sub { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
     .tabla-programa-wrap { flex: 1; overflow: auto; }
-    .tabla-programa { width: 100%; border-collapse: collapse; font-size: 11.5px; white-space: nowrap; }
-    .tabla-programa th {
-      position: sticky; top: 0; background: #ECEFF1;
-      border: 1px solid var(--color-border); padding: 9px 8px;
-      font-size: 10px; font-weight: 800; text-transform: uppercase; z-index: 2;
-    }
-    .tabla-programa td { border: 1px solid var(--color-border); padding: 8px 10px; vertical-align: middle; }
+    .tabla-programa { width: 100%; border-collapse: collapse; white-space: nowrap; }
+    .tabla-programa th { position: sticky; top: 0; z-index: 2; }
+    .tabla-programa td { vertical-align: middle; }
     .tr-programa-row { cursor: pointer; transition: background 0.15s ease; }
-    .tr-programa-row:hover td { background: var(--color-blue-soft); }
+    .estado-vacio { text-align: center; padding: 40px 20px !important; color: var(--color-text-muted); }
+    .cel-total { font-weight: 700; color: var(--color-text); }
+    .cel-muted { color: var(--color-text-secondary); }
 
-    .btn-action-main {
-      background: var(--color-adm); color: #FFFFFF; border: none;
-      border-radius: var(--radius-md); padding: 8px 16px; font-size: 12px;
-      font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
-      transition: all 0.2s ease;
-    }
-    .btn-action-main:hover { background: var(--color-adm-dark); }
-
-    /* Modales Estilo Apple Soft */
+    /* Modales */
     .modal-overlay {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(5px);
-      display: none; align-items: center; justify-content: center; z-index: 3000; padding: 12px;
+      position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 3000;
     }
     .modal-overlay.show { display: flex !important; }
     .modal-box {
-      background: #FFFFFF; border-radius: var(--radius-lg);
-      padding: 22px; width: 100%; max-width: 920px; max-height: 94vh;
-      display: flex; flex-direction: column; gap: 14px; border: 1px solid var(--color-border);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+      background: #FFFFFF; width: 100%; max-width: 980px; max-height: calc(100vh - 32px); display: flex; flex-direction: column;
     }
-    .modal-body-scroll { overflow-y: auto; flex: 1; padding-right: 4px; display: flex; flex-direction: column; gap: 12px; }
-    .modal-grid-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
-    .modal-group { display: flex; flex-direction: column; gap: 4px; }
-    .modal-group label { font-size: 10.5px; font-weight: 800; text-transform: uppercase; color: var(--color-text-secondary); }
-    .modal-control {
-      padding: 9px 10px; border-radius: var(--radius-sm); border: 1.2px solid var(--color-border);
-      font-size: 12.5px; font-weight: 600; outline: none; background: #FAFAFA; font-family: inherit; width: 100%;
-    }
-    .modal-control:focus { border-color: var(--color-adm); background: #FFFFFF; }
+    .modal-body-scroll { overflow-y: auto; flex: 1; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+    .modal-grid-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+    .modal-grid-row.grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .modal-group { display: flex; flex-direction: column; }
+    .modal-control { outline: none; width: 100%; }
+    .texto-vacio { font-size: 12px; color: var(--color-text-muted); }
 
-    /* Indicador de Cupos del Vuelo */
-    .banner-cupo-vuelo {
-      background: #F0FDF4; border: 1.5px solid #86EFAC; border-radius: var(--radius-md);
-      padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;
-      font-size: 11.5px; font-weight: 700; color: #166534; margin-top: 8px;
-    }
-    .banner-cupo-vuelo.alerta {
-      background: #FEF2F2; border-color: #FCA5A5; color: #991B1B;
+    /* ---- Modal Nuevo Programa: layout de 2 columnas a altura fija ---- */
+    .modal-programa { max-width: 1280px; max-height: min(calc(100vh - 32px), 860px); }
+    .prog-form-shell { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
+    .prog-head { align-items: center; padding: 12px 16px 12px 20px; gap: 16px; }
+    .prog-head-titulo { flex-shrink: 0; }
+    .prog-head-campos { display: flex; gap: 10px; flex: 1; justify-content: flex-end; flex-wrap: wrap; }
+    .campo-inline { display: flex; flex-direction: column; gap: 3px; }
+    .campo-inline label { font-size: 10.5px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: .3px; }
+    .campo-inline .modal-control { height: 32px; font-size: 12.5px; }
+    .campo-inline #progNro { width: 150px; }
+    .campo-inline #progFecha { width: 140px; }
+    .campo-inline #progSalidaEmpaque { width: 190px; }
+
+    .prog-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 320px; }
+
+    .prog-main { display: flex; flex-direction: column; min-height: 0; }
+    .prog-main-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 20px; display: flex; flex-direction: column; gap: 12px; }
+    .prog-main-foot {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 10px 20px; border-top: 1px solid var(--color-border); background: var(--color-surface);
     }
 
-    .calibres-table-box { border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow-x: auto; }
-    .tabla-calibres-input { width: 100%; border-collapse: collapse; font-size: 11.5px; min-width: 320px; }
-    .tabla-calibres-input th { background: #F1F5F9; padding: 6px; font-size: 10px; text-transform: uppercase; }
-    .tabla-calibres-input td { border-top: 1px solid var(--color-border); padding: 4px 6px; }
+    .fila-campo { display: flex; align-items: center; gap: 12px; }
+    .fila-campo-label { width: 96px; flex-shrink: 0; font-size: 11.5px; font-weight: 600; color: var(--color-text-secondary); }
+
+    .prog-side {
+      display: flex; flex-direction: column; min-height: 0; gap: 12px;
+      background: var(--color-surface-2); border-left: 1px solid var(--color-border); padding: 14px;
+    }
+    .side-card {
+      background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md);
+      padding: 12px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .side-card-titulo { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; color: var(--color-text-muted); }
+    .vuelo-info { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; }
+    .campo-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+    .campo-info label { font-size: 11px; color: var(--color-text-muted); }
+    .campo-info input {
+      border: none; background: transparent; padding: 0; outline: none; width: 100%;
+      font-family: inherit; font-size: 13.5px; font-weight: 700; color: var(--color-text);
+    }
+
+    .side-bloques { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+    .lista-bloques { flex: 1; min-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    .lista-bloques .estado-vacio {
+      padding: 22px 12px !important; border: 1px dashed var(--color-border-strong); border-radius: var(--radius-md); font-size: 12px;
+    }
+    .bloque-item {
+      background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+      padding: 8px 8px 8px 10px; display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: center;
+    }
+    .bloque-item { cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease; }
+    .bloque-item:hover { border-color: var(--color-adm); box-shadow: var(--shadow-sm); }
+    .bloque-item.alerta { border-color: var(--color-amber-border); background: var(--color-amber-soft); }
+    .bloque-item-aviso { grid-column: 1 / -1; font-size: 11px; font-weight: 600; color: var(--color-amber); margin-top: 2px; }
+    .side-card-hint { text-transform: none; letter-spacing: 0; font-weight: 400; }
+    #lblAyudaBloque.ayuda-activa { color: var(--color-amber); font-weight: 600; }
+    #btnAplicarVueloTodos { width: 100%; }
+    .prog-head h3 { display: flex; align-items: center; gap: 8px; }
+    .acciones-fila { display: inline-flex; gap: 6px; }
+    .bloque-item-top { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .bloque-item-top b { font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bloque-item-sub { grid-column: 1; font-size: 11.5px; color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bloque-item-pallets { grid-row: 1 / span 2; grid-column: 2; display: flex; align-items: center; gap: 2px; }
+    .bloque-item-pallets b { font-size: 15px; }
+    .bloque-item-pallets small { font-size: 10.5px; color: var(--color-text-muted); margin-right: 2px; }
+    .bloque-num { font-size: 11px; color: var(--color-text-muted); font-weight: 600; }
+
+    .side-total { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid var(--color-border); }
+    .side-total-fila { display: flex; justify-content: space-between; align-items: baseline; font-size: 12.5px; color: var(--color-text-secondary); }
+    .side-total-fila b { font-size: 16px; color: var(--color-text); }
+    .btn-block { width: 100%; height: 40px; }
+    .btn-link {
+      background: none; border: none; color: var(--color-text-secondary); font-family: inherit; font-size: 12.5px;
+      font-weight: 500; cursor: pointer; padding: 4px; border-radius: 6px;
+    }
+    .btn-link:hover { color: var(--color-text); background: var(--color-surface-3); }
+
+    /* Selector de Camión (compacto) */
+    .selector-camiones { display: flex; flex-wrap: wrap; gap: 6px; }
+    .camion-opt {
+      display: inline-flex; align-items: center; gap: 8px; height: 40px;
+      padding: 0 12px 0 6px; border-radius: var(--radius-sm);
+      background: var(--color-surface); border: 1px solid var(--color-border-strong);
+      font-family: inherit; text-align: left; cursor: pointer; color: var(--color-text);
+      transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+    }
+    .camion-opt:hover { border-color: var(--color-adm); background: var(--color-surface-2); }
+    .camion-opt .camion-ico {
+      width: 28px; height: 28px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center;
+      background: var(--color-surface-3); color: var(--color-text-secondary); flex-shrink: 0;
+    }
+    .camion-opt .camion-ico svg { width: 16px; height: 16px; }
+    .camion-nombre { display: block; font-size: 12.5px; font-weight: 700; line-height: 1.2; }
+    .camion-meta { display: block; font-size: 10.5px; color: var(--color-text-muted); line-height: 1.2; }
+    .camion-opt.selected { border-color: var(--color-adm); background: var(--color-adm-soft); box-shadow: 0 0 0 3px var(--color-adm-ring); }
+    .camion-opt.selected .camion-ico { background: var(--color-adm); color: #FFFFFF; }
+    .camion-opt.selected .camion-meta { color: var(--color-adm-dark); }
+    .camion-opt.camion-add { border-style: dashed; color: var(--color-text-secondary); }
+    .camion-opt.camion-add .camion-ico { background: transparent; }
+    .camion-opt:disabled { opacity: .45; cursor: not-allowed; }
+
+    /* Chips de Consignatarios */
+    .chips-consignatarios-wrap { display: flex; gap: 6px; flex-wrap: wrap; min-height: 30px; align-items: center; }
+    .chip-consignatario {
+      background: var(--color-surface); border: 1px solid var(--color-border-strong); color: var(--color-text);
+      height: 30px; padding: 0 12px; border-radius: 999px; font-size: 12px; font-weight: 500; font-family: inherit;
+      cursor: pointer; transition: all 0.15s ease; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .chip-consignatario:hover { border-color: var(--color-adm); }
+    .chip-consignatario.selected { background: var(--color-adm); border-color: var(--color-adm-dark); color: #FFFFFF; }
+
+    /* Cupo del vuelo */
+    .cupo-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .cupo-stat { display: flex; flex-direction: column; gap: 1px; }
+    .cupo-stat > span { font-size: 11px; color: var(--color-text-muted); font-weight: 500; }
+    .cupo-stat b { font-size: 18px; font-weight: 700; color: var(--color-text); }
+    .cupo-stat.destacado b { color: var(--color-ok); }
+    .cupo-bar { height: 6px; border-radius: 999px; background: var(--color-surface-3); overflow: hidden; }
+    .cupo-bar span { display: block; height: 100%; width: 0; background: var(--color-adm); border-radius: 999px; transition: width .25s ease; }
+    .side-card.alerta { background: var(--color-warn-soft); border-color: #FDA29B; }
+    .side-card.alerta .cupo-stat.destacado b { color: var(--color-warn); }
+    .side-card.alerta .cupo-bar span { background: var(--color-warn); }
+
+    /* Tabla de calibres (compacta) */
+    .calibres-table-box { border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow-x: auto; flex-shrink: 0; }
+    .tabla-calibres-input { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 520px; }
+    .tabla-calibres-input th {
+      background: var(--color-surface-2); padding: 7px 10px; font-size: 10.5px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .3px; color: var(--color-text-secondary); text-align: left;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .th-ayuda { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--color-text-muted); }
+    .tabla-calibres-input td { border-top: 1px solid var(--color-border); padding: 5px 10px; vertical-align: middle; }
+    .tabla-calibres-input tbody tr:first-child td { border-top: none; }
+    .tabla-calibres-input tbody tr:focus-within td { background: #FAFCFB; }
+    .calibre-tag { font-weight: 700; font-size: 13px; color: var(--color-text); }
     .input-cant-calibre {
-      width: 100%; border: 1px solid var(--color-border); border-radius: 4px;
-      padding: 6px; font-weight: 700; text-align: center; font-size: 13px;
+      width: 100%; height: 32px; border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm);
+      padding: 0 6px; font-weight: 700; text-align: center; font-size: 13.5px; font-family: inherit; outline: none;
+    }
+    .input-cant-calibre:focus { border-color: var(--color-adm); box-shadow: 0 0 0 3px var(--color-adm-ring); }
+    .tabla-calibres-input .modal-control { height: 32px; }
+    .input-tamano { text-align: center; }
+
+    /* EnumList de Pallets: campo de "tokens" en una sola caja */
+    .enumlist-box {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 4px; min-height: 32px; padding: 2px 6px;
+      border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); background: var(--color-surface);
+      cursor: text; transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .enumlist-box:focus-within { border-color: var(--color-adm); box-shadow: 0 0 0 3px var(--color-adm-ring); }
+    .enumlist-tags { display: contents; }
+    .enum-input {
+      flex: 1; min-width: 140px; height: 26px; border: none; outline: none; background: transparent;
+      font-family: inherit; font-size: 12.5px; color: var(--color-text); padding: 0 2px;
+    }
+    .enum-input::placeholder { color: var(--color-text-muted); }
+    .tag-pallet {
+      background: var(--color-blue-soft); color: #1D4ED8; box-shadow: inset 0 0 0 1px #C7D7FE;
+      padding: 1px 3px 1px 7px; border-radius: 5px; font-size: 11.5px; font-weight: 600;
+      display: inline-flex; align-items: center; gap: 3px;
+    }
+    .tag-pallet span.del {
+      cursor: pointer; color: #6B83C9; width: 15px; height: 15px; border-radius: 4px;
+      display: inline-flex; align-items: center; justify-content: center; font-size: 9.5px;
+    }
+    .tag-pallet span.del:hover { background: #DCE6FE; color: var(--color-warn); }
+
+    .btn-quitar {
+      background: none; border: 1px solid transparent; color: var(--color-text-muted); cursor: pointer;
+      width: 24px; height: 24px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px;
+    }
+    .btn-quitar:hover { background: var(--color-warn-soft); color: var(--color-warn); }
+
+    /* Pantallas chicas: la columna lateral pasa abajo */
+    @media (max-width: 1000px) {
+      .modal-programa { height: auto; max-height: calc(100vh - 32px); }
+      .prog-layout { grid-template-columns: 1fr; overflow-y: auto; }
+      .prog-main-scroll { overflow: visible; }
+      .prog-side { border-left: none; border-top: 1px solid var(--color-border); }
+      .lista-bloques { max-height: 220px; }
+      .modal-grid-row.grid-3 { grid-template-columns: 1fr; }
+      .prog-head { flex-wrap: wrap; }
+      .prog-head-campos { justify-content: flex-start; order: 3; width: 100%; }
     }
 
-    .tabla-buffer { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 4px; }
-    .tabla-buffer th { background: #E2E8F0; padding: 6px; font-weight: 800; text-align: left; }
-    .tabla-buffer td { border-bottom: 1px solid var(--color-border); padding: 6px; }
+    .toast-container { position: fixed; z-index: 5000; display: flex; flex-direction: column; gap: 8px; }
+    .toast-msg { display: flex; align-items: center; }
 
-    .badge-pill { display: inline-block; padding: 2px 7px; border-radius: 12px; font-size: 10px; font-weight: 800; }
-    .badge-blue { background: var(--color-blue-soft); color: var(--color-blue); }
-
-    /* TOAST DE NOTIFICACIONES */
-    .toast-container {
-      position: fixed; bottom: 20px; right: 20px; z-index: 5000;
-      display: flex; flex-direction: column; gap: 8px; pointer-events: none;
-    }
-    .toast-msg {
-      pointer-events: auto; background: #FFFFFF; border-radius: 12px;
-      padding: 12px 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-      border: 1px solid var(--color-border); display: flex; align-items: center;
-      gap: 10px; font-size: 12.5px; font-weight: 700; animation: entraToast 0.25s ease forwards;
-      min-width: 280px;
-    }
-    .toast-msg.success { border-left: 4px solid var(--color-ok); color: var(--color-ok); }
-    .toast-msg.error { border-left: 4px solid #DC2626; color: #DC2626; }
-    .toast-msg.info { border-left: 4px solid var(--color-blue); color: var(--color-blue); }
-
-    @keyframes entraToast {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    @media (max-width: 640px) {
-      .topbar { padding: 0 10px; }
-      .system-datetime { display: none; }
-      .proyeccion-container, .programa-container { padding: 8px; gap: 8px; }
-      .fechas-barra-control { flex-direction: column; align-items: stretch; }
-      .btn-action-main { width: 100%; justify-content: center; }
-      .modal-box { padding: 14px; }
-      .modal-grid-row { grid-template-columns: 1fr; }
+    @media (max-width: 860px) {
+      .system-datetime, .topbar-sep { display: none; }
+      .proyeccion-container, .programa-container { padding: 14px; }
+      .btn-top-nav .btn-label, .btn-sync-top .btn-label { display: none; }
     }
   </style>
+  <link rel="stylesheet" href="../estilos/comex-ui.css">
 </head>
 <body>
 
-  <!-- Topbar con Logo -->
+  <!-- Topbar -->
   <header class="topbar">
     <div class="topbar-izq">
       <img src="../logo.png" alt="Logo" class="topbar-logo" onerror="this.style.display='none'">
+      <div class="topbar-sep"></div>
       <div class="topbar-info">
-        👤 <span id="lblUser">ADMIN</span> &nbsp;·&nbsp; TEMP <span>2026</span>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span id="lblUser">ADMIN</span>
+        <span class="temporada-chip">Temporada 2026</span>
       </div>
     </div>
 
     <div class="top-right-bar">
-      <div class="system-datetime" id="lblFechaHora">09/09/2026</div>
+      <div class="system-datetime" id="lblFechaHora">27/10/2026</div>
       <a href="../vuelos/vuelos_comex.html" class="btn-top-nav">
-        ✈️ Vuelos
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+        <span class="btn-label">Vuelos</span>
       </a>
       <button class="btn-sync-top" id="btnSync" onclick="sincronizar()" title="Sincronizar">
-        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-        Sincronizar
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+        <span class="btn-label">Sincronizar</span>
       </button>
-      <a href="../loguer.html" class="btn-logout" onclick="cerrarSesion()">✕ Salir</a>
+      <a href="../loguer.html" class="btn-logout" onclick="cerrarSesion()" title="Cerrar sesión">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Salir
+      </a>
     </div>
   </header>
 
   <!-- Pestañas -->
   <nav class="tabs-view-header">
     <button class="tab-nav-btn tab-proyeccion active" id="btnTab1" onclick="cambiarVistaPrincipal('proyeccion', this)">
-      🌱 1. Proyección Operativa (11 Días)
+      <span class="tab-step">1</span> Proyección operativa
     </button>
     <button class="tab-nav-btn tab-programa" id="btnTab2" onclick="cambiarVistaPrincipal('programa', this)">
-      📦 2. Programa de Trabajo y Empaque
+      <span class="tab-step">2</span> Programa de trabajo y despachos
     </button>
   </nav>
 
@@ -366,43 +388,37 @@
 
     <!-- SOLAPA 1: PROYECCIÓN -->
     <section class="proyeccion-container" id="vistaProyeccion">
-      <div class="fechas-barra-control">
-        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-          <label style="font-size:11.5px; font-weight:800; color:var(--color-adm-dark);">📅 FECHA DE INICIO:</label>
-          <input type="date" id="txtFechaInicioProyeccion" class="modal-control" style="width:auto;" onchange="regenerarFechasProyeccion(this.value)">
-          <span style="font-size:10.5px; color:var(--color-text-secondary);">(Esquema automático 11 días)</span>
+      <div class="vista-header">
+        <div>
+          <h1 class="vista-titulo">Proyección operativa</h1>
+          <div class="vista-sub">Kilos previstos por concepto para los próximos 11 días, cruzados con los vuelos cargados.</div>
         </div>
-        <button class="btn-action-main" onclick="guardarYContinuarAPrograma()">
-          💾 Guardar y Continuar al Programa ➔
-        </button>
+        <div class="vista-acciones">
+          <div class="control-fecha">
+            <label for="txtFechaInicioProyeccion">Desde</label>
+            <input type="date" id="txtFechaInicioProyeccion" class="modal-control" onchange="regenerarFechasProyeccion(this.value)">
+          </div>
+          <button class="btn-action-main" onclick="guardarYContinuarAPrograma()">
+            Guardar y continuar
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
       </div>
 
-      <div class="tabla-proyeccion-wrap">
+      <div class="tabla-proyeccion-wrap card">
         <table class="tabla-proyeccion" id="tablaProyeccion11Dias">
           <thead>
             <tr id="theadDias11">
-              <th class="col-concepto">CONCEPTO / DÍA</th>
+              <th class="col-concepto">Concepto</th>
             </tr>
           </thead>
           <tbody>
-            <tr id="filaCosechaInputs">
-              <th class="col-concepto">🍒 Cosecha (Kg)</th>
-              <td colspan="11">Cargando...</td>
-            </tr>
-            <tr id="filaInspeccionInputs">
-              <th class="col-concepto">🔍 Inspección (Kg)</th>
-              <td colspan="11">Cargando...</td>
-            </tr>
-            <tr id="filaCargaInputs">
-              <th class="col-concepto">📦 Carga (Kg)</th>
-              <td colspan="11">Cargando...</td>
-            </tr>
-            <tr id="filaEzeizaInputs">
-              <th class="col-concepto">🏢 Ezeiza (Kg)</th>
-              <td colspan="11">Cargando...</td>
-            </tr>
-            <tr id="filaVuelosDia" style="background:#F1F5F9;">
-              <th class="col-concepto" style="background:#CFD8DC;">✈️ Vuelos del Día</th>
+            <tr id="filaCosechaInputs"><th class="col-concepto"><span class="dot dot-cosecha"></span>Cosecha (kg)</th><td colspan="11">Cargando...</td></tr>
+            <tr id="filaInspeccionInputs"><th class="col-concepto"><span class="dot dot-inspeccion"></span>Inspección (kg)</th><td colspan="11">Cargando...</td></tr>
+            <tr id="filaCargaInputs"><th class="col-concepto"><span class="dot dot-carga"></span>Carga (kg)</th><td colspan="11">Cargando...</td></tr>
+            <tr id="filaEzeizaInputs"><th class="col-concepto"><span class="dot dot-ezeiza"></span>Ezeiza (kg)</th><td colspan="11">Cargando...</td></tr>
+            <tr id="filaVuelosDia" class="fila-vuelos">
+              <th class="col-concepto"><span class="dot dot-vuelos"></span>Vuelos del día</th>
               <td colspan="11">Cargando cruce de vuelos...</td>
             </tr>
           </tbody>
@@ -412,50 +428,55 @@
 
     <!-- SOLAPA 2: PROGRAMA DE TRABAJO -->
     <section class="programa-container" id="vistaPrograma" style="display:none;">
-      
-      <div class="resumen-proyeccion-banner">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-          <b style="font-size:12px; font-family:'Montserrat'; color:var(--tab2-pastel-text);">
-            📊 Proyección Operativa en Curso (Desde <span id="lblFechaDesdeBanner">—</span>):
-          </b>
-          <span style="font-size:11px; font-weight:700; color:var(--color-text-secondary);" id="lblTotalesProyBanner">0 Kg Totales</span>
+
+      <div class="vista-header">
+        <div>
+          <h1 class="vista-titulo">Programa de trabajo</h1>
+          <div class="vista-sub">Hacé clic en un programa para ver camiones, pallets y calibres, o modificarlo.</div>
+        </div>
+        <div class="vista-acciones">
+          <button class="btn-action-main" onclick="abrirModalNuevoPrograma()">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nuevo programa
+          </button>
+        </div>
+      </div>
+
+      <div class="resumen-proyeccion-banner card">
+        <div class="resumen-head">
+          <b>Proyección en curso · desde <span id="lblFechaDesdeBanner">—</span></b>
+          <span class="resumen-total" id="lblTotalesProyBanner">0 Kg Totales</span>
         </div>
         <div class="resumen-scroll-fechas" id="contCardsResumenProy"></div>
       </div>
 
-      <div class="panel-grilla-programa">
-        <div style="padding:10px 14px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border); background:#FAFAF8; flex-wrap:wrap; gap:8px;">
+      <div class="panel-grilla-programa card">
+        <div class="panel-head">
           <div>
-            <b style="font-family:'Montserrat'; color:var(--color-adm-dark); font-size:13px;">
-              PROGRAMAS DE TRABAJO CONSOLIDADOS
-            </b>
-            <div style="font-size:11px; color:var(--color-text-secondary); margin-top:2px;">
-              Hacé clic en cualquier programa para ver el desglose por calibres o imprimir en PDF.
-            </div>
+            <div class="panel-head-titulo">Programas y despachos consolidados</div>
+            <div class="panel-head-sub">Un renglón por programa, con el total de pallets.</div>
           </div>
-          <button class="btn-action-main" onclick="abrirModalNuevoPrograma()">
-            ➕ Nuevo Programa (Hasta 8 Bloques)
-          </button>
         </div>
 
         <div class="tabla-programa-wrap">
           <table class="tabla-programa">
             <thead>
               <tr>
-                <th>FECHA</th>
-                <th>PROGRAMA N°</th>
-                <th>CLIENTE</th>
-                <th>MARCA</th>
-                <th>TOTAL PALLETS</th>
-                <th>DESTINO</th>
-                <th>VUELO ASIGNADO</th>
-                <th>SALIDA VUELO</th>
-                <th>SALIDA EMPAQUE</th>
-                <th style="text-align:center;">ACCIONES</th>
+                <th>Fecha</th>
+                <th>Programa</th>
+                <th>Camión</th>
+                <th>Cliente</th>
+                <th>Consignatario</th>
+                <th>Marca</th>
+                <th>Pallets</th>
+                <th>Destino</th>
+                <th>Vuelo</th>
+                <th>Salida empaque</th>
+                <th style="text-align:right;"></th>
               </tr>
             </thead>
             <tbody id="tbodyProgramasConsolidados">
-              <tr><td colspan="10" style="text-align:center; padding:30px; color:var(--color-text-secondary);">No hay programas confeccionados.</td></tr>
+              <tr><td colspan="11" class="estado-vacio">No hay programas confeccionados.</td></tr>
             </tbody>
           </table>
         </div>
@@ -466,182 +487,213 @@
 
   <!-- MODAL 1: FORMULARIO DE CONFECCIÓN DE PROGRAMA -->
   <div class="modal-overlay" id="modalPrograma">
-    <div class="modal-box">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border); padding-bottom:8px;">
-        <div>
-          <h3 style="margin:0; font-family:'Montserrat'; font-size:15px; color:var(--color-adm-dark);">
-            Confección de Programa de Empaque
-          </h3>
-          <span style="font-size:11px; font-weight:700; color:var(--color-blue);" id="lblContadorBloques">
-            Bloque temporal 1 de 8
-          </span>
-        </div>
-        <button type="button" onclick="cerrarModalPrograma()" style="background:#F1F5F9; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; font-weight:800;">✕</button>
-      </div>
+    <div class="modal-box modal-programa">
+      <form id="formPrograma" onsubmit="event.preventDefault();" class="prog-form-shell">
 
-      <form id="formPrograma" onsubmit="event.preventDefault();" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
-        <div class="modal-body-scroll">
-          
-          <div class="modal-grid-row">
-            <div class="modal-group">
-              <label>Programa N° *</label>
-              <input type="text" id="progNro" class="modal-control" placeholder="Ej: PRG-2026-001" required />
+        <!-- Cabecera: título + datos generales del programa -->
+        <div class="modal-head prog-head">
+          <div class="prog-head-titulo">
+            <h3><span id="lblTituloModalPrograma">Nuevo programa</span> <span id="badgeModoPrograma" class="badge-pill badge-blue" style="display:none;"></span></h3>
+            <span class="modal-sub" id="lblContadorBloques">0 de 8 bloques</span>
+          </div>
+          <div class="prog-head-campos">
+            <div class="campo-inline">
+              <label for="progNro">Programa N°</label>
+              <input type="text" id="progNro" class="modal-control" placeholder="PRG-2026-001" required />
             </div>
-            <div class="modal-group">
-              <label>Fecha de Empaque *</label>
+            <div class="campo-inline">
+              <label for="progFecha">Fecha empaque</label>
               <input type="date" id="progFecha" class="modal-control" required onchange="filtrarVuelosPorFechaSeleccionada(this.value)" />
             </div>
-            <div class="modal-group">
-              <label>Cuándo saldrá de Empaque *</label>
+            <div class="campo-inline">
+              <label for="progSalidaEmpaque">Salida empaque</label>
               <input type="datetime-local" id="progSalidaEmpaque" class="modal-control" required />
             </div>
           </div>
+          <button type="button" class="btn-icon-close" onclick="cerrarModalPrograma()" title="Cerrar">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
 
-          <!-- Configuración del Bloque Actual -->
-          <div style="background:#F8FAFC; border:1px solid var(--color-border); border-radius:var(--radius-md); padding:12px;">
-            <div style="font-size:11px; font-weight:800; color:var(--color-adm-dark); margin-bottom:8px; text-transform:uppercase;">
-              Configuración del Bloque Actual
-            </div>
-            <div class="modal-grid-row">
-              <div class="modal-group">
-                <label>Cliente *</label>
-                <select id="progCliente" class="modal-control" required></select>
-              </div>
-              <div class="modal-group">
-                <label>Marca *</label>
-                <select id="progMarca" class="modal-control" required></select>
-              </div>
-              <div class="modal-group">
-                <label>Vuelo Disponible (Filtrado por Fecha) *</label>
-                <select id="progVueloSel" class="modal-control" required onchange="vueloSeleccionadoCambio(this.value)"></select>
-              </div>
-            </div>
+        <div class="prog-layout">
 
-            <!-- Banner de Cupos de Pallets (PCS) en tiempo real -->
-            <div class="banner-cupo-vuelo" id="bannerCupoVuelo">
-              <span>✈️ Capacidad de Vuelo: <b id="lblVueloPcsMax">0</b> pallets (PCS)</span>
-              <span>Usados / Comprometidos: <b id="lblVueloPcsUsados">0</b></span>
-              <span>Disponibles: <b id="lblVueloPcsRestantes" style="font-size:13px;">0</b></span>
-            </div>
+          <!-- Columna izquierda: armado del bloque -->
+          <div class="prog-main">
+            <div class="prog-main-scroll">
 
-            <div class="modal-grid-row" style="margin-top:8px;">
-              <div class="modal-group">
-                <label>Destino</label>
-                <input type="text" id="progDestino" class="modal-control" readonly style="background:#ECEFF1;">
+              <div class="fila-campo">
+                <div class="fila-campo-label">Camión</div>
+                <div class="selector-camiones" id="selectorCamiones"></div>
+                <input type="hidden" id="progCamionNo">
               </div>
-              <div class="modal-group">
-                <label>Hora Salida Vuelo (ETD 1)</label>
-                <input type="text" id="progHoraVuelo" class="modal-control" readonly style="background:#ECEFF1;">
-              </div>
-            </div>
 
-            <!-- Matriz de Calibres -->
-            <div class="modal-group" style="margin-top:10px;">
-              <label>Pallets por Calibre para este Cliente/Marca *</label>
+              <div class="modal-grid-row grid-3">
+                <div class="modal-group">
+                  <label for="progCliente">Cliente</label>
+                  <select id="progCliente" class="modal-control" required onchange="clienteSeleccionadoCambio(this.value)"></select>
+                </div>
+                <div class="modal-group">
+                  <label for="progMarca">Marca</label>
+                  <select id="progMarca" class="modal-control" required></select>
+                </div>
+                <div class="modal-group">
+                  <label for="progVueloSel">Vuelo del día</label>
+                  <select id="progVueloSel" class="modal-control" required onchange="vueloSeleccionadoCambio(this.value)"></select>
+                </div>
+              </div>
+
+              <div class="fila-campo">
+                <div class="fila-campo-label">Consignatario</div>
+                <div class="chips-consignatarios-wrap" id="contenedorChipsConsignatarios">
+                  <span class="texto-vacio">Elegí un cliente para cargar sus consignatarios.</span>
+                </div>
+                <input type="hidden" id="progConsignatarioSeleccionado">
+              </div>
+
               <div class="calibres-table-box">
                 <table class="tabla-calibres-input">
                   <thead>
                     <tr>
-                      <th>Calibre</th>
-                      <th>Pallets</th>
-                      <th>Tamaño</th>
-                      <th>N° Pallet (Opcional)</th>
+                      <th style="width:70px;">Calibre</th>
+                      <th style="width:84px;">Cantidad</th>
+                      <th style="width:84px;">Tamaño</th>
+                      <th>N° de pallets <span class="th-ayuda">— uno por uno o rango (200-205) + Enter</span></th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td><b>24-26</b></td>
+                      <td><span class="calibre-tag">24-26</span></td>
                       <td><input type="number" class="input-cant-calibre" data-calibre="24-26" min="0" placeholder="0" oninput="validarCupoPalletsEnVivo()"></td>
-                      <td><input type="text" class="modal-control" data-tamano="24-26" value="STD" style="padding:4px; text-align:center;"></td>
-                      <td><input type="text" class="modal-control" data-pallet="24-26" placeholder="PL-01" style="padding:4px; text-align:center;"></td>
+                      <td><input type="text" class="modal-control input-tamano" data-tamano="24-26" value="STD"></td>
+                      <td>
+                        <div class="enumlist-box" data-calibre-enum="24-26">
+                          <div class="enumlist-tags" id="tags-24-26"></div>
+                          <input type="text" class="enum-input" placeholder="Ej: 101, 102 o 200-205" onkeydown="manejarEnterPalletTag(event, '24-26')" onblur="agregarPalletTagDesdeBoton('24-26')">
+                        </div>
+                      </td>
                     </tr>
                     <tr>
-                      <td><b>26-28</b></td>
+                      <td><span class="calibre-tag">26-28</span></td>
                       <td><input type="number" class="input-cant-calibre" data-calibre="26-28" min="0" placeholder="0" oninput="validarCupoPalletsEnVivo()"></td>
-                      <td><input type="text" class="modal-control" data-tamano="26-28" value="STD" style="padding:4px; text-align:center;"></td>
-                      <td><input type="text" class="modal-control" data-pallet="26-28" placeholder="PL-02" style="padding:4px; text-align:center;"></td>
+                      <td><input type="text" class="modal-control input-tamano" data-tamano="26-28" value="STD"></td>
+                      <td>
+                        <div class="enumlist-box" data-calibre-enum="26-28">
+                          <div class="enumlist-tags" id="tags-26-28"></div>
+                          <input type="text" class="enum-input" placeholder="Pallet o rango + Enter" onkeydown="manejarEnterPalletTag(event, '26-28')" onblur="agregarPalletTagDesdeBoton('26-28')">
+                        </div>
+                      </td>
                     </tr>
                     <tr>
-                      <td><b>28-30</b></td>
+                      <td><span class="calibre-tag">28-30</span></td>
                       <td><input type="number" class="input-cant-calibre" data-calibre="28-30" min="0" placeholder="0" oninput="validarCupoPalletsEnVivo()"></td>
-                      <td><input type="text" class="modal-control" data-tamano="28-30" value="STD" style="padding:4px; text-align:center;"></td>
-                      <td><input type="text" class="modal-control" data-pallet="28-30" placeholder="PL-03" style="padding:4px; text-align:center;"></td>
+                      <td><input type="text" class="modal-control input-tamano" data-tamano="28-30" value="STD"></td>
+                      <td>
+                        <div class="enumlist-box" data-calibre-enum="28-30">
+                          <div class="enumlist-tags" id="tags-28-30"></div>
+                          <input type="text" class="enum-input" placeholder="Pallet o rango + Enter" onkeydown="manejarEnterPalletTag(event, '28-30')" onblur="agregarPalletTagDesdeBoton('28-30')">
+                        </div>
+                      </td>
                     </tr>
                     <tr>
-                      <td><b>30-32</b></td>
+                      <td><span class="calibre-tag">30-32</span></td>
                       <td><input type="number" class="input-cant-calibre" data-calibre="30-32" min="0" placeholder="0" oninput="validarCupoPalletsEnVivo()"></td>
-                      <td><input type="text" class="modal-control" data-tamano="30-32" value="STD" style="padding:4px; text-align:center;"></td>
-                      <td><input type="text" class="modal-control" data-pallet="30-32" placeholder="PL-04" style="padding:4px; text-align:center;"></td>
+                      <td><input type="text" class="modal-control input-tamano" data-tamano="30-32" value="STD"></td>
+                      <td>
+                        <div class="enumlist-box" data-calibre-enum="30-32">
+                          <div class="enumlist-tags" id="tags-30-32"></div>
+                          <input type="text" class="enum-input" placeholder="Pallet o rango + Enter" onkeydown="manejarEnterPalletTag(event, '30-32')" onblur="agregarPalletTagDesdeBoton('30-32')">
+                        </div>
+                      </td>
                     </tr>
                     <tr>
-                      <td><b>32+</b></td>
+                      <td><span class="calibre-tag">32+</span></td>
                       <td><input type="number" class="input-cant-calibre" data-calibre="32+" min="0" placeholder="0" oninput="validarCupoPalletsEnVivo()"></td>
-                      <td><input type="text" class="modal-control" data-tamano="32+" value="STD" style="padding:4px; text-align:center;"></td>
-                      <td><input type="text" class="modal-control" data-pallet="32+" placeholder="PL-05" style="padding:4px; text-align:center;"></td>
+                      <td><input type="text" class="modal-control input-tamano" data-tamano="32+" value="STD"></td>
+                      <td>
+                        <div class="enumlist-box" data-calibre-enum="32+">
+                          <div class="enumlist-tags" id="tags-32+"></div>
+                          <input type="text" class="enum-input" placeholder="Pallet o rango + Enter" onkeydown="manejarEnterPalletTag(event, '32+')" onblur="agregarPalletTagDesdeBoton('32+')">
+                        </div>
+                      </td>
                     </tr>
                   </tbody>
                 </table>
               </div>
             </div>
 
-            <div style="display:flex; justify-content:flex-end; margin-top:10px;">
-              <button type="button" class="btn-action-main" style="background:#334155;" onclick="agregarBloqueAlBufferTemporal()">
-                ➕ Añadir este Bloque (<span id="lblCantBuffer">0</span>/8)
+            <div class="prog-main-foot">
+              <span class="texto-vacio" id="lblAyudaBloque">Completá el bloque y añadilo; podés cargar hasta 8.</span>
+              <button type="button" class="btn-action-main btn-dark" onclick="agregarBloqueAlBufferTemporal()">
+                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Añadir a <span id="lblCamionDestinoBloque">CAMIÓN 01</span> (<span id="lblCantBuffer">0</span>/8)</span>
               </button>
             </div>
           </div>
 
-          <!-- Buffer de Bloques -->
-          <div class="modal-group">
-            <label>Bloques Confeccionados en este Programa:</label>
-            <div style="border:1px solid var(--color-border); border-radius:var(--radius-md); max-height:160px; overflow-y:auto; background:#FFFFFF;">
-              <table class="tabla-buffer" id="tablaBufferPreview">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Cliente</th>
-                    <th>Marca</th>
-                    <th>Destino / Vuelo</th>
-                    <th>Desglose Calibres</th>
-                    <th>Pallets</th>
-                    <th>Quitar</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td colspan="7" style="text-align:center; padding:12px; color:var(--color-text-secondary);">No agregaste bloques aún.</td></tr>
-                </tbody>
-              </table>
+          <!-- Columna derecha: vuelo, cupo y bloques (siempre visible) -->
+          <aside class="prog-side">
+            <div class="side-card" id="bannerCupoVuelo">
+              <div class="side-card-titulo">Vuelo seleccionado</div>
+              <div class="vuelo-info">
+                <div class="campo-info">
+                  <label for="progDestino">Destino</label>
+                  <input type="text" id="progDestino" readonly placeholder="—">
+                </div>
+                <div class="campo-info">
+                  <label for="progHoraVuelo">ETD 1</label>
+                  <input type="text" id="progHoraVuelo" readonly placeholder="—">
+                </div>
+              </div>
+              <div class="cupo-stats">
+                <div class="cupo-stat"><span>Capacidad</span><b id="lblVueloPcsMax">0</b></div>
+                <div class="cupo-stat"><span>Usados</span><b id="lblVueloPcsUsados">0</b></div>
+                <div class="cupo-stat destacado"><span>Libres</span><b id="lblVueloPcsRestantes">0</b></div>
+              </div>
+              <div class="cupo-bar"><span id="barCupoVuelo"></span></div>
+              <button type="button" class="btn-action-main btn-secondary btn-sm" id="btnAplicarVueloTodos" style="display:none;" onclick="aplicarVueloATodosLosBloques()" title="Cambia el vuelo de todos los bloques por el vuelo elegido arriba">
+                Aplicar este vuelo a todos los bloques
+              </button>
             </div>
-          </div>
-        </div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--color-border); padding-top:10px; margin-top:8px;">
-          <button type="button" class="btn-topbar" onclick="cerrarModalPrograma()" style="background:#E2E8F0; color:#334155;">Cancelar</button>
-          <button type="button" class="btn-action-main" id="btnGuardarProgramaCompleto" onclick="confirmarYGuardarProgramaCompleto()">
-            💾 Guardar Programa (<span id="lblTotalCajasBuffer">0</span> Pallets)
-          </button>
+            <div class="side-bloques">
+              <div class="side-card-titulo">Bloques del programa <span class="side-card-hint">· clic para editar</span></div>
+              <div class="lista-bloques" id="listaBloquesBuffer">
+                <div class="estado-vacio">Todavía no agregaste bloques.</div>
+              </div>
+            </div>
+
+            <div class="side-total">
+              <div class="side-total-fila">
+                <span>Total programa</span>
+                <b><span id="lblTotalCajasBuffer">0</span> pallets</b>
+              </div>
+              <button type="button" class="btn-action-main btn-block" id="btnGuardarProgramaCompleto" onclick="confirmarYGuardarProgramaCompleto()">
+                Guardar programa
+              </button>
+              <button type="button" class="btn-link" onclick="cerrarModalPrograma()">Cancelar</button>
+            </div>
+          </aside>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL 2: DETALLE FLOTANTE -->
+  <!-- MODAL 2: DETALLE Y VISOR -->
   <div class="modal-overlay" id="modalDetallePrograma">
-    <div class="modal-box" style="max-width: 980px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border); padding-bottom:8px;">
+    <div class="modal-box" style="max-width: 1080px;">
+      <div class="modal-head">
         <div>
-          <h3 style="margin:0; font-family:'Montserrat'; font-size:16px; color:var(--color-adm-dark);" id="lblDetalleProgTitulo">
-            Programa N° —
-          </h3>
-          <span style="font-size:11px; color:var(--color-text-secondary);" id="lblDetalleProgSub">
-            Fecha: —
-          </span>
+          <h3 id="lblDetalleProgTitulo">Programa N° —</h3>
+          <span class="modal-sub" id="lblDetalleProgSub">Fecha: —</span>
         </div>
-        <div style="display:flex; gap:8px;">
-          <button class="btn-action-main" style="background:#B91C1C;" onclick="exportarProgramaAPDF()">
-            📄 Exportar en PDF
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button class="btn-action-main btn-danger-outline" onclick="exportarProgramaAPDF()">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+            Exportar PDF
           </button>
-          <button type="button" onclick="cerrarModalDetalle()" style="background:#F1F5F9; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; font-weight:800;">✕</button>
+          <button type="button" class="btn-icon-close" onclick="cerrarModalDetalle()" title="Cerrar">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
       </div>
 
@@ -650,17 +702,16 @@
           <table class="tabla-programa" id="tablaDetalleRenglones">
             <thead>
               <tr>
-                <th>CLIENTE</th>
-                <th>MARCA</th>
-                <th>CALIBRE</th>
-                <th>CANTIDAD</th>
-                <th>TAMAÑO</th>
-                <th>N° PALLET</th>
-                <th>DESTINO</th>
-                <th>VUELO</th>
-                <th>SALIDA VUELO</th>
-                <th>SALIDA EMPAQUE</th>
-                <th style="text-align:center;">ACCIONES</th>
+                <th>Camión</th>
+                <th>Cliente</th>
+                <th>Marca</th>
+                <th>Calibre</th>
+                <th>Cantidad</th>
+                <th>Tamaño</th>
+                <th>N° pallets</th>
+                <th>Destino</th>
+                <th>Vuelo</th>
+                <th>Salida empaque</th>
               </tr>
             </thead>
             <tbody id="tbodyRenglonesDetalle"></tbody>
@@ -668,8 +719,18 @@
         </div>
       </div>
 
-      <div style="display:flex; justify-content:flex-end; border-top:1px solid var(--color-border); padding-top:10px;">
-        <button type="button" class="btn-action-main" style="background:#64748B;" onclick="cerrarModalDetalle()">Cerrar Visor</button>
+      <div class="modal-foot">
+        <button type="button" class="btn-action-main btn-secondary" onclick="cerrarModalDetalle()">Cerrar</button>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-action-main btn-secondary" onclick="abrirCopiaPrograma(programaSeleccionadoActual.programa_nro)">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copiar programa
+          </button>
+          <button type="button" class="btn-action-main" onclick="abrirEdicionPrograma(programaSeleccionadoActual.programa_nro)">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+            Editar programa
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -693,6 +754,18 @@
     let vuelosFiltradosModal = [];
     let vueloActivoSeleccionado = null;
 
+    // Diccionario maestro de clientes_consignatarios
+    let clientesConsignatariosMap = new Map();
+
+    // Mapas para el EnumList de pallets por calibre { '24-26': ['PL-01', 'PL-02'] }
+    let enumlistPalletsPorCalibre = {
+      '24-26': [],
+      '26-28': [],
+      '28-30': [],
+      '30-32': [],
+      '32+': []
+    };
+
     let servSinc = null;
     let dbLocal = null;
     if (typeof require === 'function') {
@@ -706,8 +779,7 @@
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
       toast.className = `toast-msg ${tipo}`;
-      const iconos = { success: '✅', error: '❌', info: 'ℹ️' };
-      toast.innerHTML = `<span>${iconos[tipo] || 'ℹ️'}</span><span>${mensaje}</span>`;
+      toast.innerHTML = `<span class="toast-ico"></span><span>${mensaje}</span>`;
       container.appendChild(toast);
       setTimeout(() => {
         toast.style.opacity = '0';
@@ -724,13 +796,25 @@
       }
       sesionUsuario = JSON.parse(sesionRaw);
       document.getElementById('lblUser').innerText = sesionUsuario.usuario;
+      document.getElementById('lblFechaHora').innerText = new Date().toLocaleDateString('es-AR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
 
       const hoyStr = new Date().toISOString().split('T')[0];
       document.getElementById('txtFechaInicioProyeccion').value = hoyStr;
 
       regenerarFechasProyeccion(hoyStr);
-      await Promise.all([cargarVuelos(), cargarProyecciones(), cargarProgramas(), cargarClientesYMarcasModal()]);
+      await Promise.all([
+        cargarVuelos(),
+        cargarProyecciones(),
+        cargarProgramas(),
+        cargarClientesConsignatariosYMarcas()
+      ]);
       renderizarTabla11Dias();
+    });
+
+    // Clic en cualquier parte de la caja de pallets enfoca su campo de texto
+    document.addEventListener('click', e => {
+      const box = e.target.closest('.enumlist-box');
+      if (box && !e.target.closest('.tag-pallet')) box.querySelector('.enum-input').focus();
     });
 
     function cambiarVistaPrincipal(vista, btn) {
@@ -761,6 +845,355 @@
       renderizarTabla11Dias();
     }
 
+    // ==========================================
+    async function cargarClientesConsignatariosYMarcas() {
+      const selectCliente = document.getElementById('progCliente');
+      const selectMarca = document.getElementById('progMarca');
+      clientesConsignatariosMap.clear();
+
+      let filasConsignatarios = [];
+      let marcasLista = [];
+
+      // 1. Consulta en línea a Supabase
+      try {
+        if (navigator.onLine) {
+          const [resCC, resM] = await Promise.all([
+            supabaseClient
+              .from('clientes_consignatarios')
+              .select('id, cliente, consignatario, destino, activo')
+              .eq('activo', true)
+              .order('cliente'),
+            supabaseClient
+              .from('agronet_marcas')
+              .select('id_marca, detalle, abreviatura, activo')
+              .eq('activo', true)
+              .order('detalle')
+          ]);
+
+          if (resCC.data && resCC.data.length > 0) filasConsignatarios = resCC.data;
+          if (resM.data && resM.data.length > 0) marcasLista = resM.data;
+        }
+      } catch (e) {
+        console.warn("Fallo lectura en línea de Supabase:", e);
+      }
+
+      // 2. Consulta de respaldo en base local
+      if (dbLocal) {
+        if (filasConsignatarios.length === 0) {
+          try {
+            filasConsignatarios = dbLocal.prepare('SELECT * FROM local_clientes_consignatarios WHERE activo = 1').all();
+          } catch (_) {}
+        }
+
+        if (marcasLista.length === 0) {
+          try {
+            marcasLista = dbLocal.prepare('SELECT * FROM local_agronet_marcas WHERE activo = 1').all();
+          } catch (_) {}
+        }
+      }
+
+      // 3. Poblar Selector de Marcas
+      if (marcasLista.length > 0) {
+        selectMarca.innerHTML = '<option value="">— Seleccionar Marca —</option>' +
+          marcasLista.map(m => {
+            const nombre = (m.detalle || '').trim();
+            const abrev = (m.abreviatura || '').trim();
+            const label = abrev && abrev !== nombre ? `${nombre} (${abrev})` : nombre;
+            return `<option value="${nombre}">${label}</option>`;
+          }).join('');
+      } else {
+        // Fallback de contingencia si no se obtuvieron datos
+        const marcasReserva = ['CHIMPAY', 'FINCA CHIMPAY', 'DELEITE', 'DELEITE BAJO', 'NATIVA', 'CERESOL', 'MOÑO AZUL'];
+        selectMarca.innerHTML = '<option value="">— Seleccionar Marca —</option>' +
+          marcasReserva.map(m => `<option value="${m}">${m}</option>`).join('');
+      }
+
+      // 4. Poblar Selector de Clientes y mapear Consignatarios
+      filasConsignatarios.forEach(item => {
+        const cliKey = String(item.cliente || '').trim();
+        if (!cliKey) return;
+        if (!clientesConsignatariosMap.has(cliKey)) {
+          clientesConsignatariosMap.set(cliKey, []);
+        }
+        clientesConsignatariosMap.get(cliKey).push({
+          consignatario: String(item.consignatario || '').trim(),
+          destino: String(item.destino || '').trim()
+        });
+      });
+
+      const listaClientesUnicos = Array.from(clientesConsignatariosMap.keys()).sort();
+
+      if (listaClientesUnicos.length === 0) {
+        selectCliente.innerHTML = '<option value="">— Sin clientes disponibles —</option>';
+      } else {
+        selectCliente.innerHTML = '<option value="">— Seleccionar Cliente —</option>' + 
+          listaClientesUnicos.map(c => `<option value="${c}">${c}</option>`).join('');
+      }
+    }
+
+    function clienteSeleccionadoCambio(clienteVal) {
+      const contenedorChips = document.getElementById('contenedorChipsConsignatarios');
+      const inputConsigOculto = document.getElementById('progConsignatarioSeleccionado');
+      const inputDestino = document.getElementById('progDestino');
+      
+      contenedorChips.innerHTML = '';
+      inputConsigOculto.value = '';
+
+      if (!clienteVal || !clientesConsignatariosMap.has(clienteVal)) {
+        contenedorChips.innerHTML = '<span class="texto-vacio">Sin consignatarios asociados.</span>';
+        return;
+      }
+
+      const lista = clientesConsignatariosMap.get(clienteVal);
+      if (lista.length === 0) {
+        contenedorChips.innerHTML = '<span class="texto-vacio">Sin consignatarios activos.</span>';
+        return;
+      }
+
+      lista.forEach((item, index) => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = `chip-consignatario ${index === 0 ? 'selected' : ''}`;
+        chip.innerText = item.destino ? `${item.consignatario} · ${item.destino}` : item.consignatario;
+        chip.onclick = () => {
+          document.querySelectorAll('.chip-consignatario').forEach(c => c.classList.remove('selected'));
+          chip.classList.add('selected');
+          inputConsigOculto.value = item.consignatario;
+          if (item.destino) inputDestino.value = item.destino;
+        };
+        contenedorChips.appendChild(chip);
+
+        // Preseleccionar el primero
+        if (index === 0) {
+          inputConsigOculto.value = item.consignatario;
+          if (item.destino) inputDestino.value = item.destino;
+        }
+      });
+    }
+
+    // ==========================================
+    // LOGICA DE ENUMLIST PARA PALLETS
+    // ==========================================
+    function parsearRangoPallets(str) {
+      const resultado = [];
+      const partes = str.split(',').map(s => s.trim()).filter(Boolean);
+
+      partes.forEach(parte => {
+        if (parte.includes('-')) {
+          const [inicioStr, finStr] = parte.split('-').map(s => s.trim());
+          const inicio = parseInt(inicioStr, 10);
+          const fin = parseInt(finStr, 10);
+          if (!isNaN(inicio) && !isNaN(fin) && inicio <= fin) {
+            for (let i = inicio; i <= fin; i++) {
+              resultado.push(String(i));
+            }
+          } else {
+            resultado.push(parte);
+          }
+        } else {
+          resultado.push(parte);
+        }
+      });
+
+      return resultado;
+    }
+
+    function manejarEnterPalletTag(event, calibre) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        const input = event.target;
+        const texto = input.value.trim();
+        if (!texto) return;
+
+        const nuevos = parsearRangoPallets(texto);
+        nuevos.forEach(p => {
+          if (!enumlistPalletsPorCalibre[calibre].includes(p)) {
+            enumlistPalletsPorCalibre[calibre].push(p);
+          }
+        });
+
+        input.value = '';
+        renderizarTagsPallets(calibre);
+      }
+    }
+
+    function agregarPalletTagDesdeBoton(calibre) {
+      const box = document.querySelector(`.enumlist-box[data-calibre-enum="${calibre}"]`);
+      const input = box.querySelector('input[type="text"]');
+      const texto = input.value.trim();
+      if (!texto) return;
+
+      const nuevos = parsearRangoPallets(texto);
+      nuevos.forEach(p => {
+        if (!enumlistPalletsPorCalibre[calibre].includes(p)) {
+          enumlistPalletsPorCalibre[calibre].push(p);
+        }
+      });
+
+      input.value = '';
+      renderizarTagsPallets(calibre);
+    }
+
+    function quitarPalletTag(calibre, valor) {
+      enumlistPalletsPorCalibre[calibre] = enumlistPalletsPorCalibre[calibre].filter(p => p !== valor);
+      renderizarTagsPallets(calibre);
+    }
+
+    function renderizarTagsPallets(calibre) {
+      const container = document.getElementById(`tags-${calibre}`);
+      if (!container) return;
+
+      const lista = enumlistPalletsPorCalibre[calibre] || [];
+      container.innerHTML = lista.map(p => `
+        <span class="tag-pallet">
+          ${p} <span class="del" onclick="quitarPalletTag('${calibre}', '${p}')">✕</span>
+        </span>
+      `).join('');
+
+      // Autocompletar la celda de Cantidad con el total de tags cargados
+      const inputCant = document.querySelector(`.input-cant-calibre[data-calibre="${calibre}"]`);
+      if (inputCant && lista.length > 0) {
+        inputCant.value = lista.length;
+        validarCupoPalletsEnVivo();
+      }
+    }
+
+    function resetearTodosLosPalletsEnum() {
+      Object.keys(enumlistPalletsPorCalibre).forEach(cal => {
+        enumlistPalletsPorCalibre[cal] = [];
+        renderizarTagsPallets(cal);
+      });
+    }
+
+    // ==========================================
+    // FILTRADO ESTRICTO DE VUELOS POR FECHA
+    // ==========================================
+    function filtrarVuelosPorFechaSeleccionada(fechaEmpaque) {
+      const selVuelo = document.getElementById('progVueloSel');
+      if (!selVuelo) return;
+
+      selVuelo.innerHTML = '<option value="">Seleccionar vuelo del día...</option>';
+      vueloActivoSeleccionado = null;
+      document.getElementById('progDestino').value = '';
+      document.getElementById('progHoraVuelo').value = '';
+
+      if (!fechaEmpaque) {
+        vuelosFiltradosModal = [];
+        actualizarBannerCuposUI(0, 0, 0);
+        return;
+      }
+
+      const fechaLimpia = String(fechaEmpaque).split('T')[0];
+
+      // Filtrado estricto: la fecha de salida/etd1 debe coincidir EXACTAMENTE con la fecha seleccionada
+      vuelosFiltradosModal = listaVuelos.filter(v => {
+        const fVuelo = v.fecha ? String(v.fecha).split('T')[0] : '';
+        const fEtd1 = v.fecha_etd1 ? String(v.fecha_etd1).split('T')[0] : '';
+        return fVuelo === fechaLimpia || fEtd1 === fechaLimpia;
+      });
+
+      // Al cambiar la fecha se re-evalúa qué bloques quedaron con un vuelo de otro día
+      actualizarTablaBufferPreview();
+
+      if (vuelosFiltradosModal.length === 0) {
+        selVuelo.innerHTML = `<option value="">Sin vuelos disponibles para el ${fechaLimpia}</option>`;
+        actualizarBannerCuposUI(0, 0, 0);
+        return;
+      }
+
+      vuelosFiltradosModal.forEach((v, i) => {
+        const capacidadPcs = Number(v.pcs || 0);
+        selVuelo.innerHTML += `
+          <option value="${i}">
+            ${v.vuelo || 'S/V'} · ${v.destino || '-'} · ${capacidadPcs} pallets${v.linea_aerea ? ` · ${v.linea_aerea}` : ''}
+          </option>
+        `;
+      });
+
+      actualizarBannerCuposUI(0, 0, 0);
+    }
+
+    function vueloSeleccionadoCambio(valIndex) {
+      if (valIndex === "") {
+        vueloActivoSeleccionado = null;
+        document.getElementById('progDestino').value = '';
+        document.getElementById('progHoraVuelo').value = '';
+        actualizarBannerCuposUI(0, 0, 0);
+        return;
+      }
+
+      vueloActivoSeleccionado = vuelosFiltradosModal[parseInt(valIndex, 10)];
+      if (vueloActivoSeleccionado) {
+        if (!document.getElementById('progDestino').value) {
+          document.getElementById('progDestino').value = vueloActivoSeleccionado.destino || '';
+        }
+        document.getElementById('progHoraVuelo').value = `${vueloActivoSeleccionado.fecha_etd1 || ''} ${vueloActivoSeleccionado.hora_etd1 || ''}`.trim() || 'S/D';
+        recalcularCupoVueloActual();
+      }
+    }
+
+    // Pallets ya guardados en otros programas para ese vuelo y fecha
+    // (en edición se excluye el propio programa, porque sus bloques están en el formulario)
+    function palletsGuardadosEnVuelo(vuelo, fecha) {
+      if (!Array.isArray(listaPrograma)) return 0;
+      const fechaLimpia = String(fecha).split('T')[0];
+      return listaPrograma
+        .filter(p => p.vuelo === vuelo && String(p.fecha).split('T')[0] === fechaLimpia)
+        .filter(p => !(modoPrograma.tipo === 'editar' && (p.programa_nro || `PRG-${p.fecha}`) === modoPrograma.programaOriginal))
+        .reduce((acc, r) => acc + Number(r.cantidad || 0), 0);
+    }
+
+    function recalcularCupoVueloActual() {
+      if (!vueloActivoSeleccionado) {
+        actualizarBannerCuposUI(0, 0, 0);
+        return;
+      }
+
+      const totalCapacidadPcs = Number(vueloActivoSeleccionado.pcs || 0);
+
+      const palletsGuardados = palletsGuardadosEnVuelo(vueloActivoSeleccionado.vuelo, document.getElementById('progFecha').value);
+
+      let palletsEnBuffer = 0;
+      bufferRenglonesTemp
+        .filter(b => b.vuelo === vueloActivoSeleccionado.vuelo)
+        .forEach(b => { palletsEnBuffer += b.totalCajas; });
+
+      let palletsTipeadosActual = 0;
+      document.querySelectorAll('.input-cant-calibre').forEach(inp => {
+        palletsTipeadosActual += (parseInt(inp.value, 10) || 0);
+      });
+
+      const totalUsado = palletsGuardados + palletsEnBuffer + palletsTipeadosActual;
+      const disponibles = totalCapacidadPcs - totalUsado;
+
+      actualizarBannerCuposUI(totalCapacidadPcs, totalUsado, disponibles);
+    }
+
+    function actualizarBannerCuposUI(max, usados, disponibles) {
+      document.getElementById('lblVueloPcsMax').innerText = max;
+      document.getElementById('lblVueloPcsUsados').innerText = usados;
+      const elDisp = document.getElementById('lblVueloPcsRestantes');
+      elDisp.innerText = disponibles;
+
+      const porcentaje = max > 0 ? Math.min(100, (usados / max) * 100) : 0;
+      document.getElementById('barCupoVuelo').style.width = `${porcentaje}%`;
+
+      const banner = document.getElementById('bannerCupoVuelo');
+      if (disponibles < 0) {
+        banner.classList.add('alerta');
+      } else {
+        banner.classList.remove('alerta');
+      }
+    }
+
+    function validarCupoPalletsEnVivo() {
+      if (!vueloActivoSeleccionado) return;
+      recalcularCupoVueloActual();
+    }
+
+    // ==========================================
+    // CARGA DE DATOS GENERALES
+    // ==========================================
     async function cargarVuelos() {
       try {
         if (navigator.onLine) {
@@ -779,7 +1212,6 @@
       }
     }
 
-    // Carga de Proyecciones guardando el ID de Supabase en memoria
     async function cargarProyecciones() {
       try {
         if (navigator.onLine) {
@@ -788,12 +1220,9 @@
             .select('*')
             .order('fecha', { ascending: true });
 
-          if (error) {
-            console.error("Error al cargar proyecciones:", error);
-          } else if (data) {
+          if (!error && data) {
             proyeccionesGuardadas.clear();
             data.forEach(p => {
-              // Si coincide con el usuario activo o es un admin
               if (!p.usuario || p.usuario.toLowerCase() === sesionUsuario.usuario.toLowerCase()) {
                 proyeccionesGuardadas.set(p.fecha, p);
               }
@@ -801,9 +1230,7 @@
             return;
           }
         }
-      } catch (e) {
-        console.warn("Fallo lectura proyecciones en nube:", e);
-      }
+      } catch (e) {}
 
       if (dbLocal) {
         const localProy = dbLocal.prepare('SELECT * FROM local_comex_proyeccion_dias').all();
@@ -814,111 +1241,42 @@
       }
     }
 
-    // Guardado de Proyecciones blindado (Asigna ID si existe para forzar el UPDATE)
-    async function guardarTodaLaProyeccionSilenciosa() {
-      const inputs = document.querySelectorAll('.input-proy-cell');
-      if (!inputs || inputs.length === 0) return;
-
-      const mapa = {};
-
-      inputs.forEach(inp => {
-        const f = inp.dataset.fecha;
-        const campo = inp.dataset.campo;
-        const val = parseFloat(inp.value) || 0;
-
-        if (!mapa[f]) {
-          const existente = proyeccionesGuardadas.get(f) || {};
-          
-          mapa[f] = {
-            temporada: AÑO_ACTUAL,
-            fecha: f,
-            usuario: sesionUsuario.usuario,
-            cosecha_kg: 0,
-            inspeccion_kg: 0,
-            carga_kg: 0,
-            ezeiza_kg: 0,
-            updated_at: new Date().toISOString()
-          };
-
-          // Si ya existe en Supabase y tiene ID numérico, lo agregamos para forzar el UPDATE directo
-          if (existente.id && !isNaN(Number(existente.id))) {
-            mapa[f].id = Number(existente.id);
-          }
-        }
-
-        mapa[f][`${campo}_kg`] = val;
-      });
-
-      const payloads = Object.values(mapa);
-
-      // 1. Guardar en Supabase
-      if (navigator.onLine) {
-        const { data, error } = await supabaseClient
-          .from('comex_proyeccion_dias')
-          .upsert(payloads, { onConflict: 'fecha,usuario' })
-          .select();
-
-        if (error) {
-          console.error("Detalle error Supabase Proyecciones:", error);
-          throw new Error(error.message || "Error al actualizar en Supabase");
-        }
-
-        // Si devolvió los registros con sus IDs asignados, actualizamos la memoria local
-        if (data && data.length > 0) {
-          data.forEach(item => proyeccionesGuardadas.set(item.fecha, item));
-        }
-      }
-
-      // 2. Réplica local en Electron si está disponible
-      if (dbLocal) {
-        payloads.forEach(p => {
-          dbLocal.prepare('INSERT INTO local_comex_proyeccion_dias').run(p);
-        });
-      }
-
-      await cargarProyecciones();
-    }
-
-    
-    async function cargarClientesYMarcasModal() {
-      const selectCliente = document.getElementById('progCliente');
-      const selectMarca = document.getElementById('progMarca');
-      let clientes = [];
-      let marcas = [];
-
+    async function cargarProgramas() {
       try {
         if (navigator.onLine) {
-          const [resC, resM] = await Promise.all([
-            supabaseClient.from('agronet_clientes').select('nombre').eq('activo', true).order('nombre'),
-            supabaseClient.from('agronet_marcas').select('detalle').eq('activo', true).order('detalle')
-          ]);
-          if (resC.data && resC.data.length > 0) clientes = resC.data.map(c => c.nombre);
-          if (resM.data && resM.data.length > 0) marcas = resM.data.map(m => m.detalle);
+          const { data, error } = await supabaseClient
+            .from('comex_programa_trabajo')
+            .select('*')
+            .eq('temporada', AÑO_ACTUAL)
+            .order('fecha', { ascending: false });
+
+          if (!error && data && data.length > 0) {
+            listaPrograma = data;
+            return;
+          }
         }
       } catch (e) {}
 
-      if (clientes.length === 0 && dbLocal) {
-        clientes = dbLocal.prepare('SELECT * FROM local_agronet_clientes').all().map(c => c.nombre);
-        marcas = dbLocal.prepare('SELECT * FROM local_agronet_marcas').all().map(m => m.detalle);
+      if (dbLocal) {
+        const local = dbLocal.prepare('SELECT * FROM local_comex_programa_trabajo').all();
+        if (local && local.length > 0) {
+          listaPrograma = local;
+        }
       }
-
-      if (clientes.length === 0) clientes = ['CECO S.A.', 'TRES ASES S.A.', 'DON LUIS S.R.L.', 'SAN CAYETANO'];
-      if (marcas.length === 0) marcas = ['CECO', 'TRES ASES', 'DON LUIS', 'SAN CAYETANO'];
-
-      selectCliente.innerHTML = clientes.map(c => `<option value="${c}">${c}</option>`).join('');
-      selectMarca.innerHTML = marcas.map(m => `<option value="${m}">${m}</option>`).join('');
     }
 
     function renderizarTabla11Dias() {
       const trHeader = document.getElementById('theadDias11');
       if (trHeader) {
-        let htmlHeader = '<th class="col-concepto">CONCEPTO / DÍA</th>';
-        fechas11Dias.forEach((f, idx) => {
+        let htmlHeader = '<th class="col-concepto">Concepto</th>';
+        const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+        fechas11Dias.forEach(f => {
           const [y, m, d] = f.split('-');
+          const diaSemana = diasSemana[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
           htmlHeader += `
             <th>
-              <div>FECHA ${idx + 1}</div>
-              <span style="font-size:10.5px; color:#1E6B4C; font-weight:800;">${d}/${m}</span>
+              <div class="th-dia">${diaSemana}</div>
+              <div class="th-fecha">${d}/${m}</div>
             </th>
           `;
         });
@@ -961,14 +1319,14 @@
           const vuelosDia = listaVuelos.filter(v => v.fecha === f || v.fecha_etd1 === f);
 
           if (vuelosDia.length === 0) {
-            celdasVuelos += `<td><span style="color:#94A3B8; font-size:10px;">—</span></td>`;
+            celdasVuelos += `<td><span class="texto-vacio">—</span></td>`;
           } else {
             let htmlV = '';
             vuelosDia.forEach(v => {
               htmlV += `
                 <div class="vuelo-badge-item">
                   <b>${v.destino || '-'}</b> · ${v.vuelo || '-'}<br>
-                  <span>${v.linea_aerea || ''} (${Number(v.pcs || 0)} pallets)</span>
+                  <span>${v.linea_aerea ? `${v.linea_aerea} · ` : ''}${Number(v.pcs || 0)} pallets</span>
                 </div>
               `;
             });
@@ -990,6 +1348,7 @@
         const val = parseFloat(inp.value) || 0;
 
         if (!mapa[f]) {
+          const existente = proyeccionesGuardadas.get(f) || {};
           mapa[f] = {
             temporada: AÑO_ACTUAL,
             fecha: f,
@@ -997,19 +1356,27 @@
             cosecha_kg: 0,
             inspeccion_kg: 0,
             carga_kg: 0,
-            ezeiza_kg: 0
+            ezeiza_kg: 0,
+            updated_at: new Date().toISOString()
           };
+          if (existente.id && !isNaN(Number(existente.id))) {
+            mapa[f].id = Number(existente.id);
+          }
         }
         mapa[f][`${campo}_kg`] = val;
       });
 
       const payloads = Object.values(mapa);
 
-      try {
-        if (navigator.onLine) {
-          await supabaseClient.from('comex_proyeccion_dias').upsert(payloads, { onConflict: 'fecha,usuario' });
-        }
-      } catch (e) {}
+      if (navigator.onLine) {
+        const { data, error } = await supabaseClient
+          .from('comex_proyeccion_dias')
+          .upsert(payloads, { onConflict: 'fecha,usuario' })
+          .select();
+
+        if (error) throw error;
+        if (data) data.forEach(item => proyeccionesGuardadas.set(item.fecha, item));
+      }
 
       if (dbLocal) {
         payloads.forEach(p => dbLocal.prepare('INSERT INTO local_comex_proyeccion_dias').run(p));
@@ -1043,24 +1410,22 @@
         const [y, m, d] = f.split('-');
         return `
           <div class="card-dia-resumen">
-            <div style="font-weight:800; border-bottom:1px solid #E2E8F0; padding-bottom:2px; margin-bottom:4px;">
-              Día ${i + 1} (${d}/${m})
-            </div>
-            <div>Cosecha: <b>${cos.toLocaleString()} kg</b></div>
-            <div>Inspecc: <b>${ins.toLocaleString()} kg</b></div>
-            <div>Carga: <b>${car.toLocaleString()} kg</b></div>
-            <div>Ezeiza: <b>${eze.toLocaleString()} kg</b></div>
+            <div class="cdr-titulo">Día ${i + 1} · ${d}/${m}</div>
+            <div><span class="dot dot-cosecha"></span>Cosecha <b>${cos.toLocaleString()} kg</b></div>
+            <div><span class="dot dot-inspeccion"></span>Inspección <b>${ins.toLocaleString()} kg</b></div>
+            <div><span class="dot dot-carga"></span>Carga <b>${car.toLocaleString()} kg</b></div>
+            <div><span class="dot dot-ezeiza"></span>Ezeiza <b>${eze.toLocaleString()} kg</b></div>
           </div>
         `;
       }).join('');
 
-      document.getElementById('lblTotalesProyBanner').innerText = `${totalKg.toLocaleString()} Kg Proyectados`;
+      document.getElementById('lblTotalesProyBanner').innerText = `${totalKg.toLocaleString()} kg proyectados`;
     }
 
     function renderizarTablaProgramasConsolidados() {
       const tbody = document.getElementById('tbodyProgramasConsolidados');
       if (!Array.isArray(listaPrograma) || listaPrograma.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:30px; color:var(--color-text-secondary);">No hay programas confeccionados aún.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" class="estado-vacio">No hay programas confeccionados aún.</td></tr>';
         return;
       }
 
@@ -1071,12 +1436,13 @@
           grupos[nro] = {
             programa_nro: nro,
             fecha: r.fecha,
+            camion_no: r.camion_no || 'S/D',
             cliente: r.cliente,
+            consignatario: r.consignatario || '-',
             marca: r.marca,
             totalCajas: 0,
             destino: r.destino,
             vuelo: r.vuelo,
-            hora_salida_vuelo: r.hora_salida_vuelo,
             salida_empaque: r.salida_empaque,
             renglones: []
           };
@@ -1089,176 +1455,261 @@
 
       tbody.innerHTML = listaAgrupada.map(g => `
         <tr class="tr-programa-row" onclick="abrirModalDetallePrograma('${g.programa_nro}')">
-          <td><b>${g.fecha}</b></td>
+          <td class="cel-total">${g.fecha}</td>
           <td><span class="badge-pill badge-blue">${g.programa_nro}</span></td>
-          <td><b>${g.cliente}</b></td>
+          <td><span class="badge-pill badge-green">${ICONO_CAMION_SM} ${g.camion_no}</span></td>
+          <td class="cel-total">${g.cliente}</td>
+          <td class="cel-muted">${g.consignatario}</td>
           <td>${g.marca}</td>
-          <td><b style="color:var(--color-adm); font-size:12.5px;">${g.totalCajas.toLocaleString()}</b> pallets</td>
+          <td><span class="cel-total">${g.totalCajas.toLocaleString()}</span> <span class="cel-muted">pallets</span></td>
           <td>${g.destino || '-'}</td>
-          <td><b>${g.vuelo || '-'}</b></td>
-          <td>${g.hora_salida_vuelo || '-'}</td>
-          <td>${g.salida_empaque ? String(g.salida_empaque).replace('T', ' ') : '-'}</td>
-          <td style="text-align:center;" onclick="event.stopPropagation();">
-            <button class="btn-action-main" style="padding:4px 8px; font-size:11px; background:#475569;" onclick="abrirModalDetallePrograma('${g.programa_nro}')">
-              👁️ Abrir Programa
-            </button>
+          <td class="cel-total">${g.vuelo || '-'}</td>
+          <td class="cel-muted">${g.salida_empaque ? String(g.salida_empaque).replace('T', ' ') : '-'}</td>
+          <td style="text-align:right;" onclick="event.stopPropagation();">
+            <div class="acciones-fila">
+              <button class="btn-action-main btn-secondary btn-sm" title="Editar programa completo" onclick="abrirEdicionPrograma('${g.programa_nro}')">Editar</button>
+              <button class="btn-action-main btn-secondary btn-sm" title="Copiar como programa nuevo" onclick="abrirCopiaPrograma('${g.programa_nro}')">Copiar</button>
+            </div>
           </td>
         </tr>
       `).join('');
     }
 
-    // 1. Filtrar Vuelos estrictamente por la Fecha de Empaque
-    function filtrarVuelosPorFechaSeleccionada(fechaEmpaque) {
-      const selVuelo = document.getElementById('progVueloSel');
-      if (!selVuelo) return;
+    // ==========================================
+    // GESTIÓN DEL MODAL DE PROGRAMA (nuevo / editar / copiar)
+    // ==========================================
+    // tipo: 'nuevo' | 'editar' | 'copiar'. En 'editar' se recuerdan el N° y los ids originales
+    // para que al guardar se actualicen, inserten o borren renglones en Supabase.
+    let modoPrograma = { tipo: 'nuevo', programaOriginal: null, idsOriginales: [], usuarioOriginal: null };
 
-      selVuelo.innerHTML = '<option value="">Seleccionar vuelo del día...</option>';
+    // ids de Supabase de los calibres del bloque que se volvió a abrir para editar (así no se duplican)
+    let idsCalibresBloqueEnEdicion = {};
+    let contadorIdTemp = 0;
+
+    function nuevoIdTemp() {
+      contadorIdTemp += 1;
+      return contadorIdTemp;
+    }
+
+    function generarNroPrograma() {
+      return `PRG-${AÑO_ACTUAL}-${Date.now().toString().slice(-4)}`;
+    }
+
+    function renglonesDePrograma(progNro) {
+      return listaPrograma.filter(r => (r.programa_nro || `PRG-${r.fecha}`) === progNro);
+    }
+
+    function aFechaHoraLocal(valor) {
+      if (!valor) return '';
+      return String(valor).replace(' ', 'T').slice(0, 16);
+    }
+
+    // La tabla no guarda el consignatario: se deduce por cliente + destino
+    function deducirConsignatario(cliente, destino) {
+      const lista = clientesConsignatariosMap.get(String(cliente || '').trim()) || [];
+      const encontrado = lista.find(x => x.destino === destino);
+      return encontrado ? encontrado.consignatario : '-';
+    }
+
+    // Reconstruye los bloques del formulario a partir de los renglones guardados (uno por calibre)
+    function bloquesDesdeRenglones(renglones, conservarIds) {
+      const grupos = new Map();
+      renglones.forEach(r => {
+        const consignatario = r.consignatario || deducirConsignatario(r.cliente, r.destino);
+        const clave = [r.camion_no || 'S/D', r.cliente, consignatario, r.marca, r.destino, r.vuelo, r.hora_salida_vuelo].join('|');
+        if (!grupos.has(clave)) {
+          grupos.set(clave, {
+            id_temp: nuevoIdTemp(),
+            camion_no: r.camion_no || 'S/D',
+            cliente: r.cliente,
+            consignatario: consignatario,
+            marca: r.marca,
+            destino: r.destino || '',
+            vuelo: r.vuelo || '-',
+            hora_salida_vuelo: r.hora_salida_vuelo || '',
+            calibres: [],
+            totalCajas: 0
+          });
+        }
+        const bloque = grupos.get(clave);
+        const item = {
+          calibre: r.calibre,
+          cantidad: Number(r.cantidad || 0),
+          tamano: r.tamano || 'STD',
+          nro_pallet: r.nro_pallet || null
+        };
+        if (conservarIds && r.id && !isNaN(Number(r.id))) item.id = Number(r.id);
+        bloque.calibres.push(item);
+        bloque.totalCajas += item.cantidad;
+      });
+      return [...grupos.values()];
+    }
+
+    function prepararModalPrograma({ tipo, fecha, salida, nro, bloques = [], programaOriginal = null, idsOriginales = [], usuarioOriginal = null }) {
+      modoPrograma = { tipo, programaOriginal, idsOriginales, usuarioOriginal };
+      idsCalibresBloqueEnEdicion = {};
+      bufferRenglonesTemp = bloques;
       vueloActivoSeleccionado = null;
-      document.getElementById('progDestino').value = '';
-      document.getElementById('progHoraVuelo').value = '';
+      resetearTodosLosPalletsEnum();
+      document.getElementById('formPrograma').reset();
 
-      if (!fechaEmpaque) {
-        vuelosFiltradosModal = [];
-        actualizarBannerCuposUI(0, 0, 0);
-        return;
-      }
+      document.getElementById('progFecha').value = fecha;
+      document.getElementById('progSalidaEmpaque').value = salida;
+      document.getElementById('progNro').value = nro;
 
-      // Normalizar formato YYYY-MM-DD
-      const fechaLimpia = String(fechaEmpaque).split('T')[0];
+      const camiones = [...new Set(bloques.map(b => b.camion_no))].sort();
+      selectorCamion.nuevo.lista = camiones.length ? camiones : [nombreCamion(1)];
+      document.getElementById('progCamionNo').value = selectorCamion.nuevo.lista[0];
 
-      vuelosFiltradosModal = listaVuelos.filter(v => {
-        const fVuelo = v.fecha ? String(v.fecha).split('T')[0] : '';
-        const fEtd1 = v.fecha_etd1 ? String(v.fecha_etd1).split('T')[0] : '';
-        return fVuelo === fechaLimpia || fEtd1 === fechaLimpia;
-      });
+      const titulos = {
+        nuevo: 'Nuevo programa',
+        editar: `Editar programa ${programaOriginal}`,
+        copiar: `Copia de ${programaOriginal}`
+      };
+      document.getElementById('lblTituloModalPrograma').innerText = titulos[tipo];
+      const badge = document.getElementById('badgeModoPrograma');
+      badge.style.display = tipo === 'nuevo' ? 'none' : '';
+      badge.className = `badge-pill ${tipo === 'editar' ? 'badge-amber' : 'badge-blue'}`;
+      badge.innerText = tipo === 'editar' ? 'Edición' : 'Copia';
+      document.getElementById('btnGuardarProgramaCompleto').innerText = tipo === 'editar' ? 'Guardar cambios' : 'Guardar programa';
+      ponerAyudaBloque();
 
-      if (vuelosFiltradosModal.length === 0) {
-        selVuelo.innerHTML = `<option value="">⚠️ Sin vuelos cargados para el ${fechaLimpia}</option>`;
-        actualizarBannerCuposUI(0, 0, 0);
-        return;
-      }
+      renderizarSelectorCamiones('nuevo');
+      filtrarVuelosPorFechaSeleccionada(fecha);
+      actualizarTablaBufferPreview();
 
-      vuelosFiltradosModal.forEach((v, i) => {
-        const capacidadPcs = Number(v.pcs || 0);
-        selVuelo.innerHTML += `
-          <option value="${i}">
-            ${v.vuelo || 'S/V'} | Destino: ${v.destino || '-'} | Capacidad: ${capacidadPcs} Pallets (${v.linea_aerea || ''})
-          </option>
-        `;
-      });
-
-      actualizarBannerCuposUI(0, 0, 0);
+      const modal = document.getElementById('modalPrograma');
+      modal.classList.add('show');
+      modal.style.display = 'flex';
     }
 
-    // 2. Control del Vuelo Seleccionado y cálculo de pallets usados
-    function vueloSeleccionadoCambio(valIndex) {
-      if (valIndex === "") {
-        vueloActivoSeleccionado = null;
-        document.getElementById('progDestino').value = '';
-        document.getElementById('progHoraVuelo').value = '';
-        actualizarBannerCuposUI(0, 0, 0);
-        return;
-      }
-
-      vueloActivoSeleccionado = vuelosFiltradosModal[parseInt(valIndex, 10)];
-      if (vueloActivoSeleccionado) {
-        document.getElementById('progDestino').value = vueloActivoSeleccionado.destino || '';
-        document.getElementById('progHoraVuelo').value = `${vueloActivoSeleccionado.fecha_etd1 || ''} ${vueloActivoSeleccionado.hora_etd1 || ''}`.trim() || 'S/D';
-        recalcularCupoVueloActual();
-      }
-    }
-
-    // 3. Recalcular cupos (Capacidad Total vs Pallets Usados en Programas y Buffer)
-    function recalcularCupoVueloActual() {
-      if (!vueloActivoSeleccionado) {
-        actualizarBannerCuposUI(0, 0, 0);
-        return;
-      }
-
-      const totalCapacidadPcs = Number(vueloActivoSeleccionado.pcs || 0);
-
-      // Pallets ya guardados en la base de datos para este vuelo
-      let palletsGuardados = 0;
-      if (Array.isArray(listaPrograma)) {
-        palletsGuardados = listaPrograma
-          .filter(p => p.vuelo === vueloActivoSeleccionado.vuelo && String(p.fecha).split('T')[0] === String(document.getElementById('progFecha').value).split('T')[0])
-          .reduce((acc, r) => acc + Number(r.cantidad || 0), 0);
-      }
-
-      // Pallets asignados en el buffer temporal de este modal
-      let palletsEnBuffer = 0;
-      bufferRenglonesTemp
-        .filter(b => b.vuelo === vueloActivoSeleccionado.vuelo)
-        .forEach(b => { palletsEnBuffer += b.totalCajas; });
-
-      // Pallets tipeados en las celdas del bloque actual
-      let palletsTipeadosActual = 0;
-      document.querySelectorAll('.input-cant-calibre').forEach(inp => {
-        palletsTipeadosActual += (parseInt(inp.value, 10) || 0);
-      });
-
-      const totalUsado = palletsGuardados + palletsEnBuffer + palletsTipeadosActual;
-      const disponibles = totalCapacidadPcs - totalUsado;
-
-      actualizarBannerCuposUI(totalCapacidadPcs, totalUsado, disponibles);
-    }
-
-    function actualizarBannerCuposUI(max, usados, disponibles) {
-      document.getElementById('lblVueloPcsMax').innerText = max;
-      document.getElementById('lblVueloPcsUsados').innerText = usados;
-      
-      const elDisp = document.getElementById('lblVueloPcsRestantes');
-      elDisp.innerText = disponibles;
-
-      const banner = document.getElementById('bannerCupoVuelo');
-      if (disponibles < 0) {
-        banner.classList.add('alerta');
-      } else {
-        banner.classList.remove('alerta');
-      }
-    }
-
-    function validarCupoPalletsEnVivo() {
-      if (!vueloActivoSeleccionado) return;
-      recalcularCupoVueloActual();
-
-      const elDisp = document.getElementById('lblVueloPcsRestantes');
-      const disponibles = parseInt(elDisp.innerText, 10);
-
-      if (disponibles < 0) {
-        mostrarToast(`⚠️ Superaste la capacidad de pallets de este vuelo por ${Math.abs(disponibles)} pallet(s).`, 'error');
-      }
-    }
-
-    // Apertura Blindada del Modal
     function abrirModalNuevoPrograma() {
       try {
-        const modal = document.getElementById('modalPrograma');
-        if (!modal) return alert("Error: No se encontró el modal en el DOM.");
-
-        bufferRenglonesTemp = [];
-        vueloActivoSeleccionado = null;
-        
-        const form = document.getElementById('formPrograma');
-        if (form) form.reset();
-
         const hoy = fechas11Dias[0] || new Date().toISOString().split('T')[0];
-        document.getElementById('progFecha').value = hoy;
-        document.getElementById('progSalidaEmpaque').value = `${hoy}T08:00`;
-        document.getElementById('progNro').value = `PRG-${AÑO_ACTUAL}-${Date.now().toString().slice(-4)}`;
-
-        // Filtrar automáticamente los vuelos para la fecha inicial
-        filtrarVuelosPorFechaSeleccionada(hoy);
-
-        actualizarTablaBufferPreview();
-
-        modal.classList.add('show');
-        modal.style.display = 'flex';
-
+        prepararModalPrograma({ tipo: 'nuevo', fecha: hoy, salida: `${hoy}T08:00`, nro: generarNroPrograma() });
       } catch (err) {
-        console.error("Error abriendo modal:", err);
-        mostrarToast("Ocurrió un error al abrir el formulario: " + err.message, 'error');
+        mostrarToast("Error al abrir el formulario: " + err.message, 'error');
       }
+    }
+
+    function abrirEdicionPrograma(progNro) {
+      const renglones = renglonesDePrograma(progNro);
+      if (renglones.length === 0) return;
+      cerrarModalDetalle();
+
+      const r0 = renglones[0];
+      prepararModalPrograma({
+        tipo: 'editar',
+        fecha: String(r0.fecha || '').split('T')[0],
+        salida: aFechaHoraLocal(r0.salida_empaque),
+        nro: progNro,
+        bloques: bloquesDesdeRenglones(renglones, true),
+        programaOriginal: progNro,
+        idsOriginales: renglones.map(r => Number(r.id)).filter(id => !isNaN(id) && id > 0),
+        usuarioOriginal: r0.usuario || null
+      });
+    }
+
+    function abrirCopiaPrograma(progNro) {
+      const renglones = renglonesDePrograma(progNro);
+      if (renglones.length === 0) return;
+      cerrarModalDetalle();
+
+      const hoy = fechas11Dias[0] || new Date().toISOString().split('T')[0];
+      const horaSalida = aFechaHoraLocal(renglones[0].salida_empaque).split('T')[1] || '08:00';
+      prepararModalPrograma({
+        tipo: 'copiar',
+        fecha: hoy,
+        salida: `${hoy}T${horaSalida}`,
+        nro: generarNroPrograma(),
+        bloques: bloquesDesdeRenglones(renglones, false),
+        programaOriginal: progNro
+      });
+      mostrarToast('Copia lista: ajustá la fecha, elegí el vuelo y usá "Aplicar a todos los bloques".', 'info');
+    }
+
+    function ponerAyudaBloque(texto) {
+      const el = document.getElementById('lblAyudaBloque');
+      if (!el) return;
+      el.innerText = texto || 'Completá el bloque y añadilo; podés cargar hasta 8.';
+      el.classList.toggle('ayuda-activa', Boolean(texto));
+    }
+
+    // ==========================================
+    // SELECTOR DE CAMIÓN (botones)
+    // ==========================================
+    const ICONO_CAMION = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="1"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>';
+    const ICONO_CAMION_SM = ICONO_CAMION.replace('<svg ', '<svg class="ico-sm" ');
+    const MAX_CAMIONES = 8;
+
+    const selectorCamion = {
+      nuevo: { contenedor: 'selectorCamiones', input: 'progCamionNo', lista: [] }
+    };
+
+    function nombreCamion(n) {
+      return `CAMIÓN ${String(n).padStart(2, '0')}`;
+    }
+
+    function palletsPorCamion() {
+      const conteo = {};
+      bufferRenglonesTemp.forEach(b => {
+        if (!conteo[b.camion_no]) conteo[b.camion_no] = { pallets: 0, bloques: 0 };
+        conteo[b.camion_no].pallets += b.totalCajas;
+        conteo[b.camion_no].bloques += 1;
+      });
+      return conteo;
+    }
+
+    function renderizarSelectorCamiones(ctxKey) {
+      const ctx = selectorCamion[ctxKey];
+      const cont = document.getElementById(ctx.contenedor);
+      if (!cont) return;
+
+      const actual = document.getElementById(ctx.input).value;
+      const conteo = palletsPorCamion();
+
+      const lblDestino = document.getElementById('lblCamionDestinoBloque');
+      if (lblDestino) lblDestino.innerText = actual || 'S/D';
+
+      let html = ctx.lista.map((nombre, idx) => {
+        const info = conteo[nombre];
+        const meta = info ? `${info.pallets} pallets · ${info.bloques} bloque${info.bloques === 1 ? '' : 's'}` : 'Vacío';
+        return `
+          <button type="button" class="camion-opt ${nombre === actual ? 'selected' : ''}" onclick="seleccionarCamion('${ctxKey}', ${idx})">
+            <span class="camion-ico">${ICONO_CAMION}</span>
+            <span>
+              <span class="camion-nombre">${nombre}</span>
+              <span class="camion-meta">${meta}</span>
+            </span>
+          </button>
+        `;
+      }).join('');
+
+      html += `
+        <button type="button" class="camion-opt camion-add" onclick="agregarCamion('${ctxKey}')" ${ctx.lista.length >= MAX_CAMIONES ? 'disabled' : ''}>
+          <span class="camion-ico">＋</span>
+          <span class="camion-nombre">Otro camión</span>
+        </button>
+      `;
+      cont.innerHTML = html;
+    }
+
+    function seleccionarCamion(ctxKey, idx) {
+      const ctx = selectorCamion[ctxKey];
+      document.getElementById(ctx.input).value = ctx.lista[idx];
+      renderizarSelectorCamiones(ctxKey);
+    }
+
+    function agregarCamion(ctxKey) {
+      const ctx = selectorCamion[ctxKey];
+      if (ctx.lista.length >= MAX_CAMIONES) return;
+
+      const numeros = ctx.lista.map(n => parseInt(String(n).replace(/\D/g, ''), 10)).filter(n => !isNaN(n));
+      const siguiente = nombreCamion((numeros.length ? Math.max(...numeros) : 0) + 1);
+
+      ctx.lista.push(siguiente);
+      document.getElementById(ctx.input).value = siguiente;
+      renderizarSelectorCamiones(ctxKey);
     }
 
     function cerrarModalPrograma() {
@@ -1269,19 +1720,26 @@
       }
     }
 
+    function hayBloqueSinAñadir() {
+      const conCantidad = [...document.querySelectorAll('.input-cant-calibre')].some(i => (parseInt(i.value, 10) || 0) > 0);
+      return conCantidad || Object.keys(idsCalibresBloqueEnEdicion).length > 0;
+    }
+
     function agregarBloqueAlBufferTemporal() {
       if (bufferRenglonesTemp.length >= 8) {
         return mostrarToast("Límite de 8 bloques alcanzado para este programa.", 'info');
       }
 
       if (!vueloActivoSeleccionado) {
-        return mostrarToast("Seleccioná un vuelo válido para este día antes de añadir.", 'error');
+        return mostrarToast("Seleccioná un vuelo del día.", 'error');
       }
 
       const cliente = document.getElementById('progCliente').value;
       const marca = document.getElementById('progMarca').value;
       const destino = document.getElementById('progDestino').value;
       const horaSalidaVuelo = document.getElementById('progHoraVuelo').value;
+      const consignatario = document.getElementById('progConsignatarioSeleccionado').value || '-';
+      const camionNo = document.getElementById('progCamionNo').value.trim() || 'S/D';
 
       if (!cliente || !marca) {
         return mostrarToast("Seleccioná Cliente y Marca antes de añadir el bloque.", 'error');
@@ -1294,17 +1752,19 @@
       calibres.forEach(c => {
         const inCant = document.querySelector(`.input-cant-calibre[data-calibre="${c}"]`);
         const inTam = document.querySelector(`input[data-tamano="${c}"]`);
-        const inPal = document.querySelector(`input[data-pallet="${c}"]`);
         const cant = parseInt(inCant.value, 10) || 0;
+        const palletsArray = enumlistPalletsPorCalibre[c] || [];
 
         if (cant > 0) {
           totalCajasBloque += cant;
-          itemsCalibres.push({
+          const item = {
             calibre: c,
             cantidad: cant,
             tamano: (inTam ? inTam.value : 'STD') || 'STD',
-            nro_pallet: inPal ? inPal.value : null
-          });
+            nro_pallet: palletsArray.length > 0 ? palletsArray.join(', ') : null
+          };
+          if (idsCalibresBloqueEnEdicion[c]) item.id = idsCalibresBloqueEnEdicion[c];
+          itemsCalibres.push(item);
         }
       });
 
@@ -1312,7 +1772,6 @@
         return mostrarToast("Ingresá la cantidad de pallets en al menos un calibre.", 'error');
       }
 
-      // Validar que no supere el límite de PCS del vuelo
       const capacidadVuelo = Number(vueloActivoSeleccionado.pcs || 0);
       let palletsYaAsignados = bufferRenglonesTemp
         .filter(b => b.vuelo === vueloActivoSeleccionado.vuelo)
@@ -1320,12 +1779,14 @@
 
       if (capacidadVuelo > 0 && (palletsYaAsignados + totalCajasBloque) > capacidadVuelo) {
         const exceso = (palletsYaAsignados + totalCajasBloque) - capacidadVuelo;
-        return mostrarToast(`No podés superar los ${capacidadVuelo} pallets (PCS) del vuelo. Exceso: ${exceso}`, 'error');
+        return mostrarToast(`Supera los ${capacidadVuelo} pallets (PCS) del vuelo por ${exceso}.`, 'error');
       }
 
       bufferRenglonesTemp.push({
-        id_temp: Date.now(),
+        id_temp: nuevoIdTemp(),
+        camion_no: camionNo,
         cliente: cliente,
+        consignatario: consignatario,
         marca: marca,
         destino: destino,
         vuelo: vueloActivoSeleccionado.vuelo || '-',
@@ -1335,53 +1796,184 @@
       });
 
       document.querySelectorAll('.input-cant-calibre').forEach(inp => inp.value = '');
-      document.querySelectorAll('input[data-pallet]').forEach(inp => inp.value = '');
+      resetearTodosLosPalletsEnum();
+      idsCalibresBloqueEnEdicion = {};
+      ponerAyudaBloque();
 
       recalcularCupoVueloActual();
       actualizarTablaBufferPreview();
-      mostrarToast(`Bloque #${bufferRenglonesTemp.length} añadido correctamente.`);
+      renderizarSelectorCamiones('nuevo');
+      mostrarToast(`Bloque #${bufferRenglonesTemp.length} añadido a ${camionNo}.`);
     }
 
     function quitarBloqueBuffer(idTemp) {
       bufferRenglonesTemp = bufferRenglonesTemp.filter(b => b.id_temp !== idTemp);
       recalcularCupoVueloActual();
       actualizarTablaBufferPreview();
+      renderizarSelectorCamiones('nuevo');
+    }
+
+    function asegurarOpcion(selectId, valor) {
+      const sel = document.getElementById(selectId);
+      if (!valor) return;
+      if (![...sel.options].some(o => o.value === valor)) sel.add(new Option(valor, valor));
+      sel.value = valor;
+    }
+
+    function seleccionarChipConsignatario(consignatario, destino) {
+      const chips = [...document.querySelectorAll('#contenedorChipsConsignatarios .chip-consignatario')];
+      const chip = chips.find(c => consignatario && consignatario !== '-' && c.innerText.trim().startsWith(consignatario))
+        || chips.find(c => destino && c.innerText.trim().endsWith(`· ${destino}`));
+      if (chip) chip.click();
+      else document.getElementById('progConsignatarioSeleccionado').value = consignatario || '';
+    }
+
+    // Devuelve un bloque ya añadido al formulario de la izquierda para modificarlo
+    function editarBloqueBuffer(idTemp) {
+      const b = bufferRenglonesTemp.find(x => x.id_temp === idTemp);
+      if (!b) return;
+
+      if (hayBloqueSinAñadir() && !confirm('Hay un bloque en el formulario que todavía no se añadió. Si seguís, se descarta. ¿Continuar?')) {
+        return;
+      }
+
+      bufferRenglonesTemp = bufferRenglonesTemp.filter(x => x !== b);
+
+      if (!selectorCamion.nuevo.lista.includes(b.camion_no)) selectorCamion.nuevo.lista.push(b.camion_no);
+      document.getElementById('progCamionNo').value = b.camion_no;
+
+      asegurarOpcion('progCliente', b.cliente);
+      clienteSeleccionadoCambio(b.cliente);
+      seleccionarChipConsignatario(b.consignatario, b.destino);
+      asegurarOpcion('progMarca', b.marca);
+
+      const selVuelo = document.getElementById('progVueloSel');
+      const idxVuelo = vuelosFiltradosModal.findIndex(v => (v.vuelo || '-') === b.vuelo);
+      selVuelo.value = idxVuelo >= 0 ? String(idxVuelo) : '';
+      vueloSeleccionadoCambio(selVuelo.value);
+      document.getElementById('progDestino').value = b.destino;
+
+      document.querySelectorAll('.input-cant-calibre').forEach(inp => inp.value = '');
+      resetearTodosLosPalletsEnum();
+      idsCalibresBloqueEnEdicion = {};
+      const calibresFueraDeGrilla = [];
+      b.calibres.forEach(c => {
+        if (!(c.calibre in enumlistPalletsPorCalibre)) {
+          calibresFueraDeGrilla.push(c.calibre);
+          return;
+        }
+        enumlistPalletsPorCalibre[c.calibre] = c.nro_pallet ? String(c.nro_pallet).split(',').map(s => s.trim()).filter(Boolean) : [];
+        renderizarTagsPallets(c.calibre);
+        // La cantidad se pone después de los tags porque renderizarTagsPallets la recalcula
+        document.querySelector(`.input-cant-calibre[data-calibre="${c.calibre}"]`).value = c.cantidad;
+        const inTam = document.querySelector(`input[data-tamano="${c.calibre}"]`);
+        if (inTam) inTam.value = c.tamano || 'STD';
+        if (c.id) idsCalibresBloqueEnEdicion[c.calibre] = c.id;
+      });
+
+      renderizarSelectorCamiones('nuevo');
+      recalcularCupoVueloActual();
+      actualizarTablaBufferPreview();
+      ponerAyudaBloque(`Editando bloque de ${b.cliente} (${b.camion_no}): modificalo y volvé a añadirlo.`);
+
+      if (idxVuelo < 0) mostrarToast(`El vuelo ${b.vuelo} no corresponde a la fecha elegida: seleccioná otro.`, 'info');
+      if (calibresFueraDeGrilla.length) mostrarToast(`Calibres ${calibresFueraDeGrilla.join(', ')} no están en la grilla y no se pueden editar acá.`, 'error');
+    }
+
+    function vueloDisponibleEnFecha(vuelo) {
+      return vuelosFiltradosModal.some(v => (v.vuelo || '-') === vuelo);
+    }
+
+    function aplicarVueloATodosLosBloques() {
+      if (!vueloActivoSeleccionado) {
+        return mostrarToast('Elegí primero el vuelo en "Vuelo del día".', 'error');
+      }
+      if (bufferRenglonesTemp.length === 0) return;
+
+      const capacidad = Number(vueloActivoSeleccionado.pcs || 0);
+      const totalBloques = bufferRenglonesTemp.reduce((acc, b) => acc + b.totalCajas, 0);
+      const ocupado = palletsGuardadosEnVuelo(vueloActivoSeleccionado.vuelo, document.getElementById('progFecha').value);
+      if (capacidad > 0 && ocupado + totalBloques > capacidad) {
+        return mostrarToast(`No entra: el vuelo tiene ${capacidad - ocupado} pallets libres y los bloques suman ${totalBloques}.`, 'error');
+      }
+
+      const hora = document.getElementById('progHoraVuelo').value;
+      bufferRenglonesTemp.forEach(b => {
+        b.vuelo = vueloActivoSeleccionado.vuelo || '-';
+        b.hora_salida_vuelo = hora;
+      });
+
+      recalcularCupoVueloActual();
+      actualizarTablaBufferPreview();
+      mostrarToast(`Vuelo ${vueloActivoSeleccionado.vuelo} aplicado a ${bufferRenglonesTemp.length} bloque(s).`);
     }
 
     function actualizarTablaBufferPreview() {
-      const tbody = document.querySelector('#tablaBufferPreview tbody');
-      
+      const lista = document.getElementById('listaBloquesBuffer');
+
       const elCant = document.getElementById('lblCantBuffer');
       if (elCant) elCant.innerText = bufferRenglonesTemp.length;
 
       const elCont = document.getElementById('lblContadorBloques');
-      if (elCont) elCont.innerText = `Bloque temporal ${bufferRenglonesTemp.length + 1} de 8`;
+      if (elCont) elCont.innerText = `${bufferRenglonesTemp.length} de 8 bloques`;
 
       const sumaCajas = bufferRenglonesTemp.reduce((acc, b) => acc + b.totalCajas, 0);
       const elTotal = document.getElementById('lblTotalCajasBuffer');
       if (elTotal) elTotal.innerText = sumaCajas.toLocaleString();
 
-      if (!tbody) return;
+      const btnAplicar = document.getElementById('btnAplicarVueloTodos');
+      if (btnAplicar) btnAplicar.style.display = bufferRenglonesTemp.length > 0 ? '' : 'none';
+
+      if (!lista) return;
 
       if (bufferRenglonesTemp.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:12px; color:var(--color-text-secondary);">No agregaste bloques aún.</td></tr>';
+        lista.innerHTML = '<div class="estado-vacio">Todavía no agregaste bloques.</div>';
         return;
       }
 
-      tbody.innerHTML = bufferRenglonesTemp.map((b, idx) => {
-        const resumenCalibres = b.calibres.map(c => `${c.calibre}: ${c.cantidad}`).join(' | ');
+      lista.innerHTML = bufferRenglonesTemp.map((b, idx) => {
+        const resumenCalibres = b.calibres.map(c => `${c.calibre}: ${c.cantidad}`).join(' · ');
+        const vueloOk = vueloDisponibleEnFecha(b.vuelo);
         return `
-          <tr>
-            <td><b>#${idx + 1}</b></td>
-            <td><b>${b.cliente}</b></td>
-            <td>${b.marca}</td>
-            <td>${b.destino} (${b.vuelo})</td>
-            <td style="font-size:10px; color:#1E6B4C;">${resumenCalibres}</td>
-            <td><b>${b.totalCajas}</b></td>
-            <td><button type="button" onclick="quitarBloqueBuffer(${b.id_temp})" style="background:none; border:none; color:#DC2626; cursor:pointer; font-weight:800;">✕</button></td>
-          </tr>
+          <div class="bloque-item ${vueloOk ? '' : 'alerta'}" onclick="editarBloqueBuffer(${b.id_temp})" title="Clic para editar este bloque">
+            <div class="bloque-item-top">
+              <span class="bloque-num">#${idx + 1}</span>
+              <span class="badge-pill badge-green">${ICONO_CAMION_SM} ${b.camion_no}</span>
+              <b>${b.cliente}</b>
+            </div>
+            <div class="bloque-item-pallets">
+              <b>${b.totalCajas}</b><small>pl</small>
+              <button type="button" class="btn-quitar" title="Quitar bloque" onclick="event.stopPropagation(); quitarBloqueBuffer(${b.id_temp})">✕</button>
+            </div>
+            <div class="bloque-item-sub">${b.marca} · ${b.destino} · ${b.vuelo}</div>
+            <div class="bloque-item-sub">${resumenCalibres}</div>
+            ${vueloOk ? '' : '<div class="bloque-item-aviso">Vuelo de otra fecha: cambialo</div>'}
+          </div>
         `;
       }).join('');
+    }
+
+    // Semana ISO, igual que en Vuelos
+    function calcularNumeroSemana(fechaStr) {
+      if (!fechaStr) return null;
+      const [year, month, day] = String(fechaStr).slice(0, 10).split('-').map(Number);
+      const d = new Date(Date.UTC(year, month - 1, day));
+      if (isNaN(d)) return null;
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    }
+
+    // Si todavía no se creó la columna consignatario en Supabase, reintenta sin ella
+    async function conReintentoSinConsignatario(filas, enviar) {
+      const res = await enviar(filas);
+      const msg = String(res.error?.message || '');
+      if (res.error && msg.includes('consignatario')) {
+        console.warn('Supabase sin columna consignatario: se guarda sin ella. Ejecutá supabase/migraciones/001_programa_consignatario.sql');
+        return enviar(filas.map(({ consignatario, ...resto }) => resto));
+      }
+      return res;
     }
 
     async function confirmarYGuardarProgramaCompleto() {
@@ -1389,23 +1981,44 @@
         return mostrarToast("Debés añadir al menos un bloque al programa.", 'error');
       }
 
+      const progNro = document.getElementById('progNro').value.trim();
+      const fecha = document.getElementById('progFecha').value;
+      const salidaEmpaque = document.getElementById('progSalidaEmpaque').value || null;
+      const esEdicion = modoPrograma.tipo === 'editar';
+
+      if (!progNro || !fecha) {
+        return mostrarToast("Completá el N° de programa y la fecha de empaque.", 'error');
+      }
+
+      const nroEnUso = listaPrograma.some(r => r.programa_nro === progNro && !(esEdicion && r.programa_nro === modoPrograma.programaOriginal));
+      if (nroEnUso) {
+        return mostrarToast(`Ya existe un programa con el N° ${progNro}.`, 'error');
+      }
+
+      if (hayBloqueSinAñadir() && !confirm('Hay un bloque en el formulario que no se añadió. ¿Guardar el programa sin él?')) {
+        return;
+      }
+
+      const bloquesVueloRaro = bufferRenglonesTemp.filter(b => !vueloDisponibleEnFecha(b.vuelo)).length;
+      if (bloquesVueloRaro > 0 && listaVuelos.length > 0 &&
+          !confirm(`${bloquesVueloRaro} bloque(s) tienen un vuelo que no sale el ${fecha}. ¿Guardar igual?`)) {
+        return;
+      }
+
       const btn = document.getElementById('btnGuardarProgramaCompleto');
       btn.disabled = true;
       btn.innerText = "Guardando...";
 
-      const progNro = document.getElementById('progNro').value.trim();
-      const fecha = document.getElementById('progFecha').value;
-      const salidaEmpaque = document.getElementById('progSalidaEmpaque').value || null;
-
       const renglonesDefinitivos = [];
       bufferRenglonesTemp.forEach(bloque => {
         bloque.calibres.forEach(c => {
-          renglonesDefinitivos.push({
+          const renglon = {
             temporada: AÑO_ACTUAL,
-            semana: 1,
+            semana: calcularNumeroSemana(fecha) || 1,
             programa_nro: progNro,
             fecha: fecha,
             cliente: bloque.cliente,
+            consignatario: bloque.consignatario && bloque.consignatario !== '-' ? bloque.consignatario : null,
             marca: bloque.marca,
             calibre: c.calibre,
             cantidad: c.cantidad,
@@ -1415,117 +2028,124 @@
             vuelo: bloque.vuelo || null,
             hora_salida_vuelo: bloque.hora_salida_vuelo || null,
             salida_empaque: salidaEmpaque,
-            usuario: sesionUsuario.usuario
-          });
+            camion_no: bloque.camion_no || 'S/D',
+            usuario: (esEdicion && modoPrograma.usuarioOriginal) || sesionUsuario.usuario
+          };
+          if (esEdicion && c.id) renglon.id = c.id;
+          renglonesDefinitivos.push(renglon);
         });
       });
 
-      let guardadoEnNube = false;
+      // En edición: los que conservan id se actualizan, los nuevos se insertan y los quitados se borran
+      const existentes = renglonesDefinitivos.filter(r => r.id);
+      const nuevos = renglonesDefinitivos.filter(r => !r.id);
+      const idsConservados = new Set(existentes.map(r => r.id));
+      const idsABorrar = esEdicion ? modoPrograma.idsOriginales.filter(id => !idsConservados.has(id)) : [];
 
-      // 1. Guardar en Supabase (Omitiendo ID para que PostgreSQL aplique su identity)
+      let guardadoEnNube = false;
+      let bajasEnNube = idsABorrar.length === 0;
+
       try {
         if (navigator.onLine) {
-          const { data, error } = await supabaseClient
-            .from('comex_programa_trabajo')
-            .insert(renglonesDefinitivos)
-            .select();
+          if (existentes.length > 0) {
+            const { error } = await conReintentoSinConsignatario(existentes, filas => supabaseClient
+              .from('comex_programa_trabajo')
+              .upsert(filas, { onConflict: 'id' }));
+            if (error) throw error;
+          }
 
-          if (error) throw error;
-
-          if (data && data.length > 0) {
-            guardadoEnNube = true;
-            // Asignamos el ID numérico real devuelto por la base
-            data.forEach((itemInsertado, i) => {
-              renglonesDefinitivos[i].id = itemInsertado.id;
+          if (nuevos.length > 0) {
+            const { data, error } = await conReintentoSinConsignatario(nuevos, filas => supabaseClient
+              .from('comex_programa_trabajo')
+              .insert(filas)
+              .select());
+            if (error) throw error;
+            (data || []).forEach((itemInsertado, i) => {
+              if (nuevos[i]) nuevos[i].id = itemInsertado.id;
             });
           }
+
+          if (idsABorrar.length > 0) {
+            const { error } = await supabaseClient
+              .from('comex_programa_trabajo')
+              .delete()
+              .in('id', idsABorrar);
+            if (error) throw error;
+            bajasEnNube = true;
+          }
+
+          guardadoEnNube = true;
         }
       } catch (errNube) {
-        console.warn("Fallo subida a Supabase, quedará guardado localmente:", errNube.message);
+        console.warn("Fallo subida a Supabase, se guarda local:", errNube.message);
       }
 
-      // 2. Guardar en la base de datos local (con flag sincronizado según corresponda)
       if (dbLocal) {
+        if (esEdicion) {
+          dbLocal.prepare('DELETE FROM local_comex_programa_trabajo WHERE programa_nro = ?').run(modoPrograma.programaOriginal);
+        }
         renglonesDefinitivos.forEach(r => {
           dbLocal.prepare('INSERT INTO local_comex_programa_trabajo').run({
             ...r,
             sincronizado: guardadoEnNube ? 1 : 0
           });
         });
+        if (!bajasEnNube) {
+          idsABorrar.forEach(id => {
+            dbLocal.prepare('INSERT INTO local_eliminados').run({ tabla: 'comex_programa_trabajo', registro_id: id });
+          });
+        }
       }
 
-      // 3. Fusionar en memoria para que se muestre en pantalla de inmediato
+      if (esEdicion) {
+        listaPrograma = listaPrograma.filter(r => (r.programa_nro || `PRG-${r.fecha}`) !== modoPrograma.programaOriginal);
+      }
       listaPrograma = [...renglonesDefinitivos, ...listaPrograma];
 
       cerrarModalPrograma();
       renderizarTablaProgramasConsolidados();
-      mostrarToast(`✅ Programa ${progNro} guardado (${renglonesDefinitivos.length} renglones).`);
+
+      const accion = esEdicion ? 'actualizado' : 'guardado';
+      const aviso = guardadoEnNube ? '' : ' Sin conexión: se subirá al sincronizar.';
+      mostrarToast(`Programa ${progNro} ${accion} (${renglonesDefinitivos.length} renglones).${aviso}`, guardadoEnNube ? 'success' : 'info');
 
       btn.disabled = false;
-      btn.innerText = "Guardar Programa Completo";
+      btn.innerText = esEdicion ? 'Guardar cambios' : 'Guardar programa';
     }
 
-    async function cargarProgramas() {
-      try {
-        // En primer lugar intentamos consultar a Supabase
-        if (navigator.onLine) {
-          const { data, error } = await supabaseClient
-            .from('comex_programa_trabajo')
-            .select('*')
-            .eq('temporada', AÑO_ACTUAL)
-            .order('fecha', { ascending: false });
-
-          if (!error && data && data.length > 0) {
-            listaPrograma = data;
-            return;
-          }
-        }
-      } catch (e) {
-        console.warn("Fallo lectura de Supabase, recurriendo a local:", e.message);
-      }
-
-      // Si falló o no devolvió datos, protegemos la vista usando los datos locales
-      if (dbLocal) {
-        const local = dbLocal.prepare('SELECT * FROM local_comex_programa_trabajo').all();
-        if (local && local.length > 0) {
-          listaPrograma = local;
-        }
-      }
-    }
-
-
+    // ==========================================
+    // VISOR DEL PROGRAMA
+    // ==========================================
     function abrirModalDetallePrograma(progNro) {
-      const renglones = listaPrograma.filter(r => (r.programa_nro || `PRG-${r.fecha}`) === progNro);
+      const renglones = renglonesDePrograma(progNro);
       if (renglones.length === 0) return;
 
       programaSeleccionadoActual = {
         programa_nro: progNro,
         fecha: renglones[0].fecha,
+        camion_no: renglones[0].camion_no || 'S/D',
         salida_empaque: renglones[0].salida_empaque,
         renglones: renglones
       };
 
-      document.getElementById('lblDetalleProgTitulo').innerText = `Programa de Trabajo: ${progNro}`;
-      document.getElementById('lblDetalleProgSub').innerText = `Fecha: ${renglones[0].fecha} · Salida de Empaque: ${renglones[0].salida_empaque ? String(renglones[0].salida_empaque).replace('T', ' ') : 'S/D'}`;
+      const camiones = [...new Set(renglones.map(r => r.camion_no || 'S/D'))];
+      const totalPallets = renglones.reduce((acc, r) => acc + Number(r.cantidad || 0), 0);
+      document.getElementById('lblDetalleProgTitulo').innerText = `Programa ${progNro}`;
+      document.getElementById('lblDetalleProgSub').innerText = `Fecha ${renglones[0].fecha} · ${camiones.length} camión(es) · ${totalPallets} pallets · Salida ${renglones[0].salida_empaque ? String(renglones[0].salida_empaque).replace('T', ' ') : 'S/D'}`;
 
       const tbody = document.getElementById('tbodyRenglonesDetalle');
       tbody.innerHTML = renglones.map(r => `
         <tr>
-          <td><b>${r.cliente}</b></td>
+          <td><span class="badge-pill badge-green">${ICONO_CAMION_SM} ${r.camion_no || 'S/D'}</span></td>
+          <td class="cel-total">${r.cliente}</td>
           <td>${r.marca}</td>
-          <td style="font-weight:900; color:var(--color-adm);">${r.calibre}</td>
-          <td><b>${Number(r.cantidad || 0).toLocaleString()}</b></td>
-          <td>${r.tamano || 'STD'}</td>
-          <td>${r.nro_pallet || '-'}</td>
+          <td class="cel-total">${r.calibre}</td>
+          <td class="cel-total">${Number(r.cantidad || 0).toLocaleString()}</td>
+          <td class="cel-muted">${r.tamano || 'STD'}</td>
+          <td style="white-space:normal; min-width:140px; color:#1D4ED8; font-size:11.5px;">${r.nro_pallet || '-'}</td>
           <td>${r.destino || '-'}</td>
-          <td><b>${r.vuelo || '-'}</b></td>
-          <td>${r.hora_salida_vuelo || '-'}</td>
-          <td>${r.salida_empaque ? String(r.salida_empaque).replace('T', ' ') : '-'}</td>
-          <td style="text-align:center;">
-            <button class="btn-action-main" style="padding:4px 8px; font-size:10px; background:#D97706;" onclick="editarCantidadRenglonRapida('${r.id || r.calibre}')">
-              ✏️ Modificar
-            </button>
-          </td>
+          <td class="cel-total">${r.vuelo || '-'}</td>
+          <td class="cel-muted">${r.salida_empaque ? String(r.salida_empaque).replace('T', ' ') : '-'}</td>
         </tr>
       `).join('');
 
@@ -1542,46 +2162,28 @@
       }
     }
 
-    async function editarCantidadRenglonRapida(identificador) {
-      const r = programaSeleccionadoActual.renglones.find(x => (x.id && String(x.id) === String(identificador)) || x.calibre === identificador);
-      if (!r) return;
-
-      const nuevaCant = prompt(`Modificar pallets para ${r.cliente} (${r.marca}) Calibre ${r.calibre}:`, r.cantidad);
-      if (nuevaCant === null) return;
-      const cantNum = parseInt(nuevaCant, 10);
-      if (isNaN(cantNum) || cantNum < 0) return mostrarToast("Cantidad inválida.", 'error');
-
-      try {
-        if (r.id && navigator.onLine) {
-          await supabaseClient.from('comex_programa_trabajo').update({ cantidad: cantNum }).eq('id', r.id);
-        }
-        r.cantidad = cantNum;
-        abrirModalDetallePrograma(programaSeleccionadoActual.programa_nro);
-        renderizarTablaProgramasConsolidados();
-        mostrarToast("Cantidad actualizada.");
-      } catch (err) {
-        mostrarToast("Error actualizando: " + err.message, 'error');
-      }
-    }
-
+    // ==========================================
+    // EXPORTACIÓN A PDF
+    // ==========================================
     function exportarProgramaAPDF() {
       if (!programaSeleccionadoActual) return;
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF('p', 'mm', 'a4');
+      const doc = new jsPDF('l', 'mm', 'a4'); // Horizontal para dar espacio a camión y pallets
 
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(16);
+      doc.setFontSize(15);
       doc.setTextColor(18, 63, 44);
-      doc.text("PROGRAMA DE TRABAJO", 105, 16, { align: 'center' });
+      doc.text("PROGRAMA DE TRABAJO Y DESPACHO DE EMPAQUE", 148, 14, { align: 'center' });
 
-      doc.setFontSize(10);
+      doc.setFontSize(9.5);
       doc.setTextColor(85, 99, 88);
-      doc.text(`PROGRAMA N°: ${programaSeleccionadoActual.programa_nro}`, 14, 25);
-      doc.text(`FECHA DE EMPAQUE: ${programaSeleccionadoActual.fecha}`, 105, 25, { align: 'center' });
-      doc.text(`SALIDA EMPAQUE: ${programaSeleccionadoActual.salida_empaque ? String(programaSeleccionadoActual.salida_empaque).replace('T', ' ') : 'S/D'}`, 196, 25, { align: 'right' });
+      doc.text(`PROGRAMA N°: ${programaSeleccionadoActual.programa_nro}`, 14, 22);
+      doc.text(`FECHA DE EMPAQUE: ${programaSeleccionadoActual.fecha}`, 148, 22, { align: 'center' });
+      doc.text(`SALIDA EMPAQUE: ${programaSeleccionadoActual.salida_empaque ? String(programaSeleccionadoActual.salida_empaque).replace('T', ' ') : 'S/D'}`, 282, 22, { align: 'right' });
 
-      const columnas = ["CLIENTE", "MARCA", "CALIBRE", "CANT", "TAMAÑO", "N° PALLET", "DESTINO", "VUELO", "SALIDA DE"];
+      const columnas = ["CAMIÓN", "CLIENTE", "MARCA", "CALIBRE", "CANT", "TAMAÑO", "N° PALLET(S)", "DESTINO", "VUELO", "HORA VUELO"];
       const filas = programaSeleccionadoActual.renglones.map(r => [
+        r.camion_no || 'S/D',
         r.cliente,
         r.marca,
         r.calibre,
@@ -1594,29 +2196,33 @@
       ]);
 
       doc.autoTable({
-        startY: 30,
+        startY: 26,
         head: [columnas],
         body: filas,
         theme: 'grid',
-        headStyles: { fillColor: [30, 107, 76], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
-        styles: { fontSize: 8.5, cellPadding: 3, halign: 'center' },
+        headStyles: { fillColor: [30, 107, 76], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
+        styles: { fontSize: 8, cellPadding: 2.5, halign: 'center' },
         columnStyles: {
           0: { halign: 'left', fontStyle: 'bold' },
-          1: { halign: 'left' }
+          1: { halign: 'left', fontStyle: 'bold' },
+          6: { halign: 'left' }
         }
       });
 
       const totalCajas = programaSeleccionadoActual.renglones.reduce((a, b) => a + Number(b.cantidad || 0), 0);
       const finalY = doc.lastAutoTable.finalY + 8;
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(11);
+      doc.setFontSize(10.5);
       doc.setTextColor(18, 63, 44);
-      doc.text(`TOTAL PALLETS PROGRAMADAS: ${totalCajas.toLocaleString()} PCS`, 14, finalY);
+      doc.text(`TOTAL PALLETS PROGRAMADOS: ${totalCajas.toLocaleString()} PCS`, 14, finalY);
 
       doc.save(`Programa_Trabajo_${programaSeleccionadoActual.programa_nro}.pdf`);
       mostrarToast("PDF generado con éxito.");
     }
 
+    // ==========================================
+    // SINCRONIZACIÓN
+    // ==========================================
     async function sincronizar() {
       const btn = document.getElementById('btnSync');
       btn.classList.add('rotating');
@@ -1624,8 +2230,7 @@
 
       try {
         if (servSinc && typeof servSinc.sincronizarTodoElSistema === 'function') {
-          const res = await servSinc.sincronizarTodoElSistema(AÑO_ACTUAL, sesionUsuario.usuario);
-          console.log('Sincronización Electron completada:', res);
+          await servSinc.sincronizarTodoElSistema(AÑO_ACTUAL, sesionUsuario.usuario);
         } else {
           await guardarTodaLaProyeccionSilenciosa();
         }
@@ -1633,7 +2238,8 @@
         await Promise.all([
           cargarVuelos(),
           cargarProyecciones(),
-          cargarProgramas()
+          cargarProgramas(),
+          cargarClientesConsignatariosYMarcas()
         ]);
 
         renderizarTabla11Dias();

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Despacho y Vuelos COMEX · CECO S.A.</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
   
   <!-- CDN Supabase y jsPDF -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -539,6 +539,35 @@
       font-family: 'Montserrat', sans-serif;
     }
 
+
+    /* Modal de despacho: todas las secciones visibles */
+    .modal-vuelo { max-width: 1120px; }
+    .form-vuelo-shell { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+    .vuelo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px 20px; align-items: start; }
+    .vuelo-col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+    .form-bloque {
+      border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 12px;
+      display: flex; flex-direction: column; gap: 10px; background: var(--color-surface);
+    }
+    .form-bloque:focus-within { border-color: #A9C9B8; box-shadow: 0 0 0 3px rgba(30, 107, 76, 0.06); }
+    .form-bloque-titulo { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--color-text); }
+    .form-bloque-num {
+      width: 20px; height: 20px; border-radius: 50%; background: var(--color-adm-soft); color: var(--color-adm-dark);
+      font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;
+    }
+    .form-bloque-opc { font-size: 11px; font-weight: 500; color: var(--color-text-muted); }
+    .grid-campos { display: grid; gap: 8px; }
+    .grid-campos.g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-campos.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-campos.g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .grid-campos.g4-fechas { grid-template-columns: 1.35fr 1fr 1.35fr 1fr; }
+    .modal-vuelo .badge-semana-calculada { height: 34px; padding: 0 10px; font-family: inherit; font-weight: 600; }
+    .modal-vuelo input[readonly] { background: var(--color-surface-2); color: var(--color-text-secondary); box-shadow: none; }
+    @media (max-width: 900px) {
+      .vuelo-grid { grid-template-columns: 1fr; }
+      .grid-campos.g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
     @media (max-width: 860px) {
       body { overflow-y: auto; }
       .system-datetime { display: none; }
@@ -564,6 +593,7 @@
       .panel-detail { min-height: 450px; }
     }
   </style>
+  <link rel="stylesheet" href="../estilos/comex-ui.css">
 </head>
 <body>
 
@@ -682,163 +712,161 @@
     </div>
   </main>
 
-  <!-- Modal Completo con 4 Pestañas Operativas -->
+  <!-- Modal de Despacho: las 4 secciones visibles a la vez -->
   <div class="modal-overlay" id="modalVuelo">
-    <div class="modal-box">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <h3 class="modal-title" id="lblModalTitulo">Registrar Despacho Aéreo</h3>
-        <span id="lblRegistroIdBadge" class="badge-tag tag-azul">—</span>
+    <div class="modal-box modal-vuelo">
+      <div class="modal-head">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <h3 class="modal-title" id="lblModalTitulo">Registrar Despacho Aéreo</h3>
+          <span id="lblRegistroIdBadge" class="badge-tag tag-azul">—</span>
+        </div>
+        <button type="button" class="btn-icon-close" onclick="cerrarModalVuelo()" title="Cerrar">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
 
-      <div class="form-tabs-nav">
-        <button type="button" class="form-tab-btn active" onclick="cambiarTabModal(0, this)">1. Carga y Destino</button>
-        <button type="button" class="form-tab-btn" onclick="cambiarTabModal(1, this)">2. Tramo 1 (Salida)</button>
-        <button type="button" class="form-tab-btn" onclick="cambiarTabModal(2, this)">3. Tramo 2 (Conexión)</button>
-        <button type="button" class="form-tab-btn" onclick="cambiarTabModal(3, this)">4. Tarifas y Costos</button>
-      </div>
-
-      <form id="formVuelo" onsubmit="guardarFormularioVuelo(event)">
-        <div class="modal-body">
+      <form id="formVuelo" onsubmit="guardarFormularioVuelo(event)" class="form-vuelo-shell">
+        <div class="modal-body vuelo-grid">
           <input type="hidden" id="txtRegistroId" />
 
-          <!-- PESTAÑA 1 -->
-          <div class="form-tab-pane active" id="modalTab0">
-            <div class="modal-row-grid">
-              <div class="modal-group">
-                <label>Fecha de Despacho *</label>
-                <input type="date" id="txtFecha" class="modal-input" required onchange="actualizarSemanaSegunFecha(this.value)" />
-              </div>
-              <div class="modal-group">
-                <label>Semana Calculada</label>
-                <div class="badge-semana-calculada">
-                  📅 Semana: <span id="lblSemanaCalculada">—</span>
+          <!-- Columna izquierda -->
+          <div class="vuelo-col">
+            <section class="form-bloque" id="modalTab0">
+              <div class="form-bloque-titulo"><span class="form-bloque-num">1</span>Carga y destino</div>
+              <div class="grid-campos g3">
+                <div class="modal-group">
+                  <label>Fecha de despacho *</label>
+                  <input type="date" id="txtFecha" class="modal-input" required onchange="actualizarSemanaSegunFecha(this.value)" />
                 </div>
-                <input type="hidden" id="valSemanaCalculada" />
+                <div class="modal-group">
+                  <label>Semana</label>
+                  <div class="badge-semana-calculada">Semana <span id="lblSemanaCalculada">—</span></div>
+                  <input type="hidden" id="valSemanaCalculada" />
+                </div>
+                <div class="modal-group">
+                  <label>Fecha de ingreso</label>
+                  <input type="date" id="txtIngresoFecha" class="modal-input" />
+                </div>
               </div>
-              <div class="modal-group">
-                <label>Fecha de Ingreso</label>
-                <input type="date" id="txtIngresoFecha" class="modal-input" />
+              <div class="grid-campos" style="grid-template-columns: 1fr 2fr;">
+                <div class="modal-group">
+                  <label>Cliente</label>
+                  <input type="text" class="modal-input" value="CECO" readonly />
+                </div>
+                <div class="modal-group">
+                  <label>Destino (aeropuerto / ciudad) *</label>
+                  <input type="text" id="txtDestino" class="modal-input" required placeholder="Ej: PVG / CAN / MIA" />
+                </div>
               </div>
-            </div>
+              <div class="grid-campos g4">
+                <div class="modal-group">
+                  <label>Pallets (PCS) *</label>
+                  <input type="number" id="txtPcs" class="modal-input" required min="0" placeholder="5" />
+                </div>
+                <div class="modal-group">
+                  <label>Kilos totales *</label>
+                  <input type="number" id="txtKilos" class="modal-input" required min="0" placeholder="3250" />
+                </div>
+                <div class="modal-group">
+                  <label>Kilos netos</label>
+                  <input type="number" id="txtNeta" class="modal-input" min="0" placeholder="Opcional" />
+                </div>
+                <div class="modal-group">
+                  <label>ULDs</label>
+                  <input type="number" id="txtUld" class="modal-input" min="0" placeholder="0" />
+                </div>
+              </div>
+            </section>
 
-            <div class="modal-row-grid" style="grid-template-columns: 1fr 2fr;">
-              <div class="modal-group">
-                <label>Cliente</label>
-                <input type="text" class="modal-input" value="CECO" readonly style="background: #F1F5F9; font-weight:800; color:#1E3A8A;" />
+            <section class="form-bloque" id="modalTab3">
+              <div class="form-bloque-titulo"><span class="form-bloque-num">4</span>Tarifas y observaciones</div>
+              <div class="grid-campos g2">
+                <div class="modal-group">
+                  <label>Tarifa por kilo</label>
+                  <input type="text" id="txtTarifa" class="modal-input" placeholder="Ej: USD 3,10" />
+                </div>
+                <div class="modal-group">
+                  <label>Gastos fijos</label>
+                  <input type="text" id="txtFijos" class="modal-input" placeholder="Ej: USD 174,00" />
+                </div>
               </div>
               <div class="modal-group">
-                <label>Destino (Aeropuerto / Ciudad) *</label>
-                <input type="text" id="txtDestino" class="modal-input" required placeholder="Ej: PVG / CAN / MIA" />
+                <label>Observaciones</label>
+                <textarea id="txtInfo" class="modal-input" rows="2" placeholder="Notas internas sobre este despacho..."></textarea>
               </div>
-            </div>
-
-            <div class="modal-row-grid">
-              <div class="modal-group">
-                <label>Pallets (PCS) *</label>
-                <input type="number" id="txtPcs" class="modal-input" required min="0" placeholder="Ej: 5" />
-              </div>
-              <div class="modal-group">
-                <label>Kilos Totales *</label>
-                <input type="number" id="txtKilos" class="modal-input" required min="0" placeholder="Ej: 3250" />
-              </div>
-              <div class="modal-group">
-                <label>Kilos Netos</label>
-                <input type="number" id="txtNeta" class="modal-input" min="0" placeholder="Opcional" />
-              </div>
-              <div class="modal-group">
-                <label>ULDs / Contenedores</label>
-                <input type="number" id="txtUld" class="modal-input" min="0" placeholder="Cantidad ULD" />
-              </div>
-            </div>
+            </section>
           </div>
 
-          <!-- PESTAÑA 2 -->
-          <div class="form-tab-pane" id="modalTab1">
-            <div class="modal-row-grid">
-              <div class="modal-group">
-                <label>Línea Aérea *</label>
-                <input type="text" id="txtLineaAerea" class="modal-input" required placeholder="Ej: LUFTHANSA, DELTA, EMIRATES" />
+          <!-- Columna derecha -->
+          <div class="vuelo-col">
+            <section class="form-bloque" id="modalTab1">
+              <div class="form-bloque-titulo"><span class="form-bloque-num">2</span>Tramo 1 · Salida</div>
+              <div class="grid-campos g3">
+                <div class="modal-group">
+                  <label>Línea aérea *</label>
+                  <input type="text" id="txtLineaAerea" class="modal-input" required placeholder="Ej: LUFTHANSA" />
+                </div>
+                <div class="modal-group">
+                  <label>Guía aérea (AWB) *</label>
+                  <input type="text" id="txtAwb" class="modal-input" required placeholder="020-03123046" />
+                </div>
+                <div class="modal-group">
+                  <label>N° de vuelo *</label>
+                  <input type="text" id="txtVuelo" class="modal-input" required placeholder="LH 511" />
+                </div>
               </div>
-              <div class="modal-group">
-                <label>Nº de Guía Aérea (AWB) *</label>
-                <input type="text" id="txtAwb" class="modal-input" required placeholder="Ej: 020-03123046" />
+              <div class="grid-campos g4 g4-fechas">
+                <div class="modal-group">
+                  <label>ETD 1 · fecha</label>
+                  <input type="date" id="txtFechaEtd1" class="modal-input" />
+                </div>
+                <div class="modal-group">
+                  <label>ETD 1 · hora</label>
+                  <input type="time" id="txtHoraEtd1" class="modal-input" />
+                </div>
+                <div class="modal-group">
+                  <label>ETA 1 · fecha</label>
+                  <input type="date" id="txtFechaEta1" class="modal-input" />
+                </div>
+                <div class="modal-group">
+                  <label>ETA 1 · hora</label>
+                  <input type="time" id="txtHoraEta1" class="modal-input" />
+                </div>
               </div>
-              <div class="modal-group">
-                <label>Nº de Vuelo Salida *</label>
-                <input type="text" id="txtVuelo" class="modal-input" required placeholder="Ej: LH 511 / DL 114" />
-              </div>
-            </div>
+            </section>
 
-            <div class="modal-row-grid">
-              <div class="modal-group">
-                <label>Fecha ETD 1 (Salida)</label>
-                <input type="date" id="txtFechaEtd1" class="modal-input" />
+            <section class="form-bloque" id="modalTab2">
+              <div class="form-bloque-titulo"><span class="form-bloque-num">3</span>Tramo 2 · Conexión <span class="form-bloque-opc">opcional</span></div>
+              <div class="grid-campos g3">
+                <div class="modal-group">
+                  <label>Vuelo de conexión</label>
+                  <input type="text" id="txtVueloCnx" class="modal-input" placeholder="Ej: LH8400" />
+                </div>
+                <div class="modal-group">
+                  <label>ETD 2 · fecha</label>
+                  <input type="date" id="txtFechaEtd2" class="modal-input" />
+                </div>
+                <div class="modal-group">
+                  <label>ETD 2 · hora</label>
+                  <input type="time" id="txtHoraEtd2" class="modal-input" />
+                </div>
               </div>
-              <div class="modal-group">
-                <label>Hora ETD 1</label>
-                <input type="time" id="txtHoraEtd1" class="modal-input" />
+              <div class="grid-campos g3">
+                <div class="modal-group"></div>
+                <div class="modal-group">
+                  <label>ETA 2 · fecha</label>
+                  <input type="date" id="txtFechaEta2" class="modal-input" />
+                </div>
+                <div class="modal-group">
+                  <label>ETA 2 · hora</label>
+                  <input type="time" id="txtHoraEta2" class="modal-input" />
+                </div>
               </div>
-              <div class="modal-group">
-                <label>Fecha ETA 1 (Llegada)</label>
-                <input type="date" id="txtFechaEta1" class="modal-input" />
-              </div>
-              <div class="modal-group">
-                <label>Hora ETA 1</label>
-                <input type="time" id="txtHoraEta1" class="modal-input" />
-              </div>
-            </div>
-          </div>
-
-          <!-- PESTAÑA 3 -->
-          <div class="form-tab-pane" id="modalTab2">
-            <div class="modal-row-grid">
-              <div class="modal-group">
-                <label>Vuelo de Conexión (CNX)</label>
-                <input type="text" id="txtVueloCnx" class="modal-input" placeholder="Ej: LH8400 / DL281 / EK304" />
-              </div>
-              <div class="modal-group">
-                <label>Fecha ETD 2 (Salida CNX)</label>
-                <input type="date" id="txtFechaEtd2" class="modal-input" />
-              </div>
-              <div class="modal-group">
-                <label>Hora ETD 2</label>
-                <input type="time" id="txtHoraEtd2" class="modal-input" />
-              </div>
-            </div>
-
-            <div class="modal-row-grid">
-              <div class="modal-group">
-                <label>Fecha ETA 2 (Destino Final)</label>
-                <input type="date" id="txtFechaEta2" class="modal-input" />
-              </div>
-              <div class="modal-group">
-                <label>Hora ETA 2</label>
-                <input type="time" id="txtHoraEta2" class="modal-input" />
-              </div>
-            </div>
-          </div>
-
-          <!-- PESTAÑA 4 -->
-          <div class="form-tab-pane" id="modalTab3">
-            <div class="modal-row-grid">
-              <div class="modal-group">
-                <label>Tarifa por Kilo</label>
-                <input type="text" id="txtTarifa" class="modal-input" placeholder="Ej: USD 3,10" />
-              </div>
-              <div class="modal-group">
-                <label>Gastos Fijos</label>
-                <input type="text" id="txtFijos" class="modal-input" placeholder="Ej: USD 174,00" />
-              </div>
-            </div>
-
-            <div class="modal-group">
-              <label>Información Adicional / Observaciones</label>
-              <textarea id="txtInfo" class="modal-input" rows="3" placeholder="Notas internas sobre este despacho..."></textarea>
-            </div>
+            </section>
           </div>
         </div>
 
-        <div class="modal-footer">
+        <div class="modal-foot">
           <button type="button" class="modal-btn cancel" onclick="cerrarModalVuelo()">Cancelar</button>
           <button type="submit" class="modal-btn save" id="btnGuardarModal">Guardar Despacho</button>
         </div>
@@ -967,12 +995,10 @@
       }
     }
 
-    function cambiarTabModal(idx, btn) {
-      document.querySelectorAll('.form-tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.form-tab-pane').forEach(p => p.classList.remove('active'));
-
-      btn.classList.add('active');
-      document.getElementById(`modalTab${idx}`).classList.add('active');
+    // Las secciones del modal ahora están siempre visibles: solo lleva el scroll al inicio
+    function cambiarTabModal(idx) {
+      const seccion = document.getElementById(`modalTab${idx}`);
+      if (seccion) seccion.scrollIntoView({ block: 'nearest' });
     }
 
     // Cargar Vuelos: ADM ve todo; COMEX ve sus registros
