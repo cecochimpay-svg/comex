@@ -5,234 +5,513 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src https://*.supabase.co; object-src 'none'; base-uri 'none'; form-action 'none';" />
   <title>Acceso COMEX · CECO S.A.</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="seguridad/seguridad.js" data-pagina="login"></script>
 
   <style>
     :root {
-      --color-bg: #F3F5F1;
-      --color-surface: #FFFFFF;
-      --color-plant: #1E6B4C;
-      --color-plant-dark: #123F2C;
-      --color-plant-soft: rgba(30, 107, 76, 0.08);
-      --color-text: #1B231D;
-      --color-text-secondary: #6B7280;
-      --color-border: #E5E7EB;
-      --radius-card: 22px;
-      --radius-input: 12px;
+      --brand: #1E6B4C;
+      --brand-600: #17573D;
+      --brand-800: #0E3A28;
+      --brand-950: #07201A;
+      --accent: #E8B44C;
+      --mint: #7FD1A8;
+      --ink: #0F1A15;
+      --ink-2: #4A5A52;
+      --ink-3: #8A978F;
+      --line: #DDE4E0;
+      --surface: #FFFFFF;
+      --bg: #F5F7F6;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     * { box-sizing: border-box; }
     html, body {
-      margin: 0;
-      height: 100%;
-      font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
-      background: var(--color-bg);
-      color: var(--color-text);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      margin: 0; height: 100%;
+      font-family: 'Inter', 'Roboto', -apple-system, 'Segoe UI', sans-serif;
+      background: var(--bg); color: var(--ink);
       -webkit-font-smoothing: antialiased;
-      background-image:
-        radial-gradient(1200px 600px at 10% -10%, rgba(30, 107, 76, 0.10), transparent 60%),
-        radial-gradient(900px 500px at 110% 110%, rgba(30, 107, 76, 0.08), transparent 60%);
+      overflow: hidden;
     }
 
-    body { width: 100%; }
+    .escena { display: grid; grid-template-columns: 1.25fr 1fr; height: 100vh; }
 
-    .login-container {
-      width: 100%;
-      max-width: 420px;
-      padding: 20px;
+    /* ===== PANEL HERO CON MAPA DE RUTAS ===== */
+    .hero {
+      position: relative; overflow: hidden;
+      background: radial-gradient(1100px 700px at 30% 60%, #135339 0%, var(--brand-950) 70%);
+      color: #E7F1EC;
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding: 44px 52px;
     }
+    #mapaRutas { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .hero > *:not(canvas) { position: relative; z-index: 1; }
 
-    .login-card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-card);
-      padding: 40px 34px 34px;
-      box-shadow: 0 1px 3px rgba(16, 26, 21, 0.06), 0 24px 48px -16px rgba(16, 26, 21, 0.18);
-      text-align: center;
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px; align-self: flex-start;
+      padding: 7px 14px; border-radius: 999px;
+      background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(8px);
+      font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      animation: subir .8s var(--ease) both;
     }
+    .hero-badge i { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 0 rgba(127, 209, 168, 0.7); animation: pulso 2s infinite; }
+    @keyframes pulso { 70% { box-shadow: 0 0 0 9px rgba(127, 209, 168, 0); } 100% { box-shadow: 0 0 0 0 rgba(127, 209, 168, 0); } }
 
-    .marca-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
-      border-radius: 20px;
-      background: var(--color-plant-soft);
-      color: var(--color-plant-dark);
-      font-family: 'Montserrat', sans-serif;
-      font-size: 12px;
-      font-weight: 800;
-      margin-bottom: 14px;
+    .hero-titulo { max-width: 520px; }
+    .hero-titulo h1 {
+      margin: 0 0 14px; font-size: 44px; line-height: 1.06; font-weight: 800; letter-spacing: -0.035em;
+      animation: subir .9s .1s var(--ease) both;
     }
-
-    .login-title {
-      font-family: 'Montserrat', sans-serif;
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--color-plant-dark);
-      margin: 0 0 6px;
+    .hero-titulo h1 span {
+      background: linear-gradient(90deg, var(--accent), var(--mint));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
     }
+    .hero-titulo p { margin: 0; font-size: 15px; line-height: 1.6; color: rgba(231, 241, 236, 0.72); max-width: 440px; animation: subir .9s .2s var(--ease) both; }
 
-    .login-subtitle {
-      font-size: 13px;
-      color: var(--color-text-secondary);
-      margin: 0 0 24px;
+    .hero-chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 26px; animation: subir .9s .3s var(--ease) both; }
+    .hero-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 13px; border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      font-size: 12.5px; font-weight: 500; color: rgba(231, 241, 236, 0.9);
     }
+    .hero-chip svg { color: var(--mint); }
 
-    .form-group {
-      text-align: left;
-      margin-bottom: 16px;
+    .hero-pie { display: flex; justify-content: space-between; font-size: 11.5px; color: rgba(231, 241, 236, 0.45); }
+    #tablero { font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
+
+    @keyframes subir { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+    /* ===== PANEL DE ACCESO ===== */
+    .acceso {
+      display: flex; align-items: center; justify-content: center;
+      padding: 40px; position: relative;
+      background:
+        radial-gradient(600px 300px at 100% 0%, rgba(30, 107, 76, 0.07), transparent 70%),
+        var(--bg);
     }
+    .tarjeta { width: 100%; max-width: 380px; animation: subir .8s .15s var(--ease) both; }
+    .tarjeta.sacudir { animation: sacudir .45s ease; }
+    @keyframes sacudir { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
 
-    .form-group label {
-      display: block;
-      font-size: 12.5px;
-      font-weight: 600;
-      color: var(--color-text);
-      margin-bottom: 6px;
-    }
+    .logo { height: 54px; max-width: 180px; object-fit: contain; display: block; margin-bottom: 30px; }
+    .tarjeta h2 { margin: 0 0 6px; font-size: 26px; font-weight: 700; letter-spacing: -0.025em; }
+    .tarjeta .sub { margin: 0 0 30px; font-size: 14px; color: var(--ink-2); }
 
+    .campo { margin-bottom: 18px; }
+    .campo label { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-2); margin-bottom: 7px; }
+    .control { position: relative; }
+    .control > svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-3); transition: color .2s; pointer-events: none; }
     .form-input {
-      width: 100%;
-      padding: 12px 16px;
-      font-size: 14px;
-      font-weight: 500;
-      font-family: inherit;
-      border-radius: var(--radius-input);
-      border: 1px solid #CBD5D0;
-      background: #FFFFFF;
-      color: var(--color-text);
-      outline: none;
-      transition: all 0.2s ease;
+      width: 100%; height: 48px; padding: 0 44px 0 42px;
+      font-size: 14.5px; font-weight: 500; font-family: inherit; color: var(--ink);
+      border-radius: 12px; border: 1px solid var(--line); background: var(--surface);
+      outline: none; box-shadow: 0 1px 2px rgba(16, 32, 24, 0.04);
+      transition: border-color .2s, box-shadow .25s var(--ease);
     }
-
-    .form-input:focus {
-      border-color: var(--color-plant);
-      background: #FFFFFF;
-      box-shadow: 0 0 0 4px var(--color-plant-soft);
+    .form-input::placeholder { color: #B3BDB7; font-weight: 400; }
+    .form-input:hover { border-color: #C5CFC9; }
+    .form-input:focus { border-color: var(--brand); box-shadow: 0 0 0 4px rgba(30, 107, 76, 0.14); }
+    .control:focus-within > svg { color: var(--brand); }
+    .ver-clave {
+      position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+      width: 36px; height: 36px; border: none; background: transparent; border-radius: 9px;
+      color: var(--ink-3); cursor: pointer; display: grid; place-items: center;
     }
+    .ver-clave:hover { background: #F0F3F1; color: var(--ink); }
+    .aviso-mayus { display: none; margin-top: 7px; font-size: 11.5px; font-weight: 500; color: #9A5B00; }
+    .aviso-mayus.on { display: block; }
 
     .btn-login {
-      width: 100%;
-      padding: 13px;
-      background: var(--color-plant);
-      color: #FFFFFF;
-      border: none;
-      border-radius: var(--radius-input);
-      font-size: 14px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      box-shadow: 0 1px 2px rgba(16, 26, 21, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-      transition: background 0.15s ease, transform 0.05s ease;
-      margin-top: 8px;
+      position: relative; overflow: hidden;
+      width: 100%; height: 50px; margin-top: 8px;
+      border: none; border-radius: 12px; cursor: pointer;
+      background: linear-gradient(180deg, #23795A, var(--brand) 55%, var(--brand-600));
+      color: #FFFFFF; font-family: inherit; font-size: 14.5px; font-weight: 600; letter-spacing: 0.01em;
+      box-shadow: 0 10px 24px -10px rgba(30, 107, 76, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: transform .2s var(--ease), box-shadow .25s, filter .2s;
     }
-
-    .btn-login:hover { background: var(--color-plant-dark); }
-    .btn-login:active { transform: translateY(1px); }
-
-    .btn-login:disabled { opacity: 0.6; cursor: wait; }
+    .btn-login::after {
+      content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
+      background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+      transform: skewX(-20deg);
+    }
+    .btn-login:hover { transform: translateY(-1px); box-shadow: 0 16px 30px -12px rgba(30, 107, 76, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.18); }
+    .btn-login:hover::after { animation: barrido .9s var(--ease); }
+    @keyframes barrido { to { left: 130%; } }
+    .btn-login:active { transform: scale(0.985); }
+    .btn-login:disabled { cursor: progress; filter: saturate(0.85); }
+    .btn-login .flecha { transition: transform .25s var(--ease); }
+    .btn-login:hover .flecha { transform: translateX(4px); }
+    .spinner { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid rgba(255, 255, 255, 0.35); border-top-color: #FFFFFF; animation: girar .7s linear infinite; display: none; }
+    .btn-login.cargando .spinner { display: block; }
+    .btn-login.cargando .flecha { display: none; }
+    @keyframes girar { to { transform: rotate(360deg); } }
 
     .alert-box {
-      margin-top: 16px;
-      padding: 10px 14px;
-      border-radius: var(--radius-input);
-      font-size: 12px;
-      font-weight: 600;
-      display: none;
-      text-align: center;
-      background: #FEF2F2;
-      border: 1px solid #FCA5A5;
-      color: #991B1B;
+      display: none; align-items: flex-start; gap: 10px;
+      margin-top: 16px; padding: 12px 14px; border-radius: 12px;
+      background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B;
+      font-size: 13px; font-weight: 500;
+      animation: subir .35s var(--ease) both;
     }
+    .alert-box.on { display: flex; }
+    .alert-box.info { background: #F0F7F3; border-color: #A7D3BC; color: var(--brand-800); }
 
-    .alert-box.info {
-      background: #F0F7F3;
-      border-color: #A7D3BC;
-      color: var(--color-plant-dark);
+    .pie-acceso { margin-top: 34px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-3); }
+    .pie-acceso svg { color: var(--brand); flex-shrink: 0; }
+
+    /* ===== TRANSICIÓN DE INGRESO ===== */
+    .bienvenida {
+      position: fixed; inset: 0; z-index: 50;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+      background: radial-gradient(1200px 600px at 50% 40%, #134A35 0%, var(--brand-950) 70%);
+      color: #FFFFFF;
+      clip-path: circle(0% at var(--cx, 50%) var(--cy, 50%));
+      transition: clip-path .9s var(--ease);
+      pointer-events: none;
     }
+    .bienvenida.on { clip-path: circle(150% at var(--cx, 50%) var(--cy, 50%)); pointer-events: auto; }
+    .bienvenida .check {
+      width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center;
+      background: rgba(127, 209, 168, 0.15); border: 1px solid rgba(127, 209, 168, 0.4); color: var(--mint);
+    }
+    .bienvenida .check path { stroke-dasharray: 30; stroke-dashoffset: 30; }
+    .bienvenida.on .check path { animation: trazar .6s .45s var(--ease) forwards; }
+    @keyframes trazar { to { stroke-dashoffset: 0; } }
+    .bienvenida h3 { margin: 6px 0 0; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; opacity: 0; }
+    .bienvenida p { margin: 0; font-size: 13.5px; color: rgba(231, 241, 236, 0.7); opacity: 0; }
+    .bienvenida.on h3 { animation: subir .6s .55s var(--ease) forwards; }
+    .bienvenida.on p { animation: subir .6s .7s var(--ease) forwards; }
 
-    .login-pie {
-      margin-top: 18px;
-      font-size: 11px;
-      color: var(--color-text-secondary);
+    @media (max-width: 920px) {
+      .escena { grid-template-columns: 1fr; }
+      .hero { display: none; }
     }
   </style>
 </head>
 <body>
 
-  <div class="login-container">
-    <div class="login-card">
-      <img src="logo.png" alt="Logo CECO S.A." style="max-height: 52px; max-width: 170px; object-fit: contain; margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto;" onerror="this.style.display='none'">
-      <div class="marca-badge">CECO S.A. · COMERCIO EXTERIOR</div>
-      <h2 class="login-title">Sistema de Gestión COMEX</h2>
-      <p class="login-subtitle">Ingresá tu usuario y contraseña asignada.</p>
+  <div class="escena">
+    <section class="hero" aria-hidden="true">
+      <canvas id="mapaRutas"></canvas>
 
-      <form id="formLogin" onsubmit="iniciarSesion(event)">
-        <div class="form-group">
-          <label for="inputUsuario">Usuario</label>
-          <input type="text" id="inputUsuario" class="form-input" placeholder="Ej: jlopez" required autofocus autocomplete="username" />
+      <div class="hero-badge"><i></i>CECO S.A. · Comercio exterior</div>
+
+      <div class="hero-titulo">
+        <h1>Cada programa,<br><span>bajo control.</span></h1>
+        <p>Programas de trabajo, camiones, consignatarios y vuelos de exportación en un solo lugar, sincronizados en tiempo real.</p>
+        <div class="hero-chips">
+          <div class="hero-chip"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>Programa de trabajo</div>
+          <div class="hero-chip"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>PDF para compartir</div>
+          <div class="hero-chip"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>Vuelos por consignatario</div>
+        </div>
+      </div>
+
+      <div class="hero-pie">
+        <span>© <span id="anioPie"></span> CECO S.A.</span>
+        <span id="tablero">EZE → —</span>
+      </div>
+    </section>
+
+    <section class="acceso">
+      <div class="tarjeta" id="tarjeta">
+        <img src="logo.png" alt="Logo CECO S.A." class="logo" onerror="this.style.display='none'">
+        <h2>Bienvenido</h2>
+        <p class="sub">Ingresá con tu usuario y contraseña asignados.</p>
+
+        <form id="formLogin" onsubmit="iniciarSesion(event)">
+          <div class="campo">
+            <label for="inputUsuario">Usuario</label>
+            <div class="control">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+              <input type="text" id="inputUsuario" class="form-input" placeholder="Ej: jlopez" required autofocus autocomplete="username" />
+            </div>
+          </div>
+
+          <div class="campo">
+            <label for="inputClave">Contraseña</label>
+            <div class="control">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+              <input type="password" id="inputClave" class="form-input" placeholder="••••••••" required autocomplete="current-password" />
+              <button type="button" class="ver-clave" id="btnVerClave" onclick="alternarClave()" title="Mostrar contraseña">
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="aviso-mayus" id="avisoMayus">Bloq Mayús está activado</div>
+          </div>
+
+          <button type="submit" class="btn-login" id="btnLogin">
+            <span class="spinner"></span>
+            <span id="btnLoginTxt">Ingresar al sistema</span>
+            <svg class="flecha" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </form>
+
+        <div id="alertaMsg" class="alert-box" role="alert">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:1px;"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          <span id="alertaTxt"></span>
         </div>
 
-        <div class="form-group">
-          <label for="inputClave">Contraseña</label>
-          <input type="password" id="inputClave" class="form-input" placeholder="••••••••" required autocomplete="current-password" />
+        <div class="pie-acceso">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Acceso restringido a personal autorizado. Los ingresos quedan registrados.
         </div>
+      </div>
+    </section>
+  </div>
 
-        <button type="submit" class="btn-login" id="btnLogin">Ingresar</button>
-      </form>
-
-      <div id="alertaMsg" class="alert-box"></div>
-      <div class="login-pie">Acceso restringido a personal autorizado. Los ingresos quedan registrados.</div>
-    </div>
+  <div class="bienvenida" id="bienvenida">
+    <div class="check"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+    <h3 id="bienvenidaNombre">¡Hola!</h3>
+    <p>Cargando el panel de vuelos…</p>
   </div>
 
   <script>
-    const alerta = document.getElementById('alertaMsg');
+    // ==============================================================
+    // DETALLES DE LA INTERFAZ
+    // ==============================================================
+    document.getElementById('anioPie').textContent = new Date().getFullYear();
 
-    function mostrarAlerta(texto, tipo) {
-      alerta.textContent = texto;
-      alerta.className = 'alert-box' + (tipo === 'info' ? ' info' : '');
-      alerta.style.display = 'block';
+    function alternarClave() {
+      const inp = document.getElementById('inputClave');
+      const visible = inp.type === 'text';
+      inp.type = visible ? 'password' : 'text';
+      document.getElementById('btnVerClave').title = visible ? 'Mostrar contraseña' : 'Ocultar contraseña';
+      inp.focus();
     }
 
-    // Aviso cuando se vuelve al ingreso desde una sesión cerrada por seguridad
-    const motivo = new URLSearchParams(location.search).get('motivo');
-    if (motivo === 'expirada') mostrarAlerta('Tu sesión expiró. Volvé a ingresar.', 'info');
+    document.getElementById('inputClave').addEventListener('keyup', e => {
+      if (typeof e.getModifierState === 'function') {
+        document.getElementById('avisoMayus').classList.toggle('on', e.getModifierState('CapsLock'));
+      }
+    });
 
+    function mostrarError(msj) {
+      document.getElementById('alertaTxt').innerText = msj;
+      document.getElementById('alertaMsg').classList.remove('info');
+      document.getElementById('alertaMsg').classList.add('on');
+      const t = document.getElementById('tarjeta');
+      t.classList.remove('sacudir');
+      void t.offsetWidth;
+      t.classList.add('sacudir');
+    }
+
+    function estadoBoton(cargando) {
+      const btn = document.getElementById('btnLogin');
+      btn.disabled = cargando;
+      btn.classList.toggle('cargando', cargando);
+      document.getElementById('btnLoginTxt').innerText = cargando ? 'Validando…' : 'Ingresar al sistema';
+    }
+
+    // ==============================================================
+    // EFECTO: MAPA DE RUTAS AÉREAS DESDE ARGENTINA
+    // ==============================================================
+    (function iniciarMapaRutas() {
+      const canvas = document.getElementById('mapaRutas');
+      if (!canvas || !canvas.getContext) return;
+      const ctx = canvas.getContext('2d');
+
+      const ORIGEN = { cod: 'EZE', lon: -58.5, lat: -34.8 };
+      const DESTINOS = [
+        { cod: 'PVG', lon: 121.8, lat: 31.1 },
+        { cod: 'HKG', lon: 113.9, lat: 22.3 },
+        { cod: 'MIA', lon: -80.3, lat: 25.8 },
+        { cod: 'MAD', lon: -3.6, lat: 40.5 },
+        { cod: 'FRA', lon: 8.6, lat: 50.0 },
+        { cod: 'AMS', lon: 4.8, lat: 52.3 },
+        { cod: 'DXB', lon: 55.4, lat: 25.3 },
+        { cod: 'GRU', lon: -46.5, lat: -23.4 },
+        { cod: 'LAX', lon: -118.4, lat: 33.9 },
+        { cod: 'SIN', lon: 103.9, lat: 1.4 }
+      ];
+
+      let W = 0, H = 0, dpr = 1, puntos = [];
+      const vuelos = [];
+      const ondas = [];
+
+      // Proyección equirectangular centrada en el Atlántico, con margen
+      function proyectar(lon, lat) {
+        const x = ((lon + 150) / 300) * W;
+        const y = ((70 - lat) / 130) * H;
+        return { x, y };
+      }
+
+      function redimensionar() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        W = canvas.clientWidth; H = canvas.clientHeight;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        puntos = [];
+        const paso = 18;
+        for (let y = paso / 2; y < H; y += paso) {
+          for (let x = paso / 2; x < W; x += paso) {
+            const n = Math.sin(x * 0.012) * Math.cos(y * 0.017) + Math.sin((x + y) * 0.006);
+            puntos.push({ x, y, a: 0.05 + Math.max(0, n) * 0.09, fase: Math.random() * Math.PI * 2 });
+          }
+        }
+      }
+
+      function curva(a, b) {
+        const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        const dist = Math.hypot(b.x - a.x, b.y - a.y);
+        return { a, b, c: { x: mx, y: my - dist * 0.32 } };
+      }
+      function puntoEn(cv, t) {
+        const u = 1 - t;
+        return {
+          x: u * u * cv.a.x + 2 * u * t * cv.c.x + t * t * cv.b.x,
+          y: u * u * cv.a.y + 2 * u * t * cv.c.y + t * t * cv.b.y
+        };
+      }
+
+      let ultimoDespacho = 0, indiceDestino = 0;
+      function lanzarVuelo(ahora) {
+        const d = DESTINOS[indiceDestino++ % DESTINOS.length];
+        vuelos.push({ d, inicio: ahora, dur: 4200 + Math.random() * 2200 });
+        const tablero = document.getElementById('tablero');
+        if (tablero) tablero.textContent = `${ORIGEN.cod} → ${d.cod} · EN VUELO`;
+      }
+
+      function dibujar(ahora) {
+        ctx.clearRect(0, 0, W, H);
+
+        // Matriz de puntos de fondo con titileo suave
+        for (const p of puntos) {
+          const a = p.a * (0.75 + 0.25 * Math.sin(ahora * 0.0012 + p.fase));
+          ctx.fillStyle = `rgba(180, 230, 205, ${a})`;
+          ctx.fillRect(p.x, p.y, 1.6, 1.6);
+        }
+
+        const o = proyectar(ORIGEN.lon, ORIGEN.lat);
+
+        // Rutas fijas tenues
+        ctx.lineWidth = 1;
+        for (const d of DESTINOS) {
+          const cv = curva(o, proyectar(d.lon, d.lat));
+          ctx.strokeStyle = 'rgba(127, 209, 168, 0.10)';
+          ctx.setLineDash([2, 6]);
+          ctx.beginPath(); ctx.moveTo(cv.a.x, cv.a.y); ctx.quadraticCurveTo(cv.c.x, cv.c.y, cv.b.x, cv.b.y); ctx.stroke();
+        }
+        ctx.setLineDash([]);
+
+        // Destinos
+        ctx.font = '600 10px Inter, sans-serif';
+        for (const d of DESTINOS) {
+          const p = proyectar(d.lon, d.lat);
+          ctx.fillStyle = 'rgba(231, 241, 236, 0.55)';
+          ctx.beginPath(); ctx.arc(p.x, p.y, 2.2, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = 'rgba(231, 241, 236, 0.35)';
+          ctx.fillText(d.cod, p.x + 6, p.y - 5);
+        }
+
+        // Vuelos animados con estela
+        if (ahora - ultimoDespacho > 1100) { lanzarVuelo(ahora); ultimoDespacho = ahora; }
+        for (let i = vuelos.length - 1; i >= 0; i--) {
+          const v = vuelos[i];
+          const t = (ahora - v.inicio) / v.dur;
+          const dp = proyectar(v.d.lon, v.d.lat);
+          const cv = curva(o, dp);
+          if (t >= 1) {
+            ondas.push({ x: dp.x, y: dp.y, inicio: ahora });
+            vuelos.splice(i, 1);
+            continue;
+          }
+          const te = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+          const cola = Math.max(0, te - 0.22);
+          const pasos = 24;
+          for (let k = 0; k < pasos; k++) {
+            const t1 = cola + (te - cola) * (k / pasos);
+            const t2 = cola + (te - cola) * ((k + 1) / pasos);
+            const p1 = puntoEn(cv, t1), p2 = puntoEn(cv, t2);
+            const alfa = (k / pasos);
+            ctx.strokeStyle = `rgba(232, 180, 76, ${alfa * 0.9})`;
+            ctx.lineWidth = 0.6 + alfa * 1.8;
+            ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+          }
+          const cab = puntoEn(cv, te);
+          const brillo = ctx.createRadialGradient(cab.x, cab.y, 0, cab.x, cab.y, 12);
+          brillo.addColorStop(0, 'rgba(255, 236, 190, 0.95)');
+          brillo.addColorStop(1, 'rgba(232, 180, 76, 0)');
+          ctx.fillStyle = brillo;
+          ctx.beginPath(); ctx.arc(cab.x, cab.y, 12, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#FFFFFF';
+          ctx.beginPath(); ctx.arc(cab.x, cab.y, 1.8, 0, Math.PI * 2); ctx.fill();
+        }
+
+        // Ondas de llegada
+        for (let i = ondas.length - 1; i >= 0; i--) {
+          const w = ondas[i];
+          const t = (ahora - w.inicio) / 1400;
+          if (t >= 1) { ondas.splice(i, 1); continue; }
+          ctx.strokeStyle = `rgba(127, 209, 168, ${0.8 * (1 - t)})`;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.arc(w.x, w.y, 3 + t * 22, 0, Math.PI * 2); ctx.stroke();
+        }
+
+        // Origen con pulso permanente
+        const pulso = (ahora % 2000) / 2000;
+        ctx.strokeStyle = `rgba(232, 180, 76, ${0.6 * (1 - pulso)})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(o.x, o.y, 4 + pulso * 26, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = '#E8B44C';
+        ctx.beginPath(); ctx.arc(o.x, o.y, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.font = '700 11px Inter, sans-serif';
+        ctx.fillStyle = 'rgba(255, 236, 190, 0.9)';
+        ctx.fillText('ARGENTINA · ' + ORIGEN.cod, o.x + 10, o.y + 16);
+
+        requestAnimationFrame(dibujar);
+      }
+
+      redimensionar();
+      window.addEventListener('resize', redimensionar);
+      requestAnimationFrame(dibujar);
+    })();
+
+    // Aviso cuando se vuelve al ingreso desde una sesión cerrada por seguridad
+    if (new URLSearchParams(location.search).get('motivo') === 'expirada') {
+      document.getElementById('alertaTxt').innerText = 'Tu sesión expiró. Volvé a ingresar.';
+      document.getElementById('alertaMsg').classList.add('on', 'info');
+    }
+
+    // ==============================================================
+    // INICIO DE SESIÓN
+    // ==============================================================
     async function iniciarSesion(e) {
       e.preventDefault();
       const userVal = document.getElementById('inputUsuario').value.trim();
       const inputClave = document.getElementById('inputClave');
-      const btn = document.getElementById('btnLogin');
 
-      alerta.style.display = 'none';
-      btn.disabled = true;
-      btn.innerText = 'Validando…';
+      document.getElementById('alertaMsg').classList.remove('on');
+      estadoBoton(true);
 
       try {
+        // Validación en el servidor (comex_login, bcrypt) o con la credencial local si no hay internet
         const r = await COMEX_SEG.ingresar(userVal, inputClave.value);
         if (!r.ok) {
-          mostrarAlerta(r.mensaje);
+          mostrarError(r.mensaje);
           inputClave.value = '';
           inputClave.focus();
-          btn.disabled = false;
-          btn.innerText = 'Ingresar';
+          estadoBoton(false);
           return;
         }
 
+        const btn = document.getElementById('btnLogin').getBoundingClientRect();
+        const capa = document.getElementById('bienvenida');
+        capa.style.setProperty('--cx', `${btn.left + btn.width / 2}px`);
+        capa.style.setProperty('--cy', `${btn.top + btn.height / 2}px`);
+        document.getElementById('bienvenidaNombre').innerText = `¡Hola, ${r.usuario || userVal}!`;
+        capa.classList.add('on');
+
         // Tanto ADM como COMEX ingresan a Vuelos
-        // (ADM verá todos los vuelos en modo auditoría/exportación, y COMEX verá los suyos para operar)
-        window.location.replace('vuelos/vuelos_comex.html');
+        setTimeout(() => { window.location.replace('vuelos/vuelos_comex.html'); }, 1500);
 
       } catch (err) {
-        mostrarAlerta('Error al verificar credenciales: ' + err.message);
-        btn.disabled = false;
-        btn.innerText = 'Ingresar';
+        mostrarError('Error al verificar credenciales: ' + err.message);
+        estadoBoton(false);
       }
     }
   </script>

@@ -185,7 +185,7 @@
     }
     registrarIntento(true);
     crearSesion(r);
-    return { ok: true, offline: !!r.offline };
+    return { ok: true, offline: !!r.offline, usuario: r.usuario };
   }
 
   // ---------- Bloqueo de teclas, menú contextual y arrastre de archivos ----------
