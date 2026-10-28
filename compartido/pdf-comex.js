@@ -79,6 +79,13 @@
     return conHora && h ? `${fecha} ${h.slice(0, 5)}` : fecha;
   }
 
+  // "2026-10-29T22:35" -> "29/10 22:35" (para columnas angostas)
+  function fechaHoraCorta(valor) {
+    if (!valor) return '-';
+    const completa = formatearFecha(valor, true);
+    return completa.length > 10 ? completa.slice(0, 5) + completa.slice(10) : completa.slice(0, 5);
+  }
+
   function ancho(doc) { return doc.internal.pageSize.getWidth(); }
   function alto(doc) { return doc.internal.pageSize.getHeight(); }
 
@@ -219,9 +226,9 @@
 
   // Totales destacados: [['Etiqueta', 'Valor'], ...]
   function totales(doc, datos, y) {
-    const altoCaja = 17;
+    const altoCaja = 15;
     const anchoCaja = 62;
-    y = asegurarEspacio(doc, y + 6, altoCaja);
+    y = asegurarEspacio(doc, y + 5, altoCaja);
 
     datos.forEach(([etiqueta, valor], i) => {
       const x = MARGEN + i * (anchoCaja + 5);
@@ -233,11 +240,11 @@
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(6.8);
       doc.setTextColor(...C.gris);
-      doc.text(String(etiqueta).toUpperCase(), x + 7, y + 6);
+      doc.text(String(etiqueta).toUpperCase(), x + 7, y + 5.4);
 
       doc.setFontSize(14);
       doc.setTextColor(...C.verdeOscuro);
-      doc.text(String(valor), x + 7, y + 13.2);
+      doc.text(String(valor), x + 7, y + 11.8);
     });
 
     return y + altoCaja;
@@ -245,7 +252,16 @@
 
   // Líneas de firma al pie del contenido
   function firmas(doc, etiquetas, y) {
-    y = asegurarEspacio(doc, y + 22, 10);
+    // Espacio para firmar: 22 mm ideal, se achica hasta 10 mm antes de pasar a otra hoja.
+    // La línea va como máximo 20 mm antes del borde, así su texto no toca el divisor del pie.
+    const limite = alto(doc) - 20;
+    const espacio = Math.min(22, limite - y);
+    if (espacio >= 10) {
+      y += espacio;
+    } else {
+      doc.addPage();
+      y = ALTO_ENCABEZADO + 12;
+    }
     const anchoTotal = ancho(doc) - MARGEN * 2;
     const anchoFirma = (anchoTotal - (etiquetas.length - 1) * 14) / etiquetas.length;
 
@@ -451,5 +467,5 @@
     botones[0].focus();
   }
 
-  window.PDF_COMEX = { nuevo, fichas, tabla, totales, firmas, guardar, ofrecer, formatearFecha, colores: C };
+  window.PDF_COMEX = { nuevo, fichas, tabla, totales, firmas, guardar, ofrecer, formatearFecha, fechaHoraCorta, colores: C };
 })();
