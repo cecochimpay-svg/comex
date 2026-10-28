@@ -12,7 +12,6 @@
   const MINUTOS_INACTIVIDAD = 10;     // Bloquea la pantalla tras este tiempo sin uso
   const HORAS_SESION = 12;            // Duración máxima de una sesión
   const DIAS_INGRESO_OFFLINE = 7;     // Validez de la credencial guardada para ingresar sin conexión
-  const MAX_INTENTOS_DESBLOQUEO = 5;  // Al superarlos se cierra la sesión
   const MAX_INTENTOS_LOGIN = 5;       // Al superarlos se espera antes de reintentar en este equipo
 
   const CLAVE_SESION = 'comex_sesion';
@@ -61,8 +60,7 @@
       inicio: ahora,
       expira: ahora + HORAS_SESION * 3600e3,
       actividad: ahora,
-      bloqueada: false,
-      intentosDesbloqueo: 0
+      bloqueada: false
     });
   }
 
@@ -271,22 +269,18 @@
   const ESTILOS_BLOQUEO = `
     #comexBloqueo { position: fixed; inset: 0; z-index: 2147483647; display: flex; align-items: center; justify-content: center;
       background: rgba(18, 38, 29, 0.94); backdrop-filter: blur(18px); font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif; }
-    #comexBloqueo .bq-card { width: 360px; max-width: calc(100% - 32px); background: #FFFFFF; border-radius: 20px; padding: 32px 28px 24px;
+    #comexBloqueo .bq-card { width: 360px; max-width: calc(100% - 32px); background: #FFFFFF; border-radius: 20px; padding: 32px 28px 22px;
       text-align: center; box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.45); }
     #comexBloqueo .bq-ico { width: 52px; height: 52px; margin: 0 auto 14px; border-radius: 50%; background: rgba(30, 107, 76, 0.10);
       color: #1E6B4C; display: flex; align-items: center; justify-content: center; }
-    #comexBloqueo h2 { margin: 0 0 4px; font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 800; color: #123F2C; }
-    #comexBloqueo .bq-sub { margin: 0 0 20px; font-size: 13px; color: #6B7280; }
+    #comexBloqueo h2 { margin: 0 0 6px; font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 800; color: #123F2C; }
+    #comexBloqueo .bq-sub { margin: 0 0 22px; font-size: 13px; line-height: 1.45; color: #6B7280; }
     #comexBloqueo .bq-sub b { color: #1B231D; }
-    #comexBloqueo input { width: 100%; box-sizing: border-box; padding: 12px 14px; font-size: 14px; font-weight: 500; font-family: inherit; border-radius: 12px;
-      border: 1px solid #CBD5D0; outline: none; }
-    #comexBloqueo input:focus { border-color: #1E6B4C; box-shadow: 0 0 0 4px rgba(30, 107, 76, 0.08); }
-    #comexBloqueo .bq-btn { width: 100%; margin-top: 12px; padding: 12px; border: none; border-radius: 12px; background: #1E6B4C; color: #FFFFFF;
+    #comexBloqueo .bq-btn { width: 100%; padding: 13px; border: none; border-radius: 12px; background: #1E6B4C; color: #FFFFFF;
       font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; }
     #comexBloqueo .bq-btn:hover { background: #123F2C; }
-    #comexBloqueo .bq-btn:disabled { opacity: 0.6; cursor: wait; }
-    #comexBloqueo .bq-error { min-height: 18px; margin-top: 10px; font-size: 12px; font-weight: 600; color: #991B1B; }
-    #comexBloqueo .bq-salir { margin-top: 6px; background: none; border: none; color: #6B7280; font-size: 12.5px; font-weight: 500; font-family: inherit;
+    #comexBloqueo .bq-btn:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(30, 107, 76, 0.25); }
+    #comexBloqueo .bq-salir { margin-top: 10px; background: none; border: none; color: #6B7280; font-size: 12.5px; font-weight: 500; font-family: inherit;
       cursor: pointer; text-decoration: underline; }
   `;
 
@@ -299,6 +293,7 @@
     else document.addEventListener('DOMContentLoaded', mostrarBloqueo, { once: true });
   }
 
+  // Pausa por inactividad: oculta los datos pero recuerda la sesión (no pide contraseña)
   function mostrarBloqueo() {
     if (document.getElementById('comexBloqueo')) return;
     const s = leerSesion() || {};
@@ -317,60 +312,33 @@
     const capa = document.createElement('div');
     capa.id = 'comexBloqueo';
     capa.innerHTML = `
-      <form class="bq-card" autocomplete="off">
+      <div class="bq-card" role="dialog" aria-modal="true" aria-labelledby="bqTitulo">
         <div class="bq-ico">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+            <circle cx="12" cy="12" r="9"></circle><line x1="10" y1="9" x2="10" y2="15"></line><line x1="14" y1="9" x2="14" y2="15"></line>
           </svg>
         </div>
-        <h2>Pantalla bloqueada</h2>
-        <p class="bq-sub">Sesión de <b></b>. Ingresá tu contraseña para continuar.</p>
-        <input type="password" placeholder="Contraseña" required autocomplete="current-password">
-        <button type="submit" class="bq-btn">Desbloquear</button>
-        <div class="bq-error"></div>
+        <h2 id="bqTitulo">Sesión en pausa</h2>
+        <p class="bq-sub">Ocultamos la pantalla por inactividad.<br>La sesión de <b></b> sigue abierta.</p>
+        <button type="button" class="bq-btn">Volver a ingresar</button>
         <button type="button" class="bq-salir">Cerrar sesión</button>
-      </form>`;
+      </div>`;
     capa.querySelector('.bq-sub b').textContent = s.usuario || '';
     document.body.appendChild(capa);
 
-    const form = capa.querySelector('form');
-    const input = capa.querySelector('input');
     const btn = capa.querySelector('.bq-btn');
-    const error = capa.querySelector('.bq-error');
-
-    capa.querySelector('.bq-salir').onclick = () => cerrarSesion();
-    input.focus();
-
-    form.onsubmit = async ev => {
-      ev.preventDefault();
-      btn.disabled = true;
-      btn.textContent = 'Validando…';
-      error.textContent = '';
-
-      const actual = leerSesion();
-      if (!sesionVigente(actual)) return cerrarSesion('expirada');
-
-      const r = await verificarCredenciales(actual.usuario, input.value);
-      if (r.ok) return desbloquear();
-
-      actual.intentosDesbloqueo = (actual.intentosDesbloqueo || 0) + 1;
-      guardarSesion(actual);
-      if (actual.intentosDesbloqueo >= MAX_INTENTOS_DESBLOQUEO || r.motivo === 'bloqueado') {
-        return cerrarSesion('intentos');
-      }
-      error.textContent = mensajeError(r);
-      btn.disabled = false;
-      btn.textContent = 'Desbloquear';
-      input.value = '';
-      input.focus();
+    btn.onclick = () => {
+      if (!sesionVigente(leerSesion())) return cerrarSesion('expirada');
+      desbloquear();
     };
+    capa.querySelector('.bq-salir').onclick = () => cerrarSesion();
+    btn.focus();
   }
 
   function desbloquear() {
     const s = leerSesion();
     if (s) {
       s.bloqueada = false;
-      s.intentosDesbloqueo = 0;
       s.actividad = Date.now();
       guardarSesion(s);
     }

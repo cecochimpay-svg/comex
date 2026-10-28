@@ -270,16 +270,186 @@
     return doc;
   }
 
-  // Encabezado y pie en todas las páginas, y descarga
-  function guardar(doc, archivo) {
+  // Encabezado y pie en todas las páginas
+  function finalizar(doc) {
     const total = doc.getNumberOfPages();
     for (let i = 1; i <= total; i++) {
       doc.setPage(i);
       dibujarEncabezado(doc);
       dibujarPie(doc, i, total);
     }
+  }
+
+  function guardar(doc, archivo) {
+    finalizar(doc);
     doc.save(archivo);
   }
 
-  window.PDF_COMEX = { nuevo, fichas, tabla, totales, firmas, guardar, formatearFecha, colores: C };
+  // ---------- Compartir / imprimir ----------
+  function shellElectron() {
+    try { return typeof require === 'function' ? require('electron').shell : null; } catch (e) { return null; }
+  }
+
+  function escribirArchivo(doc, carpeta, archivo) {
+    const fs = require('fs');
+    const path = require('path');
+    fs.mkdirSync(carpeta, { recursive: true });
+    const destino = path.join(carpeta, archivo);
+    fs.writeFileSync(destino, Buffer.from(doc.output('arraybuffer')));
+    return destino;
+  }
+
+  // Menú nativo de compartir si existe; si no, queda en Descargas\COMEX con la carpeta abierta
+  async function compartir(doc, archivo) {
+    const pdf = new File([doc.output('blob')], archivo, { type: 'application/pdf' });
+    if (navigator.canShare && navigator.canShare({ files: [pdf] })) {
+      try {
+        await navigator.share({ files: [pdf], title: doc.__comex.titulo });
+        return { modo: 'nativo' };
+      } catch (e) {
+        if (e.name === 'AbortError') return { modo: 'cancelado' };
+      }
+    }
+    const shell = shellElectron();
+    if (shell) {
+      const destino = escribirArchivo(doc, require('path').join(require('os').homedir(), 'Downloads', 'COMEX'), archivo);
+      shell.showItemInFolder(destino);
+      return { modo: 'carpeta', ruta: destino };
+    }
+    doc.save(archivo);
+    return { modo: 'descarga' };
+  }
+
+  // Abre el PDF en el visor del sistema con el cuadro de impresión
+  async function imprimir(doc, archivo) {
+    doc.autoPrint();
+    const shell = shellElectron();
+    if (shell) {
+      const destino = escribirArchivo(doc, require('path').join(require('os').tmpdir(), 'COMEX'), archivo);
+      const error = await shell.openPath(destino);
+      if (error) throw new Error(error);
+      return { modo: 'visor' };
+    }
+    window.open(URL.createObjectURL(doc.output('blob')));
+    return { modo: 'navegador' };
+  }
+
+  const ESTILOS_ACCIONES = `
+    #pdfAcciones { position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center;
+      background: rgba(16, 26, 21, 0.45); backdrop-filter: blur(3px); font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif; }
+    #pdfAcciones .pa-card { width: 400px; max-width: calc(100% - 32px); background: #FFFFFF; border-radius: 18px; padding: 22px;
+      box-shadow: 0 30px 60px -20px rgba(16, 26, 21, 0.45); }
+    #pdfAcciones .pa-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    #pdfAcciones .pa-ico { width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: #E5F4EB; color: #1E6B4C;
+      display: flex; align-items: center; justify-content: center; }
+    #pdfAcciones .pa-titulo { font-size: 15px; font-weight: 700; color: #103D2A; }
+    #pdfAcciones .pa-archivo { font-size: 12px; color: #687D70; margin-top: 2px; word-break: break-all; }
+    #pdfAcciones .pa-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    #pdfAcciones .pa-op { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 14px; text-align: left;
+      border: 1px solid #C8E2D3; border-radius: 14px; background: #F4FAF6; cursor: pointer; font-family: inherit; transition: all .15s ease; }
+    #pdfAcciones .pa-op:hover { border-color: #2EA068; background: #E5F4EB; transform: translateY(-1px); }
+    #pdfAcciones .pa-op:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(46, 160, 104, 0.3); }
+    #pdfAcciones .pa-op:disabled { opacity: .6; cursor: wait; transform: none; }
+    #pdfAcciones .pa-op-ico { width: 34px; height: 34px; border-radius: 10px; background: #1E6B4C; color: #FFFFFF;
+      display: flex; align-items: center; justify-content: center; }
+    #pdfAcciones .pa-op b { font-size: 13.5px; color: #103D2A; }
+    #pdfAcciones .pa-op span { font-size: 11.5px; line-height: 1.35; color: #687D70; }
+    #pdfAcciones .pa-msg { margin-top: 12px; font-size: 12px; line-height: 1.45; color: #103D2A; background: #E5F4EB;
+      border-radius: 10px; padding: 10px 12px; display: none; }
+    #pdfAcciones .pa-msg.error { color: #991B1B; background: #FEF2F2; }
+    #pdfAcciones .pa-pie { display: flex; justify-content: flex-end; margin-top: 14px; }
+    #pdfAcciones .pa-cerrar { border: none; background: none; font-family: inherit; font-size: 12.5px; font-weight: 600;
+      color: #687D70; cursor: pointer; padding: 6px 4px; }
+    #pdfAcciones .pa-cerrar:hover { color: #103D2A; }
+  `;
+
+  const ICONO_PDF = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+  const ICONO_COMPARTIR = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>';
+  const ICONO_IMPRIMIR = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>';
+
+  // Mini modal: el operario elige compartir o imprimir el PDF
+  function ofrecer(doc, archivo) {
+    finalizar(doc);
+
+    if (!document.getElementById('pdfAccionesEstilos')) {
+      const st = document.createElement('style');
+      st.id = 'pdfAccionesEstilos';
+      st.textContent = ESTILOS_ACCIONES;
+      document.head.appendChild(st);
+    }
+    const previo = document.getElementById('pdfAcciones');
+    if (previo) previo.remove();
+
+    const capa = document.createElement('div');
+    capa.id = 'pdfAcciones';
+    capa.innerHTML = `
+      <div class="pa-card" role="dialog" aria-modal="true" aria-labelledby="paTitulo">
+        <div class="pa-head">
+          <div class="pa-ico">${ICONO_PDF}</div>
+          <div>
+            <div class="pa-titulo" id="paTitulo">PDF listo</div>
+            <div class="pa-archivo"></div>
+          </div>
+        </div>
+        <div class="pa-opciones">
+          <button type="button" class="pa-op" data-accion="compartir">
+            <div class="pa-op-ico">${ICONO_COMPARTIR}</div>
+            <b>Compartir PDF</b>
+            <span>Para enviarlo por WhatsApp o correo</span>
+          </button>
+          <button type="button" class="pa-op" data-accion="imprimir">
+            <div class="pa-op-ico">${ICONO_IMPRIMIR}</div>
+            <b>Imprimir PDF</b>
+            <span>Abre el PDF con el cuadro de impresión</span>
+          </button>
+        </div>
+        <div class="pa-msg"></div>
+        <div class="pa-pie"><button type="button" class="pa-cerrar">Cerrar</button></div>
+      </div>`;
+    capa.querySelector('.pa-archivo').textContent = archivo;
+    document.body.appendChild(capa);
+
+    const msg = capa.querySelector('.pa-msg');
+    const botones = [...capa.querySelectorAll('.pa-op')];
+    const cerrar = () => { capa.remove(); document.removeEventListener('keydown', alEscape, true); };
+    const alEscape = e => { if (e.key === 'Escape') { e.stopPropagation(); cerrar(); } };
+    const mostrar = (texto, error) => {
+      msg.textContent = texto;
+      msg.className = 'pa-msg' + (error ? ' error' : '');
+      msg.style.display = 'block';
+    };
+
+    document.addEventListener('keydown', alEscape, true);
+    capa.addEventListener('mousedown', e => { if (e.target === capa) cerrar(); });
+    capa.querySelector('.pa-cerrar').onclick = cerrar;
+
+    botones.forEach(btn => {
+      btn.onclick = async () => {
+        botones.forEach(b => { b.disabled = true; });
+        try {
+          if (btn.dataset.accion === 'imprimir') {
+            await imprimir(doc, archivo);
+            return cerrar();
+          }
+          const r = await compartir(doc, archivo);
+          if (r.modo === 'carpeta') {
+            mostrar(`Guardado en Descargas › COMEX. Se abrió la carpeta con el archivo seleccionado: arrastralo a WhatsApp o adjuntalo en el correo.`);
+            capa.querySelector('.pa-cerrar').textContent = 'Listo';
+            btn.disabled = false;
+            return;
+          }
+          if (r.modo !== 'cancelado') return cerrar();
+          botones.forEach(b => { b.disabled = false; });
+        } catch (e) {
+          mostrar('No se pudo completar: ' + e.message, true);
+          // Imprimir agrega una orden de impresión al PDF: si falló imprimir, solo se ofrece reintentarlo
+          botones.forEach(b => { b.disabled = btn.dataset.accion === 'imprimir' && b.dataset.accion !== 'imprimir'; });
+        }
+      };
+    });
+
+    botones[0].focus();
+  }
+
+  window.PDF_COMEX = { nuevo, fichas, tabla, totales, firmas, guardar, ofrecer, formatearFecha, colores: C };
 })();

@@ -203,7 +203,6 @@
     // Aviso cuando se vuelve al ingreso desde una sesión cerrada por seguridad
     const motivo = new URLSearchParams(location.search).get('motivo');
     if (motivo === 'expirada') mostrarAlerta('Tu sesión expiró. Volvé a ingresar.', 'info');
-    if (motivo === 'intentos') mostrarAlerta('Se cerró la sesión por intentos fallidos al desbloquear.');
 
     async function iniciarSesion(e) {
       e.preventDefault();

@@ -565,6 +565,27 @@
     .grid-campos.g4-fechas { grid-template-columns: 1.35fr 1fr 1.35fr 1fr; }
     .modal-vuelo .badge-semana-calculada { height: 34px; padding: 0 10px; font-family: inherit; font-weight: 600; }
     .modal-vuelo input[readonly] { background: var(--color-surface-2); color: var(--color-text-secondary); box-shadow: none; }
+
+    /* Consignatarios del cliente y ruta del despacho */
+    .chips-consig { display: flex; flex-wrap: wrap; gap: 6px; min-height: 34px; align-items: center; }
+    .chips-vacio { font-size: 12px; color: var(--color-text-muted); }
+    .chip-consig {
+      display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 999px;
+      border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text);
+      font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s ease;
+    }
+    .chip-consig small { font-weight: 500; color: var(--color-text-secondary); }
+    .chip-consig:hover { border-color: var(--color-adm); }
+    .chip-consig.selected { background: var(--color-adm); border-color: var(--color-adm-dark); color: #FFFFFF; }
+    .chip-consig.selected small { color: rgba(255, 255, 255, 0.8); }
+    .chips-consig.falta .chip-consig { border-color: #F59E0B; }
+    .ruta-vuelo {
+      display: none; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm);
+      background: var(--color-adm-soft); color: var(--color-adm-dark); font-size: 12px; font-weight: 600;
+    }
+    .ruta-vuelo.visible { display: flex; }
+    .ruta-vuelo b { font-weight: 800; }
+    .celda-consig { display: block; font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
     @media (max-width: 900px) {
       .vuelo-grid { grid-template-columns: 1fr; }
       .grid-campos.g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -734,7 +755,7 @@
           <!-- Columna izquierda -->
           <div class="vuelo-col">
             <section class="form-bloque" id="modalTab0">
-              <div class="form-bloque-titulo"><span class="form-bloque-num">1</span>Carga y destino</div>
+              <div class="form-bloque-titulo"><span class="form-bloque-num">1</span>Cliente, ruta y carga</div>
               <div class="grid-campos g3">
                 <div class="modal-group">
                   <label>Fecha de despacho *</label>
@@ -750,16 +771,38 @@
                   <input type="date" id="txtIngresoFecha" class="modal-input" />
                 </div>
               </div>
-              <div class="grid-campos" style="grid-template-columns: 1fr 2fr;">
+              <div class="modal-group">
+                <label>Cliente (para quién) *</label>
+                <select id="selClienteFinal" class="modal-input" onchange="vueloClienteCambio(this.value)">
+                  <option value="">Cargando clientes…</option>
+                </select>
+              </div>
+              <div class="modal-group">
+                <label>Consignatario <span id="lblAyudaConsignatario" class="form-bloque-opc"></span></label>
+                <div class="chips-consig" id="chipsConsignatarioVuelo">
+                  <span class="chips-vacio">Elegí un cliente para ver sus consignatarios.</span>
+                </div>
+                <input type="hidden" id="txtConsignatario" />
+              </div>
+              <div class="grid-campos g2">
                 <div class="modal-group">
-                  <label>Cliente</label>
-                  <input type="text" class="modal-input" value="CECO" readonly />
+                  <label>Origen (desde dónde) *</label>
+                  <input type="text" id="txtOrigen" class="modal-input" required list="listaOrigenes" placeholder="Ej: EZE" oninput="actualizarRutaVuelo()" />
+                  <datalist id="listaOrigenes">
+                    <option value="EZE">Ezeiza · Buenos Aires</option>
+                    <option value="NQN">Neuquén</option>
+                    <option value="MDZ">Mendoza</option>
+                    <option value="COR">Córdoba</option>
+                    <option value="ROS">Rosario</option>
+                    <option value="SCL">Santiago de Chile</option>
+                  </datalist>
                 </div>
                 <div class="modal-group">
                   <label>Destino (aeropuerto / ciudad) *</label>
-                  <input type="text" id="txtDestino" class="modal-input" required placeholder="Ej: PVG / CAN / MIA" />
+                  <input type="text" id="txtDestino" class="modal-input" required placeholder="Ej: PVG / CAN / MIA" oninput="actualizarRutaVuelo()" />
                 </div>
               </div>
+              <div class="ruta-vuelo" id="lblRutaVuelo"></div>
               <div class="grid-campos g4">
                 <div class="modal-group">
                   <label>Pallets (PCS) *</label>
@@ -971,6 +1014,7 @@
         if (btnNuevoDespacho) btnNuevoDespacho.style.display = 'inline-flex';
         if (thAcciones) thAcciones.style.display = '';
         document.getElementById('lblSubtituloModo').innerText = 'Operaciones aéreas y logística internacional cargadas por tu usuario.';
+        cargarClientesConsignatariosVuelo();
       }
 
       cargarDatosVuelos();
@@ -1094,6 +1138,9 @@
         const t = filtroTexto.toLowerCase();
         vuelosSem = vuelosSem.filter(v => 
           (v.cliente || '').toLowerCase().includes(t) ||
+          (v.cliente_final || '').toLowerCase().includes(t) ||
+          (v.consignatario || '').toLowerCase().includes(t) ||
+          (v.origen || '').toLowerCase().includes(t) ||
           (v.awb || '').toLowerCase().includes(t) ||
           (v.vuelo || '').toLowerCase().includes(t) ||
           (v.destino || '').toLowerCase().includes(t) ||
@@ -1116,8 +1163,8 @@
           <td><b>${v.registro}</b></td>
           <td><span class="badge-tag tag-verde">${v.usuario || 'S/D'}</span></td>
           <td>${formatearFechaCorta(v.fecha)}<br><small style="color:var(--color-text-secondary);">${formatearFechaCorta(v.ingreso)}</small></td>
-          <td><b>${v.cliente || '-'}</b></td>
-          <td><span class="badge-tag tag-azul">${v.destino || '-'}</span></td>
+          <td><b style="white-space:nowrap;">${v.cliente_final || v.cliente || '-'}</b>${v.consignatario ? `<span class="celda-consig">${v.consignatario}</span>` : ''}</td>
+          <td>${v.origen ? `<small style="color:var(--color-text-secondary);">${v.origen} →</small> ` : ''}<span class="badge-tag tag-azul">${v.destino || '-'}</span></td>
           <td>${v.linea_aerea || '-'}</td>
           <td><b>${v.awb || '-'}</b><br><small>${v.vuelo || '-'}</small></td>
           <td>${v.vuelo_cnx ? `<b>${v.vuelo_cnx}</b><br><small>${formatearFechaCorta(v.fecha_etd2 || '')}</small>` : '<span style="color:#94A3B8;">Directo</span>'}</td>
@@ -1136,8 +1183,9 @@
         <div class="card-vuelo-movil">
           <div class="card-vuelo-header">
             <div>
-              <span class="card-vuelo-destino">${v.destino || '—'}</span>
+              <span class="card-vuelo-destino">${v.origen ? `${v.origen} → ` : ''}${v.destino || '—'}</span>
               <span style="font-size:11px; font-weight:700; color:var(--color-text-secondary); margin-left:6px;">${v.linea_aerea || ''}</span>
+              ${v.cliente_final || v.consignatario ? `<span class="celda-consig">Para ${v.consignatario || v.cliente_final}${v.consignatario && v.cliente_final ? ` · ${v.cliente_final}` : ''}</span>` : ''}
             </div>
             ${!esAdministrador ? `
             <div style="display:flex; gap:4px;">
@@ -1177,6 +1225,125 @@
       return Math.random().toString(36).substring(2, 10).toUpperCase();
     }
 
+    // ==========================================
+    // CLIENTE FINAL, CONSIGNATARIO Y RUTA
+    // Logística ve para quién es cada despacho y desde dónde sale
+    // ==========================================
+    let consignatariosPorCliente = new Map();
+
+    async function cargarClientesConsignatariosVuelo() {
+      let filas = [];
+      try {
+        const { data, error } = await supabaseClient
+          .from('clientes_consignatarios')
+          .select('cliente, consignatario, destino, activo')
+          .eq('activo', true)
+          .order('cliente');
+        if (error) throw error;
+        filas = data || [];
+      } catch (e) {
+        console.warn('Clientes sin conexión:', e.message);
+        try {
+          const { db } = require('../data/base.js');
+          filas = db.prepare('SELECT * FROM local_clientes_consignatarios WHERE activo = 1').all();
+        } catch (_) {}
+      }
+
+      consignatariosPorCliente = new Map();
+      filas.forEach(f => {
+        const cli = String(f.cliente || '').trim();
+        if (!cli) return;
+        if (!consignatariosPorCliente.has(cli)) consignatariosPorCliente.set(cli, []);
+        consignatariosPorCliente.get(cli).push({
+          consignatario: String(f.consignatario || '').trim(),
+          destino: String(f.destino || '').trim()
+        });
+      });
+
+      const sel = document.getElementById('selClienteFinal');
+      const clientes = [...consignatariosPorCliente.keys()].sort();
+      sel.required = clientes.length > 0;
+      sel.innerHTML = clientes.length
+        ? '<option value="">— Elegí el cliente —</option>' + clientes.map(c => `<option value="${c}">${c}</option>`).join('')
+        : '<option value="">Sin clientes cargados</option>';
+    }
+
+    function asegurarOpcionCliente(cliente) {
+      const sel = document.getElementById('selClienteFinal');
+      if (cliente && ![...sel.options].some(o => o.value === cliente)) {
+        sel.add(new Option(cliente, cliente));
+      }
+      sel.value = cliente || '';
+    }
+
+    function vueloClienteCambio(cliente, consignatarioElegido) {
+      const cont = document.getElementById('chipsConsignatarioVuelo');
+      const ayuda = document.getElementById('lblAyudaConsignatario');
+      const oculto = document.getElementById('txtConsignatario');
+      const lista = consignatariosPorCliente.get(cliente) || [];
+
+      cont.innerHTML = '';
+      cont.classList.remove('falta');
+      oculto.value = consignatarioElegido || '';
+      ayuda.textContent = lista.length > 1 ? `· ${lista.length} opciones: elegí para quién` : '';
+
+      if (!cliente) {
+        cont.innerHTML = '<span class="chips-vacio">Elegí un cliente para ver sus consignatarios.</span>';
+      } else if (lista.length === 0) {
+        cont.innerHTML = consignatarioElegido
+          ? ''
+          : '<span class="chips-vacio">Este cliente no tiene consignatarios cargados.</span>';
+      }
+
+      // Si el registro trae un consignatario que ya no está en la lista, se muestra igual
+      const opciones = [...lista];
+      if (consignatarioElegido && !opciones.some(o => o.consignatario === consignatarioElegido)) {
+        opciones.push({ consignatario: consignatarioElegido, destino: '' });
+      }
+
+      opciones.forEach(item => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip-consig';
+        chip.innerHTML = item.destino ? `<span></span><small>· ${item.destino}</small>` : '<span></span>';
+        chip.querySelector('span').textContent = item.consignatario;
+        chip.onclick = () => seleccionarConsignatarioVuelo(chip, item);
+        cont.appendChild(chip);
+        if (item.consignatario === consignatarioElegido) chip.classList.add('selected');
+      });
+
+      // Un solo consignatario: se elige solo
+      if (!consignatarioElegido && opciones.length === 1) {
+        seleccionarConsignatarioVuelo(cont.querySelector('.chip-consig'), opciones[0]);
+      }
+      actualizarRutaVuelo();
+    }
+
+    function seleccionarConsignatarioVuelo(chip, item) {
+      const cont = document.getElementById('chipsConsignatarioVuelo');
+      cont.querySelectorAll('.chip-consig').forEach(c => c.classList.remove('selected'));
+      cont.classList.remove('falta');
+      chip.classList.add('selected');
+      document.getElementById('txtConsignatario').value = item.consignatario;
+      if (item.destino) document.getElementById('txtDestino').value = item.destino;
+      actualizarRutaVuelo();
+    }
+
+    function actualizarRutaVuelo() {
+      const ruta = document.getElementById('lblRutaVuelo');
+      const origen = document.getElementById('txtOrigen').value.trim().toUpperCase();
+      const destino = document.getElementById('txtDestino').value.trim().toUpperCase();
+      const cliente = document.getElementById('selClienteFinal').value;
+      const consig = document.getElementById('txtConsignatario').value;
+      if (!origen && !destino && !cliente) { ruta.classList.remove('visible'); return; }
+
+      const para = consig || cliente;
+      ruta.innerHTML = '✈ <span></span>';
+      ruta.querySelector('span').textContent =
+        `${origen || '¿origen?'} → ${destino || '¿destino?'}${para ? ` · para ${para}${consig && cliente ? ` (${cliente})` : ''}` : ''}`;
+      ruta.classList.add('visible');
+    }
+
     function abrirModalNuevoVuelo() {
       if (esAdministrador) return;
 
@@ -1202,6 +1369,10 @@
           inputFecha.value = hoyStr;
           actualizarSemanaSegunFecha(hoyStr);
         }
+
+        document.getElementById('selClienteFinal').value = '';
+        document.getElementById('txtOrigen').value = 'EZE';
+        vueloClienteCambio('');
 
         const primerTabBtn = document.querySelector('.form-tab-btn');
         if (primerTabBtn) {
@@ -1236,6 +1407,9 @@
       document.getElementById('txtIngresoFecha').value = formatearFechaCorta(v.ingreso);
 
       document.getElementById('txtDestino').value = v.destino || '';
+      document.getElementById('txtOrigen').value = v.origen || '';
+      asegurarOpcionCliente(v.cliente_final || '');
+      vueloClienteCambio(v.cliente_final || '', v.consignatario || '');
       document.getElementById('txtPcs').value = v.pcs !== null && v.pcs !== undefined ? v.pcs : '';
       document.getElementById('txtKilos').value = v.kilos !== null && v.kilos !== undefined ? v.kilos : '';
       document.getElementById('txtNeta').value = v.neta !== null && v.neta !== undefined ? v.neta : '';
@@ -1271,6 +1445,17 @@
     async function guardarFormularioVuelo(e) {
       e.preventDefault();
       if (esAdministrador) return;
+
+      // Con 2 o más consignatarios hay que indicar para quién es el despacho
+      const clienteFinal = document.getElementById('selClienteFinal').value;
+      const opcionesConsig = consignatariosPorCliente.get(clienteFinal) || [];
+      if (opcionesConsig.length > 1 && !document.getElementById('txtConsignatario').value) {
+        const cont = document.getElementById('chipsConsignatarioVuelo');
+        cont.classList.add('falta');
+        cont.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        document.getElementById('lblAyudaConsignatario').textContent = '· elegí para quién es este despacho';
+        return;
+      }
 
       const btn = document.getElementById('btnGuardarModal');
       btn.disabled = true;
@@ -1308,12 +1493,15 @@
         fecha: document.getElementById('txtFecha').value || new Date().toISOString().split('T')[0],
         ingreso: getValOrNull('txtIngresoFecha'),
         cliente: 'CECO',
+        cliente_final: clienteFinal || null,
+        consignatario: getValOrNull('txtConsignatario'),
+        origen: (getValOrNull('txtOrigen') || '').toUpperCase() || null,
         destino: (getValOrNull('txtDestino') || '').toUpperCase(),
         pcs: parseNumOrNull('txtPcs') || 0,
         kilos: parseNumOrNull('txtKilos') || 0,
         neta: parseNumOrNull('txtNeta'),
         uld: parseNumOrNull('txtUld'),
-        info: parseNumOrNull('txtInfo'),
+        info: getValOrNull('txtInfo'),
         linea_aerea: (getValOrNull('txtLineaAerea') || '').toUpperCase(),
         awb: getValOrNull('txtAwb'),
         vuelo: getValOrNull('txtVuelo'),
@@ -1332,9 +1520,18 @@
       };
 
       try {
-        const { error } = await supabaseClient
+        let { error } = await supabaseClient
           .from('logistitcas_temporada')
           .upsert([vueloData], { onConflict: 'registro' });
+
+        // Si todavía no se crearon las columnas nuevas en Supabase, se guarda sin ellas
+        if (error && /cliente_final|consignatario|origen/.test(String(error.message))) {
+          console.warn('Faltan columnas en logistitcas_temporada. Ejecutá supabase/migraciones/003_vuelos_cliente_consignatario.sql');
+          const { cliente_final, consignatario, origen, ...sinNuevas } = vueloData;
+          ({ error } = await supabaseClient
+            .from('logistitcas_temporada')
+            .upsert([sinNuevas], { onConflict: 'registro' }));
+        }
 
         if (error) throw error;
 
@@ -1420,13 +1617,13 @@
 
       const finalY = PDF_COMEX.tabla(doc, {
         startY: y,
-        head: [["REGISTRO", "OPERADOR", "FECHA", "CLIENTE", "DESTINO", "AEROLÍNEA", "AWB", "VUELO 1", "CONEXIÓN", "PALLETS", "KILOS", "TARIFA"]],
+        head: [["REGISTRO", "OPERADOR", "FECHA", "CLIENTE / CONSIGNATARIO", "RUTA", "AEROLÍNEA", "AWB", "VUELO 1", "CONEXIÓN", "PALLETS", "KILOS", "TARIFA"]],
         body: vuelosAExportar.map(v => [
           v.registro || '-',
           v.usuario || '-',
           PDF_COMEX.formatearFecha(v.fecha),
-          v.cliente || '-',
-          v.destino || '-',
+          [v.cliente_final || v.cliente || '-', v.consignatario].filter(Boolean).join('\n'),
+          v.origen ? `${v.origen} > ${v.destino || '-'}` : (v.destino || '-'),
           v.linea_aerea || '-',
           v.awb || '-',
           v.vuelo || '-',

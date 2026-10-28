@@ -50,6 +50,9 @@ async function pushVuelos(usuarioActivo) {
       fecha: row.fecha,
       ingreso: row.ingreso,
       cliente: row.cliente,
+      cliente_final: row.cliente_final || null,
+      consignatario: row.consignatario || null,
+      origen: row.origen || null,
       info: row.info,
       pcs: row.pcs,
       kilos: row.kilos,
@@ -73,14 +76,23 @@ async function pushVuelos(usuarioActivo) {
       usuario: row.usuario
     }));
 
-    const { error: errUpsert } = await supabaseCampo
+    let { error: errUpsert } = await supabaseCampo
       .from('logistitcas_temporada')
       .upsert(payloads, { onConflict: 'registro' });
 
+    // Si todavía no se crearon las columnas nuevas en Supabase, se sube sin ellas
+    if (errUpsert && /cliente_final|consignatario|origen/.test(String(errUpsert.message))) {
+      console.warn('Faltan columnas en logistitcas_temporada. Ejecutá supabase/migraciones/003_vuelos_cliente_consignatario.sql');
+      ({ error: errUpsert } = await supabaseCampo
+        .from('logistitcas_temporada')
+        .upsert(payloads.map(({ cliente_final, consignatario, origen, ...resto }) => resto), { onConflict: 'registro' }));
+    }
+
     if (errUpsert) throw errUpsert;
 
+    // La base local no soporta UPDATE: se marca re-insertando el registro
     pendientesUsuario.forEach(r => {
-      db.prepare(`UPDATE local_logistitcas_temporada SET sincronizado = 1 WHERE registro = ?`).run(r.registro);
+      db.prepare(`INSERT INTO local_logistitcas_temporada`).run({ ...r, sincronizado: 1 });
     });
 
     resultado.subidos = pendientesUsuario.length;
@@ -111,6 +123,9 @@ async function pullVuelos(temporada, usuarioActivo) {
       fecha: row.fecha,
       ingreso: row.ingreso,
       cliente: row.cliente,
+      cliente_final: row.cliente_final || null,
+      consignatario: row.consignatario || null,
+      origen: row.origen || null,
       info: row.info,
       pcs: row.pcs,
       kilos: row.kilos,

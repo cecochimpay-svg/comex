@@ -2222,8 +2222,7 @@
       ], finalY);
 
       PDF_COMEX.firmas(doc, ['Responsable de empaque', 'Responsable COMEX', 'Transporte'], yTotales);
-      PDF_COMEX.guardar(doc, `Programa_Trabajo_${prog.programa_nro}.pdf`);
-      mostrarToast("PDF generado con éxito.");
+      PDF_COMEX.ofrecer(doc, `Programa_Trabajo_${prog.programa_nro}.pdf`);
     }
 
     // ==========================================
