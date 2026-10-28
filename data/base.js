@@ -5,7 +5,7 @@ const dbFile = path.join(__dirname, 'comex_local_data.json');
 
 // Estructura de almacenamiento local ampliada
 let store = {
-  local_comex_usuarios: [],
+  local_comex_credenciales: [],          // Huella cifrada (PBKDF2) para ingresar sin conexión
   local_logistitcas_temporada: [],
   local_eliminados: [],
   local_vista_pallet_stock_general: [],
@@ -25,6 +25,9 @@ if (fs.existsSync(dbFile)) {
     console.warn('Iniciando base de datos JSON local limpia.');
   }
 }
+
+// La versión anterior guardaba usuarios con contraseña en texto plano: no se conservan
+delete store.local_comex_usuarios;
 
 function persistir() {
   try {
@@ -141,6 +144,15 @@ const db = {
           return { changes: 1 };
         }
 
+        // 4d. CREDENCIAL CIFRADA PARA INGRESO SIN CONEXIÓN (una por usuario)
+        if (query.includes('INTO LOCAL_COMEX_CREDENCIALES')) {
+          const clave = String(payload.usuario || '').toLowerCase();
+          store.local_comex_credenciales = (store.local_comex_credenciales || []).filter(x => x.usuario !== clave);
+          store.local_comex_credenciales.push({ ...payload, usuario: clave });
+          persistir();
+          return { changes: 1 };
+        }
+
         // 5. CLIENTES AGRONET
         if (query.includes('INTO LOCAL_AGRONET_CLIENTES')) {
           const index = store.local_agronet_clientes.findIndex(x => x.id_cliente === payload.id_cliente);
@@ -176,14 +188,9 @@ const db = {
           const id = String(params[0]);
           return store.local_logistitcas_temporada.find(x => String(x.registro) === id) || null;
         }
-        if (query.includes('FROM LOCAL_COMEX_USUARIOS')) {
+        if (query.includes('FROM LOCAL_COMEX_CREDENCIALES')) {
           const userParam = String(params[0] || '').toLowerCase();
-          const passParam = String(params[1] || '');
-          return store.local_comex_usuarios.find(
-            u => String(u.usuario || '').toLowerCase() === userParam &&
-                 String(u.clave || '') === passParam &&
-                 u.estado === 'ACTI'
-          ) || null;
+          return (store.local_comex_credenciales || []).find(c => c.usuario === userParam) || null;
         }
         return null;
       },

@@ -6,9 +6,10 @@
   <title>Programa de Trabajo & Proyección · COMEX CECO S.A.</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <script src="../seguridad/seguridad.js" data-pagina="protegida"></script>
+  <script src="../vendor/supabase-2.109.0.js"></script>
+  <script src="../vendor/jspdf-2.5.1.umd.min.js"></script>
+  <script src="../vendor/jspdf.plugin.autotable-3.5.31.min.js"></script>
 
   <style>
     * { box-sizing: border-box; }
@@ -789,12 +790,12 @@
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
-      const sesionRaw = localStorage.getItem('comex_sesion');
-      if (!sesionRaw) {
-        window.location.href = '../loguer.html';
+      const sesionGuardada = COMEX_SEG.sesion();
+      if (!sesionGuardada) {
+        window.location.replace('../loguer.html');
         return;
       }
-      sesionUsuario = JSON.parse(sesionRaw);
+      sesionUsuario = sesionGuardada;
       document.getElementById('lblUser').innerText = sesionUsuario.usuario;
       document.getElementById('lblFechaHora').innerText = new Date().toLocaleDateString('es-AR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
 
@@ -2258,8 +2259,8 @@
     }
 
     function cerrarSesion() {
-      localStorage.removeItem('comex_sesion');
-      window.location.href = '../loguer.html';
+      COMEX_SEG.cerrarSesion();
+      window.location.replace('../loguer.html');
     }
   </script>
 </body>

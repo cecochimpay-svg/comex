@@ -75,7 +75,8 @@ async function verificarConexiones() {
   }
 
   try {
-    const { error } = await supabaseCampo.from('comex_usuarios').select('id').limit(1);
+    // comex_usuarios ya no es legible con la clave pública: se prueba con una tabla operativa
+    const { error } = await supabaseCampo.from('comex_programa_trabajo').select('id').limit(1);
     if (!error) estado.supabase = true;
   } catch (e) {
     console.warn('Supabase fuera de línea:', e.message);

@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co;" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src https://*.supabase.co; object-src 'none'; base-uri 'none'; form-action 'none';" />
   <title>Acceso COMEX · CECO S.A.</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="seguridad/seguridad.js" data-pagina="login"></script>
 
   <style>
     :root {
@@ -149,6 +149,18 @@
       border: 1px solid #FCA5A5;
       color: #991B1B;
     }
+
+    .alert-box.info {
+      background: #F0F7F3;
+      border-color: #A7D3BC;
+      color: var(--color-plant-dark);
+    }
+
+    .login-pie {
+      margin-top: 18px;
+      font-size: 11px;
+      color: var(--color-text-secondary);
+    }
   </style>
 </head>
 <body>
@@ -175,106 +187,51 @@
       </form>
 
       <div id="alertaMsg" class="alert-box"></div>
+      <div class="login-pie">Acceso restringido a personal autorizado. Los ingresos quedan registrados.</div>
     </div>
   </div>
 
   <script>
-    // Protecciones de Seguridad
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('keydown', e => {
-      const isCtrlOrCmd = e.ctrlKey || e.metaKey;
-      const key = (e.key || '').toLowerCase();
-      if (e.key === 'F12' || (isCtrlOrCmd && e.shiftKey && ['i', 'j', 'c'].includes(key)) || (isCtrlOrCmd && ['u', 's'].includes(key))) {
-        e.preventDefault();
-      }
-    });
+    const alerta = document.getElementById('alertaMsg');
 
-    setInterval(() => {
-      const t0 = performance.now();
-      debugger;
-      if (performance.now() - t0 > 100) {
-        document.body.innerHTML = '<div style="text-align:center; padding:50px; font-family:sans-serif; color:#991B1B;"><h2>Acceso restringido</h2></div>';
-      }
-    }, 1000);
-
-    const SUPABASE_URL = 'https://veqpyhifwubcdxocckmf.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlcXB5aGlmd3ViY2R4b2Nja21mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NzI5NzAsImV4cCI6MjA5MTQ0ODk3MH0.mIRsPLLoHn9jQtvCCwxG3aNFWtXIdcV12kLTC_MqybY';
-
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // Integración opcional con Electron
-    let dbLocal = null;
-    if (typeof require === 'function') {
-      try {
-        dbLocal = require('./data/base.js').db;
-      } catch (e) {
-        console.warn('Ejecutando en entorno Web navegador.');
-      }
+    function mostrarAlerta(texto, tipo) {
+      alerta.textContent = texto;
+      alerta.className = 'alert-box' + (tipo === 'info' ? ' info' : '');
+      alerta.style.display = 'block';
     }
+
+    // Aviso cuando se vuelve al ingreso desde una sesión cerrada por seguridad
+    const motivo = new URLSearchParams(location.search).get('motivo');
+    if (motivo === 'expirada') mostrarAlerta('Tu sesión expiró. Volvé a ingresar.', 'info');
+    if (motivo === 'intentos') mostrarAlerta('Se cerró la sesión por intentos fallidos al desbloquear.');
 
     async function iniciarSesion(e) {
       e.preventDefault();
       const userVal = document.getElementById('inputUsuario').value.trim();
-      const passVal = document.getElementById('inputClave').value.trim();
+      const inputClave = document.getElementById('inputClave');
       const btn = document.getElementById('btnLogin');
-      const alerta = document.getElementById('alertaMsg');
 
       alerta.style.display = 'none';
       btn.disabled = true;
       btn.innerText = 'Validando…';
 
-      let usuarioEncontrado = null;
-
       try {
-        // 1. Intentar validar online contra Supabase
-        if (navigator.onLine) {
-          const { data, error } = await supabaseClient
-            .from('comex_usuarios')
-            .select('*')
-            .ilike('usuario', userVal)
-            .eq('clave', passVal)
-            .eq('estado', 'ACTI')
-            .maybeSingle();
-
-          if (!error && data) usuarioEncontrado = data;
-        }
-
-        // 2. Fallback offline SQLite en Electron
-        if (!usuarioEncontrado && dbLocal) {
-          const row = dbLocal.prepare(`
-            SELECT * FROM local_comex_usuarios
-            WHERE LOWER(usuario) = LOWER(?) AND clave = ? AND estado = 'ACTI'
-          `).get(userVal, passVal);
-
-          if (row) usuarioEncontrado = row;
-        }
-
-        if (!usuarioEncontrado) {
-          alerta.innerText = 'Credenciales incorrectas o usuario inactivo.';
-          alerta.style.display = 'block';
+        const r = await COMEX_SEG.ingresar(userVal, inputClave.value);
+        if (!r.ok) {
+          mostrarAlerta(r.mensaje);
+          inputClave.value = '';
+          inputClave.focus();
           btn.disabled = false;
           btn.innerText = 'Ingresar';
           return;
         }
 
-        const sesion = {
-          id: usuarioEncontrado.id,
-          usuario: usuarioEncontrado.usuario,
-          rol: (usuarioEncontrado.rol || 'COMEX').toUpperCase()
-        };
-
-        localStorage.setItem('comex_sesion', JSON.stringify(sesion));
-
-        // 3. Guardar sesión y redirección
-        localStorage.setItem('comex_sesion', JSON.stringify(sesion));
-
-        // Tanto ADM como COMEX pueden ingresar directamente a Vuelos
+        // Tanto ADM como COMEX ingresan a Vuelos
         // (ADM verá todos los vuelos en modo auditoría/exportación, y COMEX verá los suyos para operar)
-        window.location.href = 'vuelos/vuelos_comex.html';
+        window.location.replace('vuelos/vuelos_comex.html');
 
       } catch (err) {
-        alerta.innerText = 'Error al verificar credenciales: ' + err.message;
-        alerta.style.display = 'block';
+        mostrarAlerta('Error al verificar credenciales: ' + err.message);
         btn.disabled = false;
         btn.innerText = 'Ingresar';
       }
