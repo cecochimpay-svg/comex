@@ -16,6 +16,8 @@
 
   const CLAVE_SESION = 'comex_sesion';
   const CLAVE_INTENTOS = 'comex_intentos_login';
+  // Donde supabase-js guarda la sesión de Supabase Auth (la comparten todas las páginas)
+  const CLAVE_AUTH = 'sb-veqpyhifwubcdxocckmf-auth-token';
 
   const script = document.currentScript;
   const pagina = (script && script.dataset.pagina) || 'protegida';
@@ -69,9 +71,25 @@
     });
   }
 
+  // Cierra la sesión de Supabase Auth: invalida el token en el servidor (si hay red) y lo borra del equipo
+  function cerrarSesionNube() {
+    try {
+      const guardada = JSON.parse(localStorage.getItem(CLAVE_AUTH) || 'null');
+      if (guardada && guardada.access_token && navigator.onLine) {
+        fetch(`${SUPABASE_URL}/auth/v1/logout?scope=local`, {
+          method: 'POST',
+          keepalive: true,
+          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${guardada.access_token}` }
+        }).catch(() => {});
+      }
+      localStorage.removeItem(CLAVE_AUTH);
+    } catch (e) {}
+  }
+
   function cerrarSesion(motivo) {
     sessionStorage.removeItem(CLAVE_SESION);
     try { localStorage.removeItem(CLAVE_SESION); } catch (e) {}
+    cerrarSesionNube();
     location.replace(URL_LOGIN + (motivo ? `?motivo=${encodeURIComponent(motivo)}` : ''));
   }
 
@@ -121,6 +139,27 @@
     return { ok: true, id: c.id, usuario: c.nombre, rol: c.rol, offline: true };
   }
 
+  // Correo interno de la cuenta de Supabase Auth (igual que public.comex_email() en 004)
+  function emailDe(usuario) {
+    return usuario.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '_') + '@comex.cecoargentina.com';
+  }
+
+  // Sesión de Supabase Auth: sin ella la base no entrega datos (004_acceso_con_sesion.sql).
+  // supabase-js la guarda en localStorage y cada página la usa sola al crear su cliente.
+  async function abrirSesionNube(usuario, clave) {
+    if (!window.supabase) return false;
+    try {
+      const cliente = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      const { error } = await cliente.auth.signInWithPassword({ email: emailDe(usuario), password: clave });
+      if (error) throw error;
+      return true;
+    } catch (e) {
+      // Antes de correr 004 las cuentas no existen todavía: se sigue igual que antes
+      console.warn('Sin sesión de Supabase Auth:', e.message);
+      return false;
+    }
+  }
+
   // Valida contra Supabase; sin conexión usa la credencial cifrada del último ingreso en este equipo
   async function verificarCredenciales(usuario, clave) {
     usuario = String(usuario || '').trim();
@@ -130,7 +169,10 @@
     if (navigator.onLine) {
       try {
         const r = await verificarEnNube(usuario, clave);
-        if (r.ok) recordarCredencial(r, clave);
+        if (r.ok) {
+          recordarCredencial(r, clave);
+          await abrirSesionNube(usuario, clave);
+        }
         return r;
       } catch (e) {
         console.warn('Validación en la nube no disponible, se usa la local:', e.message);
@@ -229,6 +271,7 @@
   if (pagina === 'login') {
     sessionStorage.removeItem(CLAVE_SESION);
     try { localStorage.removeItem(CLAVE_SESION); } catch (e) {}
+    cerrarSesionNube();
     window.COMEX_SEG = { ingresar, segundosDeEspera };
     return;
   }
