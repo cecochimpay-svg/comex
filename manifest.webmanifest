@@ -1,0 +1,16 @@
+{
+  "name": "COMEX · CECO S.A.",
+  "short_name": "COMEX",
+  "description": "Programa de trabajo y vuelos de exportación de CECO S.A.",
+  "lang": "es-AR",
+  "start_url": "./loguer.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F5F7F6",
+  "theme_color": "#1E6B4C",
+  "icons": [
+    { "src": "iconos/icono-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "iconos/icono-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "iconos/icono-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

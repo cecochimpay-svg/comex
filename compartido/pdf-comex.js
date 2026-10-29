@@ -336,6 +336,11 @@
     return { modo: 'descarga' };
   }
 
+  function esMovilApple() {
+    return /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
   // Abre el PDF en el visor del sistema con el cuadro de impresión
   async function imprimir(doc, archivo) {
     doc.autoPrint();
@@ -345,6 +350,11 @@
       const error = await shell.openPath(destino);
       if (error) throw new Error(error);
       return { modo: 'visor' };
+    }
+    // iPhone / iPad: el visor de PDF no imprime solo; la hoja de compartir trae "Imprimir"
+    if (esMovilApple()) {
+      const r = await compartir(doc, archivo);
+      return r.modo === 'nativo' ? { modo: 'hoja' } : r;
     }
     window.open(URL.createObjectURL(doc.output('blob')));
     return { modo: 'navegador' };
@@ -444,7 +454,8 @@
         botones.forEach(b => { b.disabled = true; });
         try {
           if (btn.dataset.accion === 'imprimir') {
-            await imprimir(doc, archivo);
+            const r = await imprimir(doc, archivo);
+            if (r.modo === 'cancelado') { botones.forEach(b => { b.disabled = b.dataset.accion !== 'imprimir'; }); return; }
             return cerrar();
           }
           const r = await compartir(doc, archivo);

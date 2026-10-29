@@ -4,6 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Despacho y Vuelos COMEX · CECO S.A.</title>
+  <link rel="manifest" href="../manifest.webmanifest" />
+  <link rel="icon" type="image/png" href="../iconos/favicon.png" />
+  <link rel="apple-touch-icon" href="../iconos/icono-180.png" />
+  <meta name="theme-color" content="#1E6B4C" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="COMEX" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
   
   <!-- CDN Supabase y jsPDF -->
@@ -636,12 +644,12 @@
       
       <!-- Botón de Navegación a Programa (Solo visible para ADM/ADMIN) -->
       <a href="../programa/programa_trab.html" class="btn-top-nav" id="btnIrProgramaHeader">
-        📋 Ir a Programa
+        📋 <span class="btn-label">Ir a Programa</span>
       </a>
 
       <button class="btn-sync-top" id="btnSync" onclick="sincronizar()" title="Sincronizar con Supabase">
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-        Sincronizar
+        <span class="btn-label">Sincronizar</span>
       </button>
       <a href="../loguer.html" class="btn-logout" onclick="cerrarSesion()">
         ✕ Salir

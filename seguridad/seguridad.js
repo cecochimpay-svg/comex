@@ -32,6 +32,11 @@
     } catch (e) {}
   }
 
+  // ---------- Versión web (iPhone / Mac): app instalable ----------
+  if (location.protocol === 'https:' && 'serviceWorker' in navigator) {
+    navigator.serviceWorker.register(new URL('../sw.js', script.src).href).catch(() => {});
+  }
+
   function nombreEquipo() {
     try { return os ? `${os.hostname()} / ${os.userInfo().username}` : navigator.userAgent.slice(0, 120); }
     catch (e) { return null; }

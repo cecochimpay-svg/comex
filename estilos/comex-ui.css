@@ -255,3 +255,16 @@ textarea.modal-control, textarea.modal-input { height: auto; padding: 9px 12px; 
 .toast-ico { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: #60A5FA; }
 .toast-msg.success .toast-ico { background: #4ADE80; }
 .toast-msg.error .toast-ico { background: #F87171; }
+
+/* ---------- Celular (versión web en iPhone) ---------- */
+@media (max-width: 600px) {
+  .topbar, .top-system-bar { padding: 0 12px; gap: 8px; }
+  .topbar-izq { flex: 1 1 auto; gap: 8px; min-width: 0; }
+  .topbar-logo { height: 26px; max-width: 60px; }
+  .topbar-info, .user-access-info { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .temporada-chip, .badge-rol, .system-datetime { display: none; }
+  .top-right-bar { flex-shrink: 0; gap: 6px; }
+  .btn-top-nav .btn-label, .btn-sync-top .btn-label { display: none; }
+  .toast-container { left: 12px; right: 12px; bottom: 16px; }
+  .toast-msg { min-width: 0; }
+}
