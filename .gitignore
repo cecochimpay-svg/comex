@@ -2,3 +2,6 @@
 .env
 dist/
 *.log
+
+# Datos locales del usuario (credenciales en caché): nunca se versionan
+data/comex_local_data.json
