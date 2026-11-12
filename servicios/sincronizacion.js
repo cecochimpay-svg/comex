@@ -53,6 +53,9 @@ async function pushVuelos(usuarioActivo) {
       cliente_final: row.cliente_final || null,
       consignatario: row.consignatario || null,
       origen: row.origen || null,
+      proforma: row.proforma || null,
+      ruta: row.ruta || null,
+      status: row.status || null,
       info: row.info,
       pcs: row.pcs,
       kilos: row.kilos,
@@ -81,11 +84,11 @@ async function pushVuelos(usuarioActivo) {
       .upsert(payloads, { onConflict: 'registro' });
 
     // Si todavía no se crearon las columnas nuevas en Supabase, se sube sin ellas
-    if (errUpsert && /cliente_final|consignatario|origen/.test(String(errUpsert.message))) {
-      console.warn('Faltan columnas en logistitcas_temporada. Ejecutá supabase/migraciones/003_vuelos_cliente_consignatario.sql');
+    if (errUpsert && /proforma|ruta|status/.test(String(errUpsert.message))) {
+      console.warn('Faltan columnas en logistitcas_temporada. Ejecutá supabase/migraciones/006_vuelos_planilla_logistica.sql');
       ({ error: errUpsert } = await supabaseCampo
         .from('logistitcas_temporada')
-        .upsert(payloads.map(({ cliente_final, consignatario, origen, ...resto }) => resto), { onConflict: 'registro' }));
+        .upsert(payloads.map(({ proforma, ruta, status, ...resto }) => resto), { onConflict: 'registro' }));
     }
 
     if (errUpsert) throw errUpsert;
@@ -126,6 +129,9 @@ async function pullVuelos(temporada, usuarioActivo) {
       cliente_final: row.cliente_final || null,
       consignatario: row.consignatario || null,
       origen: row.origen || null,
+      proforma: row.proforma || null,
+      ruta: row.ruta || null,
+      status: row.status || null,
       info: row.info,
       pcs: row.pcs,
       kilos: row.kilos,

@@ -574,26 +574,44 @@
     .modal-vuelo .badge-semana-calculada { height: 34px; padding: 0 10px; font-family: inherit; font-weight: 600; }
     .modal-vuelo input[readonly] { background: var(--color-surface-2); color: var(--color-text-secondary); box-shadow: none; }
 
-    /* Consignatarios del cliente y ruta del despacho */
-    .chips-consig { display: flex; flex-wrap: wrap; gap: 6px; min-height: 34px; align-items: center; }
-    .chips-vacio { font-size: 12px; color: var(--color-text-muted); }
-    .chip-consig {
-      display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 999px;
-      border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text);
-      font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s ease;
-    }
-    .chip-consig small { font-weight: 500; color: var(--color-text-secondary); }
-    .chip-consig:hover { border-color: var(--color-adm); }
-    .chip-consig.selected { background: var(--color-adm); border-color: var(--color-adm-dark); color: #FFFFFF; }
-    .chip-consig.selected small { color: rgba(255, 255, 255, 0.8); }
-    .chips-consig.falta .chip-consig { border-color: #F59E0B; }
-    .ruta-vuelo {
-      display: none; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm);
-      background: var(--color-adm-soft); color: var(--color-adm-dark); font-size: 12px; font-weight: 600;
-    }
-    .ruta-vuelo.visible { display: flex; }
-    .ruta-vuelo b { font-weight: 800; }
     .celda-consig { display: block; font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+    /* Status con LED: cada estado define su color en --led */
+    .st-programado { --led: #3B82F6; }
+    .st-confirmado { --led: #8B5CF6; }
+    .st-en-tca     { --led: #F59E0B; }
+    .st-volado     { --led: #10B981; }
+    .st-arribado   { --led: #0F766E; }
+    .st-cancelado  { --led: #EF4444; }
+    .led {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex: none;
+      background: var(--led, #94A3B8);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--led, #94A3B8) 22%, transparent), 0 0 6px var(--led, #94A3B8);
+    }
+    .led-tag {
+      display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+      font-size: 10.5px; font-weight: 800; letter-spacing: .04em; color: var(--color-text);
+    }
+    .leds-status { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .led-btn {
+      display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px;
+      border-radius: var(--radius-sm, 8px); border: 1px solid var(--color-border);
+      background: var(--color-surface); color: var(--color-text-secondary);
+      font-family: inherit; font-size: 11.5px; font-weight: 700; letter-spacing: .04em;
+      cursor: pointer; transition: background .15s ease, border-color .15s ease, color .15s ease;
+    }
+    .led-btn .led { background: #CBD5E1; box-shadow: inset 0 1px 1px rgba(0, 0, 0, .25); transition: all .2s ease; }
+    .led-btn:hover { border-color: var(--led); color: var(--color-text); }
+    .led-btn.on {
+      border-color: var(--led); color: var(--color-text);
+      background: color-mix(in srgb, var(--led) 10%, var(--color-surface));
+    }
+    .led-btn.on .led {
+      background: var(--led);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--led) 25%, transparent), 0 0 10px var(--led);
+    }
+    .led-btn:focus-visible { outline: 2px solid var(--led); outline-offset: 2px; }
+    @media (max-width: 520px) { .leds-status { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .tabla-custom td.nowrap { white-space: nowrap; }
     @media (max-width: 900px) {
       .vuelo-grid { grid-template-columns: 1fr; }
       .grid-campos.g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -661,7 +679,7 @@
   <main class="main-content">
     <div class="header-area">
       <div class="seccion-titulo-wrap">
-        <h1 class="seccion-titulo">Despacho de Vuelos de Cosecha</h1>
+        <h1 class="seccion-titulo">PROGRAMACION DE DESPACHOS</h1>
         <div class="seccion-subtitulo" id="lblSubtituloModo">
           Operaciones aéreas y logística internacional de la temporada.
         </div>
@@ -716,21 +734,26 @@
           <table class="tabla-custom">
             <thead>
               <tr>
-                <th>Registro</th>
-                <th>Operador</th>
-                <th>Fecha / Ingreso</th>
-                <th>Cliente</th>
+                <th>AWB</th>
+                <th>Ingreso TCA</th>
                 <th>Destino</th>
-                <th>Línea Aérea</th>
-                <th>AWB / Vuelo 1</th>
-                <th>Conexión (Tramo 2)</th>
-                <th>Pallets / Kilos</th>
-                <th>Tarifa / Fijos</th>
+                <th>Ruta</th>
+                <th>Vuelo</th>
+                <th>Proforma</th>
+                <th>ETD</th>
+                <th>Conex</th>
+                <th>ETA</th>
+                <th style="text-align: right;">Tarimas</th>
+                <th style="text-align: right;">Peso</th>
+                <th>Tarifa</th>
+                <th>Status</th>
+                <th>CNNE</th>
+                <th id="thOperadorTabla">Operador</th>
                 <th style="text-align: right;" id="thAccionesTabla">Acciones</th>
               </tr>
             </thead>
             <tbody id="tbodyDetalleVuelos">
-              <tr><td colspan="11" style="text-align: center; padding: 24px; color: var(--color-text-secondary);">Seleccioná una semana.</td></tr>
+              <tr><td colspan="16" style="text-align: center; padding: 24px; color: var(--color-text-secondary);">Seleccioná una semana.</td></tr>
             </tbody>
           </table>
         </div>
@@ -759,162 +782,105 @@
       <form id="formVuelo" onsubmit="guardarFormularioVuelo(event)" class="form-vuelo-shell">
         <div class="modal-body vuelo-grid">
           <input type="hidden" id="txtRegistroId" />
+          <input type="hidden" id="valSemanaCalculada" />
 
-          <!-- Columna izquierda -->
+          <!-- Columna izquierda: guía, ruta y fechas -->
           <div class="vuelo-col">
             <section class="form-bloque" id="modalTab0">
-              <div class="form-bloque-titulo"><span class="form-bloque-num">1</span>Cliente, ruta y carga</div>
+              <div class="form-bloque-titulo"><span class="form-bloque-num">1</span>Guía y vuelo</div>
               <div class="grid-campos g3">
                 <div class="modal-group">
-                  <label>Fecha de despacho *</label>
-                  <input type="date" id="txtFecha" class="modal-input" required onchange="actualizarSemanaSegunFecha(this.value)" />
+                  <label>AWB</label>
+                  <input type="text" id="txtAwb" class="modal-input" placeholder="020-03123046" />
                 </div>
                 <div class="modal-group">
-                  <label>Semana</label>
-                  <div class="badge-semana-calculada">Semana <span id="lblSemanaCalculada">—</span></div>
-                  <input type="hidden" id="valSemanaCalculada" />
+                  <label>Vuelo</label>
+                  <input type="text" id="txtVuelo" class="modal-input" placeholder="LH 511" />
                 </div>
                 <div class="modal-group">
-                  <label>Fecha de ingreso</label>
-                  <input type="date" id="txtIngresoFecha" class="modal-input" />
+                  <label>Conex</label>
+                  <input type="text" id="txtVueloCnx" class="modal-input" placeholder="Vacío si es directo" />
                 </div>
-              </div>
-              <div class="modal-group">
-                <label>Cliente (para quién) *</label>
-                <select id="selClienteFinal" class="modal-input" onchange="vueloClienteCambio(this.value)">
-                  <option value="">Cargando clientes…</option>
-                </select>
-              </div>
-              <div class="modal-group">
-                <label>Consignatario <span id="lblAyudaConsignatario" class="form-bloque-opc"></span></label>
-                <div class="chips-consig" id="chipsConsignatarioVuelo">
-                  <span class="chips-vacio">Elegí un cliente para ver sus consignatarios.</span>
-                </div>
-                <input type="hidden" id="txtConsignatario" />
               </div>
               <div class="grid-campos g2">
                 <div class="modal-group">
-                  <label>Origen (desde dónde) *</label>
-                  <input type="text" id="txtOrigen" class="modal-input" required list="listaOrigenes" placeholder="Ej: EZE" oninput="actualizarRutaVuelo()" />
-                  <datalist id="listaOrigenes">
-                    <option value="EZE">Ezeiza · Buenos Aires</option>
-                    <option value="NQN">Neuquén</option>
-                    <option value="MDZ">Mendoza</option>
-                    <option value="COR">Córdoba</option>
-                    <option value="ROS">Rosario</option>
-                    <option value="SCL">Santiago de Chile</option>
-                  </datalist>
+                  <label>Destino *</label>
+                  <input type="text" id="txtDestino" class="modal-input" required placeholder="Ej: PVG" />
                 </div>
                 <div class="modal-group">
-                  <label>Destino (aeropuerto / ciudad) *</label>
-                  <input type="text" id="txtDestino" class="modal-input" required placeholder="Ej: PVG / CAN / MIA" oninput="actualizarRutaVuelo()" />
+                  <label>Ruta</label>
+                  <input type="text" id="txtRuta" class="modal-input" placeholder="Ej: EZE-FRA-PVG" />
                 </div>
               </div>
-              <div class="ruta-vuelo" id="lblRutaVuelo"></div>
-              <div class="grid-campos g4">
+            </section>
+
+            <section class="form-bloque" id="modalTab1">
+              <div class="form-bloque-titulo"><span class="form-bloque-num">2</span>Fechas</div>
+              <div class="grid-campos g2">
                 <div class="modal-group">
-                  <label>Pallets (PCS) *</label>
+                  <label>Ingreso TCA requerido</label>
+                  <input type="date" id="txtIngresoFecha" class="modal-input" onchange="recalcularSemana()" />
+                </div>
+                <div class="modal-group">
+                  <label>Semana</label>
+                  <div class="badge-semana-calculada">semana <span id="lblSemanaCalculada">—</span> / 2026</div>
+                </div>
+              </div>
+              <div class="grid-campos g4 g4-fechas">
+                <div class="modal-group">
+                  <label>ETD · fecha</label>
+                  <input type="date" id="txtFechaEtd1" class="modal-input" onchange="recalcularSemana()" />
+                </div>
+                <div class="modal-group">
+                  <label>ETD · hora</label>
+                  <input type="time" id="txtHoraEtd1" class="modal-input" />
+                </div>
+                <div class="modal-group">
+                  <label>ETA · fecha</label>
+                  <input type="date" id="txtFechaEta1" class="modal-input" />
+                </div>
+                <div class="modal-group">
+                  <label>ETA · hora</label>
+                  <input type="time" id="txtHoraEta1" class="modal-input" />
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- Columna derecha: carga y estado -->
+          <div class="vuelo-col">
+            <section class="form-bloque" id="modalTab2">
+              <div class="form-bloque-titulo"><span class="form-bloque-num">3</span>Carga</div>
+              <div class="grid-campos g2">
+                <div class="modal-group">
+                  <label>Proforma</label>
+                  <input type="text" id="txtProforma" class="modal-input" placeholder="Ej: PF-1234" />
+                </div>
+                <div class="modal-group">
+                  <label>CNNE</label>
+                  <input type="text" id="txtConsignatario" class="modal-input" placeholder="Consignatario" />
+                </div>
+              </div>
+              <div class="grid-campos g3">
+                <div class="modal-group">
+                  <label>Tarimas *</label>
                   <input type="number" id="txtPcs" class="modal-input" required min="0" placeholder="5" />
                 </div>
                 <div class="modal-group">
-                  <label>Kilos totales *</label>
+                  <label>Peso (kg) *</label>
                   <input type="number" id="txtKilos" class="modal-input" required min="0" placeholder="3250" />
                 </div>
                 <div class="modal-group">
-                  <label>Kilos netos</label>
-                  <input type="number" id="txtNeta" class="modal-input" min="0" placeholder="Opcional" />
-                </div>
-                <div class="modal-group">
-                  <label>ULDs</label>
-                  <input type="number" id="txtUld" class="modal-input" min="0" placeholder="0" />
+                  <label>Tarifa</label>
+                  <input type="text" id="txtTarifa" class="modal-input" placeholder="Ej: 3,10" />
                 </div>
               </div>
             </section>
 
             <section class="form-bloque" id="modalTab3">
-              <div class="form-bloque-titulo"><span class="form-bloque-num">4</span>Tarifas y observaciones</div>
-              <div class="grid-campos g2">
-                <div class="modal-group">
-                  <label>Tarifa por kilo</label>
-                  <input type="text" id="txtTarifa" class="modal-input" placeholder="Ej: USD 3,10" />
-                </div>
-                <div class="modal-group">
-                  <label>Gastos fijos</label>
-                  <input type="text" id="txtFijos" class="modal-input" placeholder="Ej: USD 174,00" />
-                </div>
-              </div>
-              <div class="modal-group">
-                <label>Observaciones</label>
-                <textarea id="txtInfo" class="modal-input" rows="2" placeholder="Notas internas sobre este despacho..."></textarea>
-              </div>
-            </section>
-          </div>
-
-          <!-- Columna derecha -->
-          <div class="vuelo-col">
-            <section class="form-bloque" id="modalTab1">
-              <div class="form-bloque-titulo"><span class="form-bloque-num">2</span>Tramo 1 · Salida</div>
-              <div class="grid-campos g3">
-                <div class="modal-group">
-                  <label>Línea aérea *</label>
-                  <input type="text" id="txtLineaAerea" class="modal-input" required placeholder="Ej: LUFTHANSA" />
-                </div>
-                <div class="modal-group">
-                  <label>Guía aérea (AWB) *</label>
-                  <input type="text" id="txtAwb" class="modal-input" required placeholder="020-03123046" />
-                </div>
-                <div class="modal-group">
-                  <label>N° de vuelo *</label>
-                  <input type="text" id="txtVuelo" class="modal-input" required placeholder="LH 511" />
-                </div>
-              </div>
-              <div class="grid-campos g4 g4-fechas">
-                <div class="modal-group">
-                  <label>ETD 1 · fecha</label>
-                  <input type="date" id="txtFechaEtd1" class="modal-input" />
-                </div>
-                <div class="modal-group">
-                  <label>ETD 1 · hora</label>
-                  <input type="time" id="txtHoraEtd1" class="modal-input" />
-                </div>
-                <div class="modal-group">
-                  <label>ETA 1 · fecha</label>
-                  <input type="date" id="txtFechaEta1" class="modal-input" />
-                </div>
-                <div class="modal-group">
-                  <label>ETA 1 · hora</label>
-                  <input type="time" id="txtHoraEta1" class="modal-input" />
-                </div>
-              </div>
-            </section>
-
-            <section class="form-bloque" id="modalTab2">
-              <div class="form-bloque-titulo"><span class="form-bloque-num">3</span>Tramo 2 · Conexión <span class="form-bloque-opc">opcional</span></div>
-              <div class="grid-campos g3">
-                <div class="modal-group">
-                  <label>Vuelo de conexión</label>
-                  <input type="text" id="txtVueloCnx" class="modal-input" placeholder="Ej: LH8400" />
-                </div>
-                <div class="modal-group">
-                  <label>ETD 2 · fecha</label>
-                  <input type="date" id="txtFechaEtd2" class="modal-input" />
-                </div>
-                <div class="modal-group">
-                  <label>ETD 2 · hora</label>
-                  <input type="time" id="txtHoraEtd2" class="modal-input" />
-                </div>
-              </div>
-              <div class="grid-campos g3">
-                <div class="modal-group"></div>
-                <div class="modal-group">
-                  <label>ETA 2 · fecha</label>
-                  <input type="date" id="txtFechaEta2" class="modal-input" />
-                </div>
-                <div class="modal-group">
-                  <label>ETA 2 · hora</label>
-                  <input type="time" id="txtHoraEta2" class="modal-input" />
-                </div>
-              </div>
+              <div class="form-bloque-titulo"><span class="form-bloque-num">4</span>Status</div>
+              <div class="leds-status" id="ledsStatus" role="radiogroup" aria-label="Status del despacho"></div>
+              <input type="hidden" id="txtStatus" />
             </section>
           </div>
         </div>
@@ -1008,6 +974,8 @@
       const btnIrPrograma = document.getElementById('btnIrProgramaHeader');
       const btnNuevoDespacho = document.getElementById('btnNuevoDespachoHeader');
       const thAcciones = document.getElementById('thAccionesTabla');
+      const thOperador = document.getElementById('thOperadorTabla');
+      if (thOperador) thOperador.style.display = esAdministrador ? '' : 'none';
 
       // REGLA DE ROLES:
       if (esAdministrador) {
@@ -1022,7 +990,6 @@
         if (btnNuevoDespacho) btnNuevoDespacho.style.display = 'inline-flex';
         if (thAcciones) thAcciones.style.display = '';
         document.getElementById('lblSubtituloModo').innerText = 'Operaciones aéreas y logística internacional cargadas por tu usuario.';
-        cargarClientesConsignatariosVuelo();
       }
 
       cargarDatosVuelos();
@@ -1089,7 +1056,7 @@
     function actualizarMetricasYRenders() {
       const totalPcs = vuelosUsuario.reduce((acc, v) => acc + Number(v.pcs || 0), 0);
       const totalKilos = vuelosUsuario.reduce((acc, v) => acc + Number(v.kilos || 0), 0);
-      document.getElementById('lblResumenTotales').innerText = `${totalPcs.toLocaleString()} Pallets · ${totalKilos.toLocaleString()} Kilos`;
+      document.getElementById('lblResumenTotales').innerText = `${totalPcs.toLocaleString()} Tarimas · ${totalKilos.toLocaleString()} Kilos`;
 
       renderListaSemanas();
     }
@@ -1146,18 +1113,20 @@
         const t = filtroTexto.toLowerCase();
         vuelosSem = vuelosSem.filter(v => 
           (v.cliente || '').toLowerCase().includes(t) ||
-          (v.cliente_final || '').toLowerCase().includes(t) ||
           (v.consignatario || '').toLowerCase().includes(t) ||
           (v.origen || '').toLowerCase().includes(t) ||
           (v.awb || '').toLowerCase().includes(t) ||
           (v.vuelo || '').toLowerCase().includes(t) ||
           (v.destino || '').toLowerCase().includes(t) ||
           (v.linea_aerea || '').toLowerCase().includes(t) ||
+          (v.proforma || '').toLowerCase().includes(t) ||
+          (v.status || '').toLowerCase().includes(t) ||
+          (v.ruta || '').toLowerCase().includes(t) ||
           (v.usuario || '').toLowerCase().includes(t)
         );
       }
 
-      const totalColumnas = !esAdministrador ? 11 : 10;
+      const totalColumnas = 15;
 
       if (vuelosSem.length === 0) {
         tbody.innerHTML = `<tr><td colspan="${totalColumnas}" style="text-align:center; padding:20px;">No hay despachos para esta selección.</td></tr>`;
@@ -1168,20 +1137,25 @@
       // 1. Render para Desktop
       tbody.innerHTML = vuelosSem.map(v => `
         <tr>
-          <td><b>${v.registro}</b></td>
-          <td><span class="badge-tag tag-verde">${v.usuario || 'S/D'}</span></td>
-          <td>${formatearFechaCorta(v.fecha)}<br><small style="color:var(--color-text-secondary);">${formatearFechaCorta(v.ingreso)}</small></td>
-          <td><b style="white-space:nowrap;">${v.cliente_final || v.cliente || '-'}</b>${v.consignatario ? `<span class="celda-consig">${v.consignatario}</span>` : ''}</td>
-          <td>${v.origen ? `<small style="color:var(--color-text-secondary);">${v.origen} →</small> ` : ''}<span class="badge-tag tag-azul">${v.destino || '-'}</span></td>
-          <td>${v.linea_aerea || '-'}</td>
-          <td><b>${v.awb || '-'}</b><br><small>${v.vuelo || '-'}</small></td>
-          <td>${v.vuelo_cnx ? `<b>${v.vuelo_cnx}</b><br><small>${formatearFechaCorta(v.fecha_etd2 || '')}</small>` : '<span style="color:#94A3B8;">Directo</span>'}</td>
-          <td><b>${Number(v.pcs || 0).toLocaleString()} pallets</b><br>${Number(v.kilos || 0).toLocaleString()} kg</td>
-          <td><span class="badge-tag tag-amarillo">${v.tarifa_kg || '-'}</span><br><small>${v.fijos || ''}</small></td>
+          <td class="nowrap"><b>${esc(v.awb) || '-'}</b></td>
+          <td class="nowrap">${formatearFechaCorta(v.ingreso)}</td>
+          <td><span class="badge-tag tag-azul">${esc(v.destino) || '-'}</span></td>
+          <td class="nowrap">${esc(rutaDeVuelo(v)) || '-'}</td>
+          <td class="nowrap"><b>${esc(v.vuelo) || '-'}</b></td>
+          <td class="nowrap">${esc(v.proforma) || '-'}</td>
+          <td class="nowrap">${fechaHora(v.fecha_etd1, v.hora_etd1)}</td>
+          <td class="nowrap">${v.vuelo_cnx ? `<b>${esc(v.vuelo_cnx)}</b><span class="celda-consig">${fechaHora(v.fecha_etd2, v.hora_etd2)}</span>` : '<span style="color:#94A3B8;">Directo</span>'}</td>
+          <td class="nowrap">${fechaHora(v['fecha_eta 2'] || v.fecha_eta_2 || v.fecha_eta_1, v.vuelo_cnx ? v.hora_eta2 : v.hora_eta1)}</td>
+          <td style="text-align:right;"><b>${Number(v.pcs || 0).toLocaleString()}</b></td>
+          <td style="text-align:right;">${Number(v.kilos || 0).toLocaleString()}</td>
+          <td><span class="badge-tag tag-amarillo">${esc(v.tarifa_kg) || '-'}</span>${v.fijos ? `<span class="celda-consig">${esc(v.fijos)}</span>` : ''}</td>
+          <td>${badgeStatus(v.status)}</td>
+          <td><b style="white-space:nowrap;">${esc(v.consignatario) || '-'}</b></td>
+          ${esAdministrador ? `<td><span class="badge-tag tag-verde">${esc(v.usuario) || 'S/D'}</span></td>` : ''}
           ${!esAdministrador ? `
           <td style="text-align: right; white-space: nowrap;">
-            <button class="btn-accion edit" title="Editar" onclick='abrirModalEditarVuelo(${JSON.stringify(v)})'>✏️</button>
-            <button class="btn-accion delete" title="Eliminar" onclick="confirmarEliminarVuelo('${v.registro}')">🗑️</button>
+            <button class="btn-accion edit" title="Editar" onclick="abrirModalEditarVuelo('${esc(v.registro)}')">✏️</button>
+            <button class="btn-accion delete" title="Eliminar" onclick="confirmarEliminarVuelo('${esc(v.registro)}')">🗑️</button>
           </td>` : ''}
         </tr>
       `).join('');
@@ -1191,14 +1165,14 @@
         <div class="card-vuelo-movil">
           <div class="card-vuelo-header">
             <div>
-              <span class="card-vuelo-destino">${v.origen ? `${v.origen} → ` : ''}${v.destino || '—'}</span>
-              <span style="font-size:11px; font-weight:700; color:var(--color-text-secondary); margin-left:6px;">${v.linea_aerea || ''}</span>
-              ${v.cliente_final || v.consignatario ? `<span class="celda-consig">Para ${v.consignatario || v.cliente_final}${v.consignatario && v.cliente_final ? ` · ${v.cliente_final}` : ''}</span>` : ''}
+              <span class="card-vuelo-destino">${esc(rutaDeVuelo(v)) || esc(v.destino) || '—'}</span>
+              ${badgeStatus(v.status)}
+              ${v.consignatario || v.proforma ? `<span class="celda-consig">${[v.consignatario && `CNNE ${esc(v.consignatario)}`, v.proforma && `PF ${esc(v.proforma)}`].filter(Boolean).join(' · ')}</span>` : ''}
             </div>
             ${!esAdministrador ? `
             <div style="display:flex; gap:4px;">
-              <button class="btn-accion edit" onclick='abrirModalEditarVuelo(${JSON.stringify(v)})'>✏️</button>
-              <button class="btn-accion delete" onclick="confirmarEliminarVuelo('${v.registro}')">🗑️</button>
+              <button class="btn-accion edit" onclick="abrirModalEditarVuelo('${esc(v.registro)}')">✏️</button>
+              <button class="btn-accion delete" onclick="confirmarEliminarVuelo('${esc(v.registro)}')">🗑️</button>
             </div>` : `<span class="badge-tag tag-verde">${v.usuario || ''}</span>`}
           </div>
 
@@ -1213,7 +1187,7 @@
           </div>
 
           <div style="display:flex; justify-content:space-between; align-items:center; font-size:11.5px; border-top:1px dashed var(--color-border); padding-top:6px;">
-            <span>📦 <b>${Number(v.pcs || 0).toLocaleString()}</b> pallets (${Number(v.kilos || 0).toLocaleString()} kg)</span>
+            <span>📦 <b>${Number(v.pcs || 0).toLocaleString()}</b> tarimas (${Number(v.kilos || 0).toLocaleString()} kg)${v.ingreso ? ` · TCA ${formatearFechaCorta(v.ingreso)}` : ''}</span>
             <span class="badge-tag tag-amarillo">${v.tarifa_kg || 'Sin tarifa'}</span>
           </div>
         </div>
@@ -1225,6 +1199,50 @@
       return String(f).split('T')[0];
     }
 
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function fechaHora(fecha, hora) {
+      if (!fecha) return '-';
+      return `${formatearFechaCorta(fecha)}${hora ? ` <small>${esc(String(hora).slice(0, 5))}</small>` : ''}`;
+    }
+
+    // Ruta cargada a mano o, en los registros viejos, origen-destino
+    function rutaDeVuelo(v) {
+      if (v.ruta) return v.ruta;
+      return [v.origen, v.destino].filter(Boolean).join('-');
+    }
+
+    // Estados del despacho, en el orden en que avanza la carga
+    const ESTADOS_DESPACHO = ['PROGRAMADO', 'CONFIRMADO', 'EN TCA', 'VOLADO', 'ARRIBADO', 'CANCELADO'];
+    const claseStatus = s => 'st-' + String(s).toLowerCase().trim().replace(/\s+/g, '-');
+
+    function badgeStatus(status) {
+      if (!status) return '<span style="color:#94A3B8;">-</span>';
+      return `<span class="led-tag ${claseStatus(status)}"><i class="led"></i>${esc(status)}</span>`;
+    }
+
+    // Botones LED del formulario: se enciende el elegido; tocarlo de nuevo lo apaga
+    function fijarStatus(valor) {
+      const cont = document.getElementById('ledsStatus');
+      const actual = String(valor || '').toUpperCase().trim();
+      document.getElementById('txtStatus').value = actual;
+      const lista = ESTADOS_DESPACHO.includes(actual) || !actual ? ESTADOS_DESPACHO : [...ESTADOS_DESPACHO, actual];
+      cont.innerHTML = '';
+      lista.forEach(s => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `led-btn ${claseStatus(s)}${s === actual ? ' on' : ''}`;
+        btn.setAttribute('role', 'radio');
+        btn.setAttribute('aria-checked', s === actual ? 'true' : 'false');
+        btn.innerHTML = '<i class="led"></i><span></span>';
+        btn.querySelector('span').textContent = s;
+        btn.onclick = () => fijarStatus(s === actual ? '' : s);
+        cont.appendChild(btn);
+      });
+    }
+
     function filtrarVuelosEnTabla(term) {
       renderDetalleVuelos(term);
     }
@@ -1234,317 +1252,157 @@
     }
 
     // ==========================================
-    // CLIENTE FINAL, CONSIGNATARIO Y RUTA
-    // Logística ve para quién es cada despacho y desde dónde sale
+    // FORMULARIO = COLUMNAS DE LA PLANILLA DE LOGÍSTICA
+    // AWB · Ingreso TCA · Destino · Ruta · Vuelo · Proforma · ETD · Conex · ETA ·
+    // Tarimas · Peso · Tarifa · Status · CNNE. La semana sale de la ETD.
+    // Los campos viejos que no están en la planilla (línea aérea, origen, ULD...) no se
+    // envían al guardar, así que en los registros viejos quedan como estaban.
     // ==========================================
-    let consignatariosPorCliente = new Map();
+    const v$ = id => document.getElementById(id);
+    let vueloEnEdicion = null;
 
-    async function cargarClientesConsignatariosVuelo() {
-      let filas = [];
-      try {
-        const { data, error } = await supabaseClient
-          .from('clientes_consignatarios')
-          .select('cliente, consignatario, destino, activo')
-          .eq('activo', true)
-          .order('cliente');
-        if (error) throw error;
-        filas = data || [];
-      } catch (e) {
-        console.warn('Clientes sin conexión:', e.message);
-        try {
-          const { db } = require('../data/base.js');
-          filas = db.prepare('SELECT * FROM local_clientes_consignatarios WHERE activo = 1').all();
-        } catch (_) {}
-      }
-
-      consignatariosPorCliente = new Map();
-      filas.forEach(f => {
-        const cli = String(f.cliente || '').trim();
-        if (!cli) return;
-        if (!consignatariosPorCliente.has(cli)) consignatariosPorCliente.set(cli, []);
-        consignatariosPorCliente.get(cli).push({
-          consignatario: String(f.consignatario || '').trim(),
-          destino: String(f.destino || '').trim()
-        });
-      });
-
-      const sel = document.getElementById('selClienteFinal');
-      const clientes = [...consignatariosPorCliente.keys()].sort();
-      sel.required = clientes.length > 0;
-      sel.innerHTML = clientes.length
-        ? '<option value="">— Elegí el cliente —</option>' + clientes.map(c => `<option value="${c}">${c}</option>`).join('')
-        : '<option value="">Sin clientes cargados</option>';
+    // Semana de la planilla: por ETD; si todavía no hay ETD, por ingreso TCA; si no, hoy
+    function fechaBaseSemana() {
+      return v$('txtFechaEtd1').value || v$('txtIngresoFecha').value || new Date().toISOString().split('T')[0];
     }
 
-    function asegurarOpcionCliente(cliente) {
-      const sel = document.getElementById('selClienteFinal');
-      if (cliente && ![...sel.options].some(o => o.value === cliente)) {
-        sel.add(new Option(cliente, cliente));
-      }
-      sel.value = cliente || '';
+    function recalcularSemana() {
+      actualizarSemanaSegunFecha(fechaBaseSemana());
     }
 
-    function vueloClienteCambio(cliente, consignatarioElegido) {
-      const cont = document.getElementById('chipsConsignatarioVuelo');
-      const ayuda = document.getElementById('lblAyudaConsignatario');
-      const oculto = document.getElementById('txtConsignatario');
-      const lista = consignatariosPorCliente.get(cliente) || [];
-
-      cont.innerHTML = '';
-      cont.classList.remove('falta');
-      oculto.value = consignatarioElegido || '';
-      ayuda.textContent = lista.length > 1 ? `· ${lista.length} opciones: elegí para quién` : '';
-
-      if (!cliente) {
-        cont.innerHTML = '<span class="chips-vacio">Elegí un cliente para ver sus consignatarios.</span>';
-      } else if (lista.length === 0) {
-        cont.innerHTML = consignatarioElegido
-          ? ''
-          : '<span class="chips-vacio">Este cliente no tiene consignatarios cargados.</span>';
-      }
-
-      // Si el registro trae un consignatario que ya no está en la lista, se muestra igual
-      const opciones = [...lista];
-      if (consignatarioElegido && !opciones.some(o => o.consignatario === consignatarioElegido)) {
-        opciones.push({ consignatario: consignatarioElegido, destino: '' });
-      }
-
-      opciones.forEach(item => {
-        const chip = document.createElement('button');
-        chip.type = 'button';
-        chip.className = 'chip-consig';
-        chip.innerHTML = item.destino ? `<span></span><small>· ${item.destino}</small>` : '<span></span>';
-        chip.querySelector('span').textContent = item.consignatario;
-        chip.onclick = () => seleccionarConsignatarioVuelo(chip, item);
-        cont.appendChild(chip);
-        if (item.consignatario === consignatarioElegido) chip.classList.add('selected');
-      });
-
-      // Un solo consignatario: se elige solo
-      if (!consignatarioElegido && opciones.length === 1) {
-        seleccionarConsignatarioVuelo(cont.querySelector('.chip-consig'), opciones[0]);
-      }
-      actualizarRutaVuelo();
-    }
-
-    function seleccionarConsignatarioVuelo(chip, item) {
-      const cont = document.getElementById('chipsConsignatarioVuelo');
-      cont.querySelectorAll('.chip-consig').forEach(c => c.classList.remove('selected'));
-      cont.classList.remove('falta');
-      chip.classList.add('selected');
-      document.getElementById('txtConsignatario').value = item.consignatario;
-      if (item.destino) document.getElementById('txtDestino').value = item.destino;
-      actualizarRutaVuelo();
-    }
-
-    function actualizarRutaVuelo() {
-      const ruta = document.getElementById('lblRutaVuelo');
-      const origen = document.getElementById('txtOrigen').value.trim().toUpperCase();
-      const destino = document.getElementById('txtDestino').value.trim().toUpperCase();
-      const cliente = document.getElementById('selClienteFinal').value;
-      const consig = document.getElementById('txtConsignatario').value;
-      if (!origen && !destino && !cliente) { ruta.classList.remove('visible'); return; }
-
-      const para = consig || cliente;
-      ruta.innerHTML = '✈ <span></span>';
-      ruta.querySelector('span').textContent =
-        `${origen || '¿origen?'} → ${destino || '¿destino?'}${para ? ` · para ${para}${consig && cliente ? ` (${cliente})` : ''}` : ''}`;
-      ruta.classList.add('visible');
+    function abrirModalVuelo() {
+      const modal = v$('modalVuelo');
+      modal.classList.add('show');
+      modal.style.display = 'flex';
     }
 
     function abrirModalNuevoVuelo() {
       if (esAdministrador) return;
-
-      try {
-        const modal = document.getElementById('modalVuelo');
-        if (!modal) return;
-
-        document.getElementById('lblModalTitulo').innerText = "Registrar Despacho Aéreo";
-        
-        const form = document.getElementById('formVuelo');
-        if (form) form.reset();
-
-        const nuevoReg = generarUniqueId();
-        const inputReg = document.getElementById('txtRegistroId');
-        if (inputReg) inputReg.value = '';
-
-        const badgeReg = document.getElementById('lblRegistroIdBadge');
-        if (badgeReg) badgeReg.innerText = `Nuevo: ${nuevoReg}`;
-
-        const hoyStr = new Date().toISOString().split('T')[0];
-        const inputFecha = document.getElementById('txtFecha');
-        if (inputFecha) {
-          inputFecha.value = hoyStr;
-          actualizarSemanaSegunFecha(hoyStr);
-        }
-
-        document.getElementById('selClienteFinal').value = '';
-        document.getElementById('txtOrigen').value = 'EZE';
-        vueloClienteCambio('');
-
-        const primerTabBtn = document.querySelector('.form-tab-btn');
-        if (primerTabBtn) {
-          cambiarTabModal(0, primerTabBtn);
-        }
-
-        modal.classList.add('show');
-        modal.style.display = 'flex';
-
-      } catch (err) {
-        console.error("Error abriendo modal:", err);
-      }
+      vueloEnEdicion = null;
+      v$('formVuelo').reset();
+      v$('lblModalTitulo').innerText = 'Registrar Despacho';
+      v$('txtRegistroId').value = '';
+      v$('lblRegistroIdBadge').innerText = 'Nuevo';
+      fijarStatus('PROGRAMADO');
+      recalcularSemana();
+      abrirModalVuelo();
     }
 
     function cerrarModalVuelo() {
-      const modal = document.getElementById('modalVuelo');
-      if (modal) {
-        modal.classList.remove('show');
-        modal.style.display = 'none';
-      }
+      const modal = v$('modalVuelo');
+      modal.classList.remove('show');
+      modal.style.display = 'none';
     }
 
-    function abrirModalEditarVuelo(v) {
+    function abrirModalEditarVuelo(registro) {
       if (esAdministrador) return;
+      const v = vuelosUsuario.find(x => x.registro === registro);
+      if (!v) return;
+      vueloEnEdicion = v;
 
-      document.getElementById('lblModalTitulo').innerText = `Editar Despacho`;
-      document.getElementById('txtRegistroId').value = v.registro;
-      document.getElementById('lblRegistroIdBadge').innerText = v.registro;
+      const fecha = f => (f ? formatearFechaCorta(f) : '');
+      const hora = h => (h ? String(h).slice(0, 5) : '');
+      const eta2 = v['fecha_eta 2'] || v.fecha_eta_2;
 
-      document.getElementById('txtFecha').value = formatearFechaCorta(v.fecha);
-      actualizarSemanaSegunFecha(formatearFechaCorta(v.fecha));
-      document.getElementById('txtIngresoFecha').value = formatearFechaCorta(v.ingreso);
+      v$('lblModalTitulo').innerText = 'Editar Despacho';
+      v$('txtRegistroId').value = v.registro;
+      v$('lblRegistroIdBadge').innerText = v.registro;
 
-      document.getElementById('txtDestino').value = v.destino || '';
-      document.getElementById('txtOrigen').value = v.origen || '';
-      asegurarOpcionCliente(v.cliente_final || '');
-      vueloClienteCambio(v.cliente_final || '', v.consignatario || '');
-      document.getElementById('txtPcs').value = v.pcs !== null && v.pcs !== undefined ? v.pcs : '';
-      document.getElementById('txtKilos').value = v.kilos !== null && v.kilos !== undefined ? v.kilos : '';
-      document.getElementById('txtNeta').value = v.neta !== null && v.neta !== undefined ? v.neta : '';
-      document.getElementById('txtUld').value = v.uld !== null && v.uld !== undefined ? v.uld : '';
+      v$('txtAwb').value = v.awb || '';
+      v$('txtVuelo').value = v.vuelo || '';
+      v$('txtVueloCnx').value = v.vuelo_cnx || '';
+      v$('txtDestino').value = v.destino || '';
+      v$('txtRuta').value = rutaDeVuelo(v);
+      v$('txtIngresoFecha').value = fecha(v.ingreso);
+      v$('txtFechaEtd1').value = fecha(v.fecha_etd1);
+      v$('txtHoraEtd1').value = hora(v.hora_etd1);
+      // ETA de la planilla = llegada final (en los registros viejos con conexión, la del tramo 2)
+      v$('txtFechaEta1').value = fecha(eta2 || v.fecha_eta_1);
+      v$('txtHoraEta1').value = hora(eta2 ? v.hora_eta2 : v.hora_eta1);
+      v$('txtProforma').value = v.proforma || '';
+      v$('txtConsignatario').value = v.consignatario || '';
+      v$('txtPcs').value = v.pcs ?? '';
+      v$('txtKilos').value = v.kilos ?? '';
+      v$('txtTarifa').value = (v.tarifa_kg || '').replace(/^USD\s*/i, '').trim();
+      fijarStatus(v.status);
 
-      document.getElementById('txtLineaAerea').value = v.linea_aerea || '';
-      document.getElementById('txtAwb').value = v.awb || '';
-      document.getElementById('txtVuelo').value = v.vuelo || '';
-      document.getElementById('txtFechaEtd1').value = formatearFechaCorta(v.fecha_etd1);
-      document.getElementById('txtHoraEtd1').value = v.hora_etd1 || '';
-      document.getElementById('txtFechaEta1').value = formatearFechaCorta(v.fecha_eta_1);
-      document.getElementById('txtHoraEta1').value = v.hora_eta1 || '';
-
-      document.getElementById('txtVueloCnx').value = v.vuelo_cnx || '';
-      document.getElementById('txtFechaEtd2').value = formatearFechaCorta(v.fecha_etd2);
-      document.getElementById('txtHoraEtd2').value = v.hora_etd2 || '';
-      
-      const eta2Val = v['fecha_eta 2'] || v.fecha_eta_2;
-      document.getElementById('txtFechaEta2').value = formatearFechaCorta(eta2Val);
-      document.getElementById('txtHoraEta2').value = v.hora_eta2 || '';
-
-      document.getElementById('txtTarifa').value = (v.tarifa_kg || '').replace(/^USD\s*/i, '').trim();
-      document.getElementById('txtFijos').value = (v.fijos || '').replace(/^USD\s*/i, '').trim();
-      document.getElementById('txtInfo').value = v.info || '';
-
-      cambiarTabModal(0, document.querySelectorAll('.form-tab-btn')[0]);
-      
-      const modal = document.getElementById('modalVuelo');
-      modal.classList.add('show');
-      modal.style.display = 'flex';
+      if (v.fecha_etd1 || v.ingreso) recalcularSemana();
+      else actualizarSemanaSegunFecha(fecha(v.fecha));
+      abrirModalVuelo();
     }
 
     async function guardarFormularioVuelo(e) {
       e.preventDefault();
       if (esAdministrador) return;
 
-      // Con 2 o más consignatarios hay que indicar para quién es el despacho
-      const clienteFinal = document.getElementById('selClienteFinal').value;
-      const opcionesConsig = consignatariosPorCliente.get(clienteFinal) || [];
-      if (opcionesConsig.length > 1 && !document.getElementById('txtConsignatario').value) {
-        const cont = document.getElementById('chipsConsignatarioVuelo');
-        cont.classList.add('falta');
-        cont.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        document.getElementById('lblAyudaConsignatario').textContent = '· elegí para quién es este despacho';
-        return;
-      }
-
-      const btn = document.getElementById('btnGuardarModal');
+      const btn = v$('btnGuardarModal');
       btn.disabled = true;
-      btn.innerText = "Guardando...";
+      btn.innerText = 'Guardando...';
 
-      const idExistente = document.getElementById('txtRegistroId').value.trim();
-      const registroId = idExistente || generarUniqueId();
-      const semanaCalculada = parseInt(document.getElementById('valSemanaCalculada').value, 10);
-
-      const parseNumOrNull = (id) => {
-        const el = document.getElementById(id);
-        if (!el || el.value.trim() === '') return null;
-        const n = parseInt(el.value, 10);
+      const texto = id => v$(id).value.trim() || null;
+      const mayus = id => (texto(id) || '').toUpperCase() || null;
+      const numero = id => {
+        const n = parseInt(v$(id).value, 10);
         return isNaN(n) ? null : n;
       };
+      const tarifa = texto('txtTarifa') ? `USD ${texto('txtTarifa').replace(/^USD\s*/i, '')}` : null;
 
-      const getValOrNull = (id) => {
-        const el = document.getElementById(id);
-        if (!el || el.value.trim() === '') return null;
-        return el.value.trim();
-      };
-
-      const formatearMonedaUSD = (val) => {
-        if (!val) return null;
-        const limpio = val.replace(/^USD\s*/i, '').trim();
-        return limpio ? `USD ${limpio}` : null;
-      };
-
-      const fechaEta2 = getValOrNull('txtFechaEta2');
+      const previo = vueloEnEdicion;
+      const eta2Previa = previo && (previo['fecha_eta 2'] || previo.fecha_eta_2);
+      const fechaBase = previo && !texto('txtFechaEtd1') && !texto('txtIngresoFecha')
+        ? formatearFechaCorta(previo.fecha)
+        : fechaBaseSemana();
 
       const vueloData = {
-        registro: registroId,
+        registro: previo ? previo.registro : generarUniqueId(),
         temporada: AÑO_ACTUAL,
-        semana: semanaCalculada || 1,
-        fecha: document.getElementById('txtFecha').value || new Date().toISOString().split('T')[0],
-        ingreso: getValOrNull('txtIngresoFecha'),
-        cliente: 'CECO',
-        cliente_final: clienteFinal || null,
-        consignatario: getValOrNull('txtConsignatario'),
-        origen: (getValOrNull('txtOrigen') || '').toUpperCase() || null,
-        destino: (getValOrNull('txtDestino') || '').toUpperCase(),
-        pcs: parseNumOrNull('txtPcs') || 0,
-        kilos: parseNumOrNull('txtKilos') || 0,
-        neta: parseNumOrNull('txtNeta'),
-        uld: parseNumOrNull('txtUld'),
-        info: getValOrNull('txtInfo'),
-        linea_aerea: (getValOrNull('txtLineaAerea') || '').toUpperCase(),
-        awb: getValOrNull('txtAwb'),
-        vuelo: getValOrNull('txtVuelo'),
-        fecha_etd1: getValOrNull('txtFechaEtd1'),
-        hora_etd1: getValOrNull('txtHoraEtd1'),
-        fecha_eta_1: getValOrNull('txtFechaEta1'),
-        hora_eta1: getValOrNull('txtHoraEta1'),
-        vuelo_cnx: getValOrNull('txtVueloCnx'),
-        fecha_etd2: getValOrNull('txtFechaEtd2'),
-        hora_etd2: getValOrNull('txtHoraEtd2'),
-        fecha_eta_2: fechaEta2,
-        hora_eta2: getValOrNull('txtHoraEta2'),
-        tarifa_kg: formatearMonedaUSD(getValOrNull('txtTarifa')),
-        fijos: formatearMonedaUSD(getValOrNull('txtFijos')),
+        semana: calcularNumeroSemana(fechaBase) || 1,
+        fecha: fechaBase,
+        awb: texto('txtAwb'),
+        ingreso: texto('txtIngresoFecha'),
+        destino: mayus('txtDestino'),
+        ruta: mayus('txtRuta'),
+        vuelo: mayus('txtVuelo'),
+        proforma: texto('txtProforma'),
+        fecha_etd1: texto('txtFechaEtd1'),
+        hora_etd1: texto('txtHoraEtd1'),
+        vuelo_cnx: mayus('txtVueloCnx'),
+        pcs: numero('txtPcs') || 0,
+        kilos: numero('txtKilos') || 0,
+        tarifa_kg: tarifa,
+        status: mayus('txtStatus'),
+        consignatario: texto('txtConsignatario'),
         usuario: sesionUsuario.usuario
       };
+      // Registro viejo con ETA del tramo 2: se actualiza esa; si no, la del tramo 1
+      if (eta2Previa) {
+        vueloData.fecha_eta_2 = texto('txtFechaEta1');
+        vueloData.hora_eta2 = texto('txtHoraEta1');
+      } else {
+        vueloData.fecha_eta_1 = texto('txtFechaEta1');
+        vueloData.hora_eta1 = texto('txtHoraEta1');
+      }
+      if (!previo) vueloData.cliente = 'CECO';
 
       try {
         let { error } = await supabaseClient
           .from('logistitcas_temporada')
           .upsert([vueloData], { onConflict: 'registro' });
 
-        // Si todavía no se crearon las columnas nuevas en Supabase, se guarda sin ellas
-        if (error && /cliente_final|consignatario|origen/.test(String(error.message))) {
-          console.warn('Faltan columnas en logistitcas_temporada. Ejecutá supabase/migraciones/003_vuelos_cliente_consignatario.sql');
-          const { cliente_final, consignatario, origen, ...sinNuevas } = vueloData;
+        // Si todavía no se crearon las columnas de la planilla de logística, se guarda sin ellas
+        if (error && /proforma|ruta|status/.test(String(error.message))) {
+          console.warn('Faltan columnas en logistitcas_temporada. Ejecutá supabase/migraciones/006_vuelos_planilla_logistica.sql');
+          const { proforma, ruta, status, ...sinPlanilla } = vueloData;
           ({ error } = await supabaseClient
             .from('logistitcas_temporada')
-            .upsert([sinNuevas], { onConflict: 'registro' }));
+            .upsert([sinPlanilla], { onConflict: 'registro' }));
         }
 
         if (error) throw error;
 
+        // La copia local guarda el registro completo (lo viejo + lo editado)
         if (servSinc && typeof servSinc.guardarVueloLocal === 'function') {
-          servSinc.guardarVueloLocal(vueloData, sesionUsuario.usuario);
+          servSinc.guardarVueloLocal({ ...(previo || {}), ...vueloData }, sesionUsuario.usuario);
         }
 
         cerrarModalVuelo();
@@ -1552,6 +1410,13 @@
 
       } catch (err) {
         console.error("Error al guardar:", err);
+        mostrarModalConfirmacion({
+          icono: '⚠️',
+          titulo: 'No se pudo guardar',
+          mensaje: String(err.message || err),
+          btnTexto: 'Entendido',
+          btnClase: 'save'
+        });
       } finally {
         btn.disabled = false;
         btn.innerText = "Guardar Despacho";
@@ -1625,34 +1490,41 @@
 
       const finalY = PDF_COMEX.tabla(doc, {
         startY: y,
-        head: [["REGISTRO", "OPERADOR", "FECHA", "CLIENTE / CONSIGNATARIO", "RUTA", "AEROLÍNEA", "AWB", "VUELO 1", "CONEXIÓN", "PALLETS", "KILOS", "TARIFA"]],
-        body: vuelosAExportar.map(v => [
-          v.registro || '-',
-          v.usuario || '-',
-          PDF_COMEX.formatearFecha(v.fecha),
-          [v.cliente_final || v.cliente || '-', v.consignatario].filter(Boolean).join('\n'),
-          v.origen ? `${v.origen} > ${v.destino || '-'}` : (v.destino || '-'),
-          v.linea_aerea || '-',
-          v.awb || '-',
-          v.vuelo || '-',
-          v.vuelo_cnx || 'DIRECTO',
-          Number(v.pcs || 0).toLocaleString('es-AR'),
-          Number(v.kilos || 0).toLocaleString('es-AR'),
-          v.tarifa_kg || '-'
-        ]),
+        head: [["AWB", "INGRESO TCA", "DESTINO", "RUTA", "VUELO", "PROFORMA", "ETD", "CONEX", "ETA", "TARIMAS", "PESO", "TARIFA", "STATUS", "CNNE"]],
+        body: vuelosAExportar.map(v => {
+          const hora = h => (h ? ` ${String(h).slice(0, 5)}` : '');
+          const eta = v.vuelo_cnx
+            ? (v['fecha_eta 2'] || v.fecha_eta_2) && PDF_COMEX.formatearFecha(v['fecha_eta 2'] || v.fecha_eta_2) + hora(v.hora_eta2)
+            : v.fecha_eta_1 && PDF_COMEX.formatearFecha(v.fecha_eta_1) + hora(v.hora_eta1);
+          return [
+            v.awb || '-',
+            v.ingreso ? PDF_COMEX.formatearFecha(v.ingreso) : '-',
+            v.destino || '-',
+            rutaDeVuelo(v) || '-',
+            v.vuelo || '-',
+            v.proforma || '-',
+            v.fecha_etd1 ? PDF_COMEX.formatearFecha(v.fecha_etd1) + hora(v.hora_etd1) : '-',
+            v.vuelo_cnx || 'DIRECTO',
+            eta || '-',
+            Number(v.pcs || 0).toLocaleString('es-AR'),
+            Number(v.kilos || 0).toLocaleString('es-AR'),
+            v.tarifa_kg || '-',
+            v.status || '-',
+            v.consignatario || '-'
+          ];
+        }),
         columnStyles: {
           0: { fontStyle: 'bold', textColor: PDF_COMEX.colores.verde },
-          3: { halign: 'left', fontStyle: 'bold' },
-          5: { halign: 'left' },
-          7: { fontStyle: 'bold' },
-          9: { halign: 'right' },
-          10: { halign: 'right', fontStyle: 'bold' },
-          11: { halign: 'right' }
+          4: { fontStyle: 'bold' },
+          9: { halign: 'right', fontStyle: 'bold' },
+          10: { halign: 'right' },
+          11: { halign: 'right' },
+          13: { halign: 'left', fontStyle: 'bold' }
         }
       });
 
       PDF_COMEX.totales(doc, [
-        ['Pallets', totalPallets.toLocaleString('es-AR')],
+        ['Tarimas', totalPallets.toLocaleString('es-AR')],
         ['Kilos', totalKilos.toLocaleString('es-AR')],
         ['Despachos', vuelosAExportar.length]
       ], finalY);
