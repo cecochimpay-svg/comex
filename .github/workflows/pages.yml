@@ -1,4 +1,4 @@
-# Publica la versión web de COMEX en GitHub Pages en cada push a main.
+# Publica la versión web de COMEX en GitHub Pages en cada push a main (y en cada push a la rama flutter).
 # Solo se suben los archivos de la app: nunca data/, servicios/, main.js, supabase/ ni .env.
 name: Publicar web
 
@@ -32,7 +32,29 @@ jobs:
           cp -r iconos estilos seguridad compartido vendor programa vuelos _site/
           touch _site/.nojekyll
 
-      - uses: actions/configure-pages@v5
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      # COMEX Flutter (rama "flutter") se publica en <sitio>/flutter/.
+      # La rama flutter vuelve a disparar este workflow en cada push (publicar.yml).
+      - uses: actions/checkout@v4
+        with:
+          ref: flutter
+          path: _flutter
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.9
+          channel: stable
+          cache: true
+
+      - name: Compilar COMEX Flutter
+        working-directory: _flutter
+        run: |
+          flutter pub get
+          flutter build web --release --no-wasm-dry-run --base-href "${{ steps.pages.outputs.base_path }}/flutter/"
+          cp -r build/web ../_site/flutter
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
