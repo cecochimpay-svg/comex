@@ -1,0 +1,21 @@
+# Rama "flutter": cada push vuelve a correr el workflow de Pages de main (pages.yml),
+# que publica la web vieja en /comex/ y esta app Flutter en /comex/flutter/.
+# Se dispara desde main porque el entorno github-pages solo acepta despliegues de main.
+name: Publicar web (Flutter)
+
+on:
+  push:
+    branches: [flutter]
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  disparar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Republicar GitHub Pages desde main
+        run: gh workflow run pages.yml --ref main --repo "$GITHUB_REPOSITORY"
+        env:
+          GH_TOKEN: ${{ github.token }}

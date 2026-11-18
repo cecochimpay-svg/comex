@@ -6,7 +6,7 @@
     "background_color": "#123F2C",
     "theme_color": "#123F2C",
     "description": "COMEX - CECO Argentina",
-    "orientation": "portrait-primary",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {
