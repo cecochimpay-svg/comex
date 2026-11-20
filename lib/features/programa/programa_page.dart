@@ -148,9 +148,11 @@ class _ProgramaPageState extends State<ProgramaPage> {
   }
 
   void _nuevo() {
+    final d = _datos;
+    if (d == null) return;
     final hoy = _fechas.first;
     _abrirEditor(
-      AperturaPrograma(modo: ModoPrograma.nuevo, fecha: hoy, salida: '${hoy}T08:00', nro: generarNroPrograma()),
+      AperturaPrograma(modo: ModoPrograma.nuevo, fecha: hoy, salida: '${hoy}T08:00', nro: d.siguienteNro),
     );
   }
 
@@ -178,7 +180,7 @@ class _ProgramaPageState extends State<ProgramaPage> {
       modo: ModoPrograma.copiar,
       fecha: hoy,
       salida: '${hoy}T$hora',
-      nro: generarNroPrograma(),
+      nro: d.siguienteNro,
       bloques: bloquesDesdeRenglones(d, p.renglones, conservarIds: false),
       programaOriginal: p.nro,
       avisoInicial: 'Copia lista: ajustá la fecha, elegí el vuelo y usá "Aplicar este vuelo a todos los bloques".',

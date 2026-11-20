@@ -117,6 +117,9 @@ class DatosPrograma {
     return grupos.values.toList();
   }
 
+  /// N° para un programa nuevo de la temporada (último + 1; incluye los cargados sin conexión).
+  String get siguienteNro => '${siguienteNroPrograma(renglones.map((r) => r['programa_nro']))}';
+
   bool nroEnUso(String nro, {String? salvo}) =>
       renglones.any((r) => txt(r['programa_nro']) == nro && !(salvo != null && txt(r['programa_nro']) == salvo));
 }
@@ -251,10 +254,19 @@ String siguienteCamion(List<String> lista) {
   return nombreCamion((numeros.isEmpty ? 0 : numeros.reduce((a, b) => a > b ? a : b)) + 1);
 }
 
-String generarNroPrograma() {
-  final ms = '${DateTime.now().millisecondsSinceEpoch}';
-  return 'PRG-${Config.temporada}-${ms.substring(ms.length - 4)}';
+/// N° del programa nuevo: el mayor N° numérico + 1. Los viejos con letras ("PRG-2026-4821") no cuentan;
+/// si todavía no hay ninguno numérico, arranca en 1.
+int siguienteNroPrograma(Iterable<Object?> nros) {
+  var mayor = 0;
+  for (final n in nros) {
+    final v = int.tryParse(txt(n));
+    if (v != null && v > mayor) mayor = v;
+  }
+  return mayor + 1;
 }
+
+/// El N° de un programa nuevo tiene que ser un número entero positivo.
+bool nroProgramaValido(String nro) => RegExp(r'^[1-9]\d{0,8}$').hasMatch(nro.trim());
 
 // ─────────────────────────── Renglones a guardar ───────────────────────────
 

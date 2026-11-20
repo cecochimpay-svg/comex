@@ -129,6 +129,23 @@ abstract final class RepoPrograma {
     }
   }
 
+  /// N° de programa de la temporada que ya están en la nube, para no repetir uno que otro usuario acaba de
+  /// guardar. Trae los renglones más nuevos (ahí están los números más altos). null = sin conexión.
+  static Future<Set<String>?> nrosEnNube() async {
+    try {
+      final filas = await Supabase.instance.client
+          .from(tablaProgramas)
+          .select('programa_nro')
+          .eq('temporada', Config.temporada)
+          .order('id', ascending: false)
+          .limit(1000)
+          .timeout(DatosNube.limiteLectura);
+      return {for (final f in filas) txt(f['programa_nro'])};
+    } catch (_) {
+      return null; // sin conexión: alcanza con el control contra la copia local
+    }
+  }
+
   /// Guarda los 11 días de la proyección (cosecha, inspección, carga y Ezeiza en kg).
   /// [valores]: fecha -> campo ('cosecha'…) -> kg. Devuelve false si quedó pendiente sin conexión.
   static Future<bool> guardarProyeccion({

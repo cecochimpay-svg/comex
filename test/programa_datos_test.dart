@@ -64,4 +64,22 @@ void main() {
     expect(filas.first['semana'], 46);
     expect(filas.first['consignatario'], 'CNNE 2');
   });
+  test('N° de programa nuevo: último numérico + 1', () {
+    expect(_datos().siguienteNro, '1', reason: 'sin programas arranca en 1');
+    final d = _datos(renglones: [
+      {'id': 1, 'programa_nro': 'PRG-2026-4821', 'fecha': '2026-11-10'},
+      {'id': 2, 'programa_nro': '14', 'fecha': '2026-11-11'},
+      {'id': 3, 'programa_nro': '14', 'fecha': '2026-11-11'},
+      {'id': 4, 'programa_nro': '9', 'fecha': '2026-11-12'},
+      {'id': 5, 'programa_nro': null, 'fecha': '2026-11-12'},
+    ]);
+    expect(d.siguienteNro, '15', reason: 'los PRG-… viejos no cuentan y gana el mayor, no el último cargado');
+    expect(siguienteNroPrograma(['3', ' 20 ', 'abc', 7]), 21);
+
+    expect(nroProgramaValido('15'), isTrue);
+    expect(nroProgramaValido(' 15 '), isTrue);
+    for (final malo in ['', '0', '015', '-3', '1.5', 'PRG-2026-001', '15a']) {
+      expect(nroProgramaValido(malo), isFalse, reason: malo);
+    }
+  });
 }

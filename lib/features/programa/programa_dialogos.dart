@@ -379,8 +379,30 @@ class _EditorProgramaState extends State<_EditorPrograma> {
     if (nro.isEmpty || _fecha.isEmpty) {
       return _avisar('Completá el N° de programa y la fecha de empaque.', error: true);
     }
+    // Programa nuevo o copia: N° numérico correlativo (último + 1). En edición se respeta el que tenía
+    // (los viejos son "PRG-…").
+    if (!_edicion && !nroProgramaValido(nro)) {
+      return _avisar('El N° de programa tiene que ser un número (el siguiente es ${d.siguienteNro}).', error: true);
+    }
     if (d.nroEnUso(nro, salvo: _edicion ? a.programaOriginal : null)) {
-      return _avisar('Ya existe un programa con el N° $nro.', error: true);
+      if (!_edicion) _nro.text = d.siguienteNro;
+      return _avisar(
+        'Ya existe un programa con el N° $nro.${_edicion ? '' : ' Te dejé el ${d.siguienteNro}: guardá de nuevo.'}',
+        error: true,
+      );
+    }
+    if (!_edicion) {
+      // Otro usuario pudo haber guardado un programa mientras éste estaba abierto: se revisa en la nube.
+      setState(() => _guardando = true);
+      final enNube = await RepoPrograma.nrosEnNube();
+      if (!mounted) return;
+      setState(() => _guardando = false);
+      if (enNube != null && enNube.contains(nro)) {
+        final libre = siguienteNroPrograma([...enNube, ...d.renglones.map((r) => r['programa_nro'])]);
+        _nro.text = '$libre';
+        return _avisar('Otro usuario acaba de guardar el programa N° $nro. Te dejé el $libre: guardá de nuevo.',
+            error: true);
+      }
     }
     if (_hayBloqueSinAgregar) {
       final ok = await confirmar(
@@ -478,7 +500,12 @@ class _EditorProgramaState extends State<_EditorPrograma> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               FilaCampos([
-                (2, campoTexto(_nro, 'Programa N°', pista: 'PRG-2026-001', mayusculas: true)),
+                (
+                  2,
+                  _edicion
+                      ? campoTexto(_nro, 'Programa N°', mayusculas: true)
+                      : campoTexto(_nro, 'Programa N°', pista: d.siguienteNro, tipo: TipoCampo.entero),
+                ),
                 (2, _campoTocable('Fecha empaque', formatearFecha(_fecha), Icons.calendar_today_rounded, _elegirFecha)),
                 (3, _campoTocable('Salida empaque', formatearFecha(_salida, conHora: true), Icons.schedule_rounded,
                     _elegirSalida)),
