@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app.dart';
 import 'core/auth/auth_servicio.dart';
+import 'core/avisos/avisos_admin.dart';
 import 'core/auth/sesion_controller.dart';
 import 'core/config.dart';
 import 'core/db/base_local.dart';
@@ -78,6 +79,10 @@ class _ArranqueState extends State<Arranque> {
       }
       final sync = ServicioSync(nube, preferencias);
       ResumenVivo.seguir(sync); // los números del menú se releen al guardar y al sincronizar
+      // Avisos de cambios para el ADM: se prenden con su sesión y se apagan al salir.
+      final avisos = AvisosAdmin(FuenteAvisosSupabase(nube));
+      sesion.addListener(() => avisos.seguir(sesion.actual));
+      unawaited(avisos.seguir(sesion.actual));
       await anotar('Arranque: listo.');
 
       // Pausa de 150 ms para garantizar que el compositor DirectX de Windows presente
@@ -93,6 +98,7 @@ class _ArranqueState extends State<Arranque> {
             ChangeNotifierProvider.value(value: preferencias),
             ChangeNotifierProvider.value(value: modo),
             ChangeNotifierProvider.value(value: sync),
+            ChangeNotifierProvider.value(value: avisos),
           ],
           child: ComexApp(sesion: sesion),
         );

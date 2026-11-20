@@ -2,6 +2,7 @@ const etiquetasRol = <String, String>{
   'ADM': 'Administración',
   'ADMIN': 'Administración',
   'COMEX': 'Comercio exterior',
+  'EXTERNO': 'Operador externo',
 };
 
 /// Usuario logueado en este equipo.

@@ -12,17 +12,18 @@ abstract final class RepoVuelos {
   static const tabla = 'logistitcas_temporada';
   static const clave = 'registro';
 
-  static String _alcance(Sesion s) =>
+  static String alcance(Sesion s) =>
       '${Config.temporada}|${s.esAdministrador ? '*' : s.nombre.trim().toLowerCase()}';
 
   static Future<({List<Vuelo> vuelos, bool offline})> cargar(Sesion s) async {
     final l = await DatosNube.leer(
       tabla: tabla,
       clave: clave,
-      alcance: _alcance(s),
+      alcance: alcance(s),
       consulta: (nube) async {
         var q = nube.from(tabla).select().eq('temporada', Config.temporada);
-        if (!s.esAdministrador) q = q.ilike('usuario', s.nombre.trim());
+        // ilike sin comodines: "_" y "%" del nombre se escapan (si no, "j_lopez" traería también "jxlopez").
+        if (!s.esAdministrador) q = q.ilike('usuario', patronExacto(s.nombre.trim()));
         return await q.order('semana', ascending: false);
       },
     );
@@ -49,7 +50,7 @@ abstract final class RepoVuelos {
         : (d.etdFecha.isNotEmpty ? d.etdFecha : (d.ingreso.isNotEmpty ? d.ingreso : hoyIso()));
 
     final fila = <String, Object?>{
-      'registro': previo?.registro ?? _nuevoRegistro(),
+      'registro': previo?.registro ?? nuevoRegistro(),
       'temporada': Config.temporada,
       'semana': semanaDeDespacho(etd: fechaBase),
       'fecha': fechaBase,
@@ -83,7 +84,7 @@ abstract final class RepoVuelos {
     final enNube = await DatosNube.guardar(
       tabla: tabla,
       clave: clave,
-      alcance: _alcance(s),
+      alcance: alcance(s),
       fila: fila,
       copiaLocal: previo?.f,
       omitidas: omitidas,
@@ -94,11 +95,15 @@ abstract final class RepoVuelos {
   static Future<bool> borrar(Vuelo v) => DatosNube.borrar(tabla: tabla, clave: clave, valor: v.registro);
 
   /// Mismo formato que la versión Electron: 8 letras y números al azar.
-  static String _nuevoRegistro() {
+  static String nuevoRegistro() {
     const letras = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final r = Random.secure();
     return List.generate(8, (_) => letras[r.nextInt(letras.length)]).join();
   }
+
+  /// Patrón de LIKE que coincide sólo con [texto] tal cual (sin distinguir mayúsculas con ilike).
+  static String patronExacto(String texto) =>
+      texto.replaceAllMapped(RegExp(r'[\\%_]'), (m) => '\\${m[0]}');
 
   static String txtFecha(Object? v) {
     final s = v == null ? '' : '$v'.trim();

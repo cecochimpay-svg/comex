@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/db/filas.dart';
+import '../../core/formato.dart';
 import '../../core/tema/paleta.dart';
 import '../home/resumen_datos.dart' show semanaIso;
 
@@ -143,6 +144,51 @@ class FiltrosVuelos {
         status: sinStatus ? null : (status ?? this.status),
         texto: texto ?? this.texto,
       );
+}
+
+/// Nombre para mostrar de cada columna de `logistitcas_temporada` (cambios de la importación y avisos).
+const etiquetasColumnasVuelo = <String, String>{
+  'awb': 'AWB',
+  'ingreso': 'Ingreso TCA',
+  'destino': 'Destino',
+  'origen': 'Origen',
+  'ruta': 'Ruta',
+  'vuelo': 'Vuelo',
+  'proforma': 'Proforma',
+  'fecha_etd1': 'ETD',
+  'hora_etd1': 'Hora ETD',
+  'vuelo_cnx': 'Conex',
+  'fecha_etd2': 'ETD conex',
+  'hora_etd2': 'Hora ETD conex',
+  'fecha_eta_1': 'ETA',
+  'hora_eta1': 'Hora ETA',
+  'fecha_eta_2': 'ETA conex',
+  'fecha_eta 2': 'ETA conex',
+  'hora_eta2': 'Hora ETA conex',
+  'pcs': 'Tarimas',
+  'kilos': 'Peso',
+  'tarifa_kg': 'Tarifa',
+  'fijos': 'Fijos',
+  'status': 'Status',
+  'consignatario': 'CNNE',
+  'cliente': 'Cliente',
+  'cliente_final': 'Cliente final',
+  'linea_aerea': 'Línea aérea',
+  'usuario': 'Operador',
+};
+
+String etiquetaColumnaVuelo(String columna) => etiquetasColumnasVuelo[columna] ?? columna;
+
+/// Valor de una columna para mostrar: fechas DD/MM/AAAA, horas HH:MM, kilos y tarimas con miles; vacío = "—".
+String valorColumnaVuelo(String columna, Object? v) {
+  final s = txt(v);
+  if (s.isEmpty) return '—';
+  if (columna.startsWith('fecha') || columna == 'ingreso') {
+    return fechaCorta(s.length >= 10 ? s.substring(0, 10) : s);
+  }
+  if (columna.startsWith('hora')) return s.length >= 5 ? s.substring(0, 5) : s;
+  if (columna == 'pcs' || columna == 'kilos') return fmtNum(numDe(v));
+  return s;
 }
 
 /// Fecha AAAA-MM-DD a DD/MM (corta, para la tabla).

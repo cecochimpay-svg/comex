@@ -20,6 +20,7 @@ import '../home/resumen_datos.dart' show semanaIso;
 import '../home/resumen_repo.dart';
 import '../modulo/botones_exportar.dart';
 import '../modulo/modulo_page.dart';
+import 'importar_dialogo.dart';
 import 'vuelos_datos.dart';
 import 'vuelos_dialogos.dart';
 import 'vuelos_exportar.dart';
@@ -137,6 +138,30 @@ class _VuelosPageState extends State<VuelosPage> {
     await _recargar(r.mensaje, pendiente: r.pendiente);
   }
 
+  /// Planilla Excel del operador: crea los despachos nuevos y actualiza los que ya estaban (por AWB).
+  Future<void> _importar() async {
+    final r = await importarPlanillaVuelos(context, _vuelos ?? const []);
+    if (r == null || !mounted) return;
+    final partes = [
+      if (r.creados > 0) '${fmtNum(r.creados)} nuevo(s)',
+      if (r.actualizados > 0) '${fmtNum(r.actualizados)} actualizado(s)',
+    ];
+    var mensaje = partes.isEmpty ? 'No se importó ningún despacho.' : 'Planilla importada: ${partes.join(' y ')}.';
+    if (r.pendientes > 0) mensaje += ' ${fmtNum(r.pendientes)} sin conexión: se suben al sincronizar.';
+    if (r.omitidas.isNotEmpty) mensaje += ' (sin ${r.omitidas.join(', ')}: falta esa columna en Supabase)';
+    await _recargar(null);
+    if (!mounted) return;
+    if (r.errores.isNotEmpty) {
+      mostrarAviso(
+        context,
+        '$mensaje No se pudieron guardar ${r.errores.length}: ${r.errores.take(3).join(' · ')}',
+        tipo: TipoAviso.error,
+      );
+    } else {
+      mostrarAviso(context, mensaje, tipo: r.pendientes > 0 ? TipoAviso.aviso : TipoAviso.exito);
+    }
+  }
+
   Future<void> _editar(Vuelo v) async {
     final r = await dialogoVuelo(context, edicion: v);
     if (r == null) return;
@@ -185,6 +210,12 @@ class _VuelosPageState extends State<VuelosPage> {
           BotonesExportar(
             prefijoFolio: 'VUE',
             armar: () async => informeVuelos(lista, _f, todosLosOperadores: admin, operador: sesion.nombre),
+          ),
+        if (!admin)
+          BotonHero(
+            icono: Icons.upload_file_rounded,
+            texto: 'Importar Excel',
+            onTap: vuelos == null ? null : _importar,
           ),
         if (!admin)
           BotonHero(

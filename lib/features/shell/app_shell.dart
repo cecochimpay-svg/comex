@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'barra_navegacion.dart';
 import 'buscador_pantallas.dart';
+import 'panel_avisos.dart';
 
 /// Armazón de la app: barra de navegación superior + contenido a todo el ancho.
 ///   - Escritorio / tablet: una pestaña por área; cada una despliega sus pantallas como cards.
@@ -46,7 +47,20 @@ class AppShell extends StatelessWidget {
       bindings: {
         const SingleActivator(LogicalKeyboardKey.keyK, control: true): () => mostrarBuscadorPantallas(context),
       },
-      child: Focus(autofocus: true, child: cuerpo),
+      child: Focus(
+        autofocus: true,
+        // Avisos de cambios para el ADM, flotando arriba a la derecha sobre cualquier pantalla.
+        child: Stack(
+          children: [
+            Positioned.fill(child: cuerpo),
+            Positioned(
+              top: celular ? MediaQuery.paddingOf(context).top + 64 : 74,
+              right: 12,
+              child: const PanelAvisos(),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
