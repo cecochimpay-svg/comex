@@ -15,6 +15,7 @@ import 'programa_datos.dart';
 abstract final class RepoPrograma {
   static const tablaProgramas = 'comex_programa_trabajo';
   static const tablaProyeccion = 'comex_proyeccion_dias';
+  static const tablaStock = 'vista_pallet_stock_general'; // sólo lectura (la llena salvado)
   static const _alcanceTemporada = '${Config.temporada}';
 
   // La pantalla de Vuelos guarda su propia copia de logistitcas_temporada; ésta se guarda aparte
@@ -93,14 +94,17 @@ abstract final class RepoPrograma {
     }
 
     final marcasFilas = [...resultados[4].filas]..sort((a, b) => txt(a['detalle']).compareTo(txt(b['detalle'])));
+    final vistas = <String>{};
     final marcas = <OpcionMarca>[
       for (final m in marcasFilas)
-        if (txt(m['detalle']).isNotEmpty)
+        // Una sola vez por detalle: el desplegable no admite valores repetidos.
+        if (txt(m['detalle']).isNotEmpty && vistas.add(txt(m['detalle'])))
           OpcionMarca(
             txt(m['detalle']),
             txt(m['abreviatura']).isNotEmpty && txt(m['abreviatura']) != txt(m['detalle'])
                 ? '${txt(m['detalle'])} (${txt(m['abreviatura'])})'
                 : txt(m['detalle']),
+            txt(m['abreviatura']),
           ),
     ];
 
@@ -145,6 +149,30 @@ abstract final class RepoPrograma {
       return null; // sin conexión: alcanza con el control contra la copia local
     }
   }
+
+  /// Todo el stock de pallets (vista_pallet_stock_general), leído de a páginas de 1000 filas porque
+  /// Supabase corta cada consulta en 1000. El panel lo filtra por marca, calibre y texto en el equipo.
+  /// Queda una copia local para verlo sin conexión.
+  static Future<Lectura> stock() => DatosNube.leer(
+    tabla: tablaStock,
+    clave: 'id',
+    alcance: 'todo',
+    consulta: (n) async {
+      const pagina = 1000;
+      final filas = <Map<String, dynamic>>[];
+      for (var desde = 0; desde < 100000; desde += pagina) {
+        final parte = await n
+            .from(tablaStock)
+            .select('id, pallet_integrado, numero_romaneo_interno, marca, envase, variedad, especie, calibre, '
+                'categoria, color, cantidad, fecha_produccion, codigo_camara, productor')
+            .order('id')
+            .range(desde, desde + pagina - 1);
+        filas.addAll(parte);
+        if (parte.length < pagina) break;
+      }
+      return filas;
+    },
+  );
 
   /// Guarda los 11 días de la proyección (cosecha, inspección, carga y Ezeiza en kg).
   /// [valores]: fecha -> campo ('cosecha'…) -> kg. Devuelve false si quedó pendiente sin conexión.
